@@ -9,9 +9,9 @@ namespace TupleAlgebraClassLib
     public interface IAttributeComponentFactory<TValue>
         where TValue : IComparable<TValue>
     {
-        NonFictionalAttributeComponent<TValue> CreateNonFictional(IEnumerable<TValue> values);
-
         EmptyAttributeComponent<TValue> CreateEmpty();
+
+        AttributeComponent<TValue> CreateNonFictional(IEnumerable<TValue> values);
 
         FullAttributeComponent<TValue> CreateFull();
     }
@@ -40,17 +40,21 @@ namespace TupleAlgebraClassLib
     public static class AttributeComponentFactory<TValue>
         where TValue : IComparable<TValue>
     {
-        public static NonFictionalAttributeComponent<TValue> CreateNonFictional(IEnumerable<TValue> values)
+        /*
+        public static AttributeComponent<TValue> CreateNonFictional(
+            AttributeDomain<TValue> domain, 
+            IEnumerable<TValue> values)
         {
-            return new NonFictionalAttributeComponent<TValue>(values);
+            return new NonFictionalAttributeComponent<TValue>(domain, values);
         }
+        */
 
         public static EmptyAttributeComponent<TValue> CreateEmpty()
         {
             throw new NotImplementedException();
         }
 
-        public static FullAttributeComponent<TValue> CreateFull()
+        public static FullAttributeComponent<TValue> CreateFull(AttributeDomain<TValue> domain)
         {
             throw new NotImplementedException();
         }

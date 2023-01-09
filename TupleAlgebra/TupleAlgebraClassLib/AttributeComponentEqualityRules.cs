@@ -6,54 +6,54 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib
 {
-    internal static class AttributeComponentUnionRules
+    internal static class AttributeComponentEqualityRules
     {
-        public static EmptyAttributeComponent<TValue> Union<TValue>(
+        public static bool Equal<TValue>(
             EmptyAttributeComponent<TValue> first,
             EmptyAttributeComponent<TValue> second)
             where TValue : IComparable<TValue>
         {
-            return first;
+            return true;
         }
 
-        public static NonFictionalAttributeComponent<TValue> Union<TValue>(
+        public static bool Equal<TValue>(
             EmptyAttributeComponent<TValue> first,
             NonFictionalAttributeComponent<TValue> second)
             where TValue : IComparable<TValue>
         {
-            return second;
+            return second.IsEmpty();
         }
 
-        public static FullAttributeComponent<TValue> Union<TValue>(
+        public static bool Equal<TValue>(
             EmptyAttributeComponent<TValue> first,
             FullAttributeComponent<TValue> second)
             where TValue : IComparable<TValue>
         {
-            return second;
+            return false;
         }
 
-        public static AttributeComponent<TValue> Union<TValue>(
+        public static bool Equal<TValue>(
             NonFictionalAttributeComponent<TValue> first,
             NonFictionalAttributeComponent<TValue> second)
             where TValue : IComparable<TValue>
         {
-            return first.UnionWith(second);
+            return first.SequenceEqual(second);
         }
 
-        public static FullAttributeComponent<TValue> Union<TValue>(
+        public static bool Equal<TValue>(
             NonFictionalAttributeComponent<TValue> first,
             FullAttributeComponent<TValue> second)
             where TValue : IComparable<TValue>
         {
-            return second;
+            return first.IsFull();
         }
 
-        public static FullAttributeComponent<TValue> Union<TValue>(
+        public static bool Equal<TValue>(
             FullAttributeComponent<TValue> first,
             FullAttributeComponent<TValue> second)
             where TValue : IComparable<TValue>
         {
-            return first;
+            return true;
         }
     }
 }
