@@ -6,17 +6,20 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib
 {
-    public class SetOperationExecutersContainer
+    public class SetOperationExecutersContainer<TValue>
+        where TValue : IComparable<TValue>
     {
-        public readonly AttributeComponentAcceptor<AttributeComponent> IntersectionOperator;
-        public readonly AttributeComponentAcceptor<AttributeComponent> UnionOperator;
+        private AttributeComponentFactory<TValue> _componentFactory;
+
+        public readonly FactoryAttributeComponentAcceptor<AttributeComponent<TValue>> IntersectionOperator;
+        public readonly FactoryAttributeComponentAcceptor<AttributeComponent<TValue>> UnionOperator;
         public readonly AttributeComponentAcceptor<bool> InclusionComparer;
         public readonly AttributeComponentAcceptor<bool> EqualityComparer;
         public readonly AttributeComponentAcceptor<bool> InclusionOrEqualityComparer;
 
         public SetOperationExecutersContainer(
-            AttributeComponentAcceptor<AttributeComponent> intersectionOperator,
-            AttributeComponentAcceptor<AttributeComponent> unionOperator,
+            FactoryAttributeComponentAcceptor<AttributeComponent<TValue>> intersectionOperator,
+            FactoryAttributeComponentAcceptor<AttributeComponent<TValue>> unionOperator,
             AttributeComponentAcceptor<bool> inclusionComparer,
             AttributeComponentAcceptor<bool> equationComparer,
             AttributeComponentAcceptor<bool> inlusionOrEquationComparer)
@@ -28,39 +31,30 @@ namespace TupleAlgebraClassLib
             InclusionOrEqualityComparer = inlusionOrEquationComparer;
         }
         
-        public AttributeComponent<TValue> Intersect<TValue>(
-            AttributeComponent<TValue> first, AttributeComponent<TValue> second)
-        where TValue : IComparable<TValue>
+        public AttributeComponent<TValue> Intersect(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
         {
-            return IntersectionOperator.Accept<TValue>(first, second) as AttributeComponent<TValue>;
+            return IntersectionOperator.Accept(first, second, _componentFactory) as AttributeComponent<TValue>;
         }
 
-        public AttributeComponent<TValue> Union<TValue>(
-            AttributeComponent<TValue> first, AttributeComponent<TValue> second)
-        where TValue : IComparable<TValue>
+        public AttributeComponent<TValue> Union(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
         {
-            return UnionOperator.Accept<TValue>(first, second) as AttributeComponent<TValue>;
+            return UnionOperator.Accept(first, second, _componentFactory) as AttributeComponent<TValue>;
         }
 
-        public bool Include<TValue>(
-            AttributeComponent<TValue> first, AttributeComponent<TValue> second)
-        where TValue : IComparable<TValue>
+        public bool Include(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
         {
-            return InclusionComparer.Accept<TValue>(first, second);
+            return InclusionComparer.Accept(first, second);
         }
 
-        public bool Equal<TValue>(
-            AttributeComponent<TValue> first, AttributeComponent<TValue> second)
-        where TValue : IComparable<TValue>
+        public bool Equal(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+
         {
-            return EqualityComparer.Accept<TValue>(first, second);
+            return EqualityComparer.Accept(first, second);
         }
 
-        public bool IncludeOrEqual<TValue>(
-            AttributeComponent<TValue> first, AttributeComponent<TValue> second)
-        where TValue : IComparable<TValue>
+        public bool IncludeOrEqual(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
         {
-            return InclusionOrEqualityComparer.Accept<TValue>(first, second);
+            return InclusionOrEqualityComparer.Accept(first, second);
         }
     }
 }

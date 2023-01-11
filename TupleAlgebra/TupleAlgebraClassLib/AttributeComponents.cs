@@ -149,11 +149,11 @@ namespace TupleAlgebraClassLib
     public abstract class AttributeComponent<TValue> : AttributeComponent, IEnumerable<TValue>
         where TValue : IComparable<TValue>
     {
-        private static Dictionary<AttributeComponentContentType, SetOperationExecutersContainer> _setOperations;
+        private static Dictionary<AttributeComponentContentType, SetOperationExecutersContainer<TValue>> _setOperations;
 
         static AttributeComponent()
         {
-            _setOperations = new Dictionary<AttributeComponentContentType, SetOperationExecutersContainer>();
+            _setOperations = new Dictionary<AttributeComponentContentType, SetOperationExecutersContainer<TValue>>();
         }
 
         public AttributeComponent(AttributeComponentPower power) 
@@ -162,7 +162,7 @@ namespace TupleAlgebraClassLib
 
         protected static void InitSetOperations(
             AttributeComponentContentType contentType,
-            SetOperationExecutersContainer setOperations)
+            SetOperationExecutersContainer<TValue> setOperations)
         {
             _setOperations[contentType] = setOperations;
         }

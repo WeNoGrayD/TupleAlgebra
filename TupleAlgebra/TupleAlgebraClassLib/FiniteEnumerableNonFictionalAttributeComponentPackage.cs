@@ -61,14 +61,14 @@ namespace TupleAlgebraClassLib
             return _values.GetEnumerator();
         }
 
-        private class FiniteEnumerableNonFictionalAttributeComponentOperationExecutersContainer : SetOperationExecutersContainer
+        private class FiniteEnumerableNonFictionalAttributeComponentOperationExecutersContainer : SetOperationExecutersContainer<TValue>
         {
             public FiniteEnumerableNonFictionalAttributeComponentOperationExecutersContainer() : base(
-                new FiniteEnumerableNonFictionalAttributeComponentIntersectionOperator(),
-                new FiniteEnumerableNonFictionalAttributeComponentUnionOperator(),
+                new FiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TValue>(),
+                new FiniteEnumerableNonFictionalAttributeComponentUnionOperator<TValue>(),
                 null,
                 null,
-                new FiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer())
+                new FiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer<TValue>())
             { }
         }
 
@@ -98,14 +98,17 @@ namespace TupleAlgebraClassLib
         }
     }
 
-    public class FiniteEnumerableNonFictionalAttributeComponentIntersectionOperator
-        : AttributeComponentAcceptor<AttributeComponent>, IFiniteEnumerableNonFictionalAttributeComponentAcceptor<AttributeComponent>
+    public class FiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TValue>
+        : FactoryAttributeComponentAcceptor<AttributeComponent<TValue>>,
+          IFactoryAttributeComponentAcceptor<FiniteEnumerableNonFictionalAttributeComponent<TValue>, TValue, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
     {
-        public AttributeComponent Accept<TValue>(
-            NonFictionalAttributeComponent<TValue> first, 
-            FiniteEnumerableNonFictionalAttributeComponent<TValue> second)
-            where TValue : IComparable<TValue>
+        public AttributeComponent<TValue> Accept(
+            AttributeComponent firstOfBaseType, 
+            FiniteEnumerableNonFictionalAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
         {
+            NonFictionalAttributeComponent<TValue> first = firstOfBaseType as NonFictionalAttributeComponent<TValue>;
             IEnumerable<TValue> intersectedElements = IntersectComponentsElements();
             AttributeComponent<TValue> resultComponent =
                 new FiniteEnumerableNonFictionalAttributeComponent<TValue>(first.Domain, intersectedElements);
@@ -178,14 +181,17 @@ namespace TupleAlgebraClassLib
         }
     }
 
-    public class FiniteEnumerableNonFictionalAttributeComponentUnionOperator
-        : AttributeComponentAcceptor<AttributeComponent>, IFiniteEnumerableNonFictionalAttributeComponentAcceptor<AttributeComponent>
+    public class FiniteEnumerableNonFictionalAttributeComponentUnionOperator<TValue>
+        : FactoryAttributeComponentAcceptor<AttributeComponent<TValue>>,
+          IFactoryAttributeComponentAcceptor<FiniteEnumerableNonFictionalAttributeComponent<TValue>, TValue, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
     {
-        public AttributeComponent Accept<TValue>(
-            NonFictionalAttributeComponent<TValue> first,
-            FiniteEnumerableNonFictionalAttributeComponent<TValue> second)
-            where TValue : IComparable<TValue>
+        public AttributeComponent<TValue> Accept(
+            AttributeComponent firstOfBaseType,
+            FiniteEnumerableNonFictionalAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
         {
+            NonFictionalAttributeComponent<TValue> first = firstOfBaseType as NonFictionalAttributeComponent<TValue>;
             IEnumerable<TValue> unitedElements = UnionComponentsElements();
             AttributeComponent<TValue> resultComponent =
                 new FiniteEnumerableNonFictionalAttributeComponent<TValue>(first.Domain, unitedElements);
@@ -279,14 +285,16 @@ namespace TupleAlgebraClassLib
         }
     }
 
-    public class FiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer
-        : AttributeComponentAcceptor<bool>, IFiniteEnumerableNonFictionalAttributeComponentAcceptor<bool>
+    public class FiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer<TValue>
+        : AttributeComponentAcceptor<bool>,
+          IAttributeComponentAcceptor<FiniteEnumerableNonFictionalAttributeComponent<TValue>,  bool>
+        where TValue : IComparable<TValue>
     {
-        public bool Accept<TValue>(
-            NonFictionalAttributeComponent<TValue> greater,
+        public bool Accept(
+            AttributeComponent greaterOfBaseType,
             FiniteEnumerableNonFictionalAttributeComponent<TValue> lesser)
-            where TValue : IComparable<TValue>
         {
+            NonFictionalAttributeComponent<TValue> greater = greaterOfBaseType as NonFictionalAttributeComponent<TValue>;
             bool isIncludes = false;
             IEnumerator<TValue> greaterEnumerator = greater.GetEnumerator(),
                                 lesserEnumerator = lesser.GetEnumerator();

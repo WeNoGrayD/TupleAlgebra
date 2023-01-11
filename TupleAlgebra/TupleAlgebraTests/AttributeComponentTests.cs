@@ -13,7 +13,7 @@ namespace TupleAlgebraTests
         protected MockAttributeComponentFactory<int> intFactory;
         protected MockAttributeComponentFactory<string> stringFactory;
 
-        protected class MockAttributeComponentFactory<TValue> : IAttributeComponentFactory<TValue>
+        protected class MockAttributeComponentFactory<TValue> : AttributeComponentFactory<TValue>
             where TValue : IComparable<TValue>
         {
             private readonly AttributeDomain<TValue> _factoryDomain;
@@ -23,24 +23,14 @@ namespace TupleAlgebraTests
                 _factoryDomain = factoryDomain;
             }
 
-            public EmptyAttributeComponent<TValue> CreateEmpty()
+            protected override NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional(
+                AttributeDomain<TValue> factoryDomain = null,
+                IEnumerable<TValue> values = null)
             {
-                return EmptyAttributeComponent<TValue>.Instance;
+                return new FiniteEnumerableNonFictionalAttributeComponent<TValue>(_factoryDomain, values);
             }
 
-            public AttributeComponent<TValue> CreateNonFictional(IEnumerable<TValue> values)
-            {
-                NonFictionalAttributeComponent<TValue> nonFictional = 
-                    new FiniteEnumerableNonFictionalAttributeComponent<TValue>(_factoryDomain, values);
-                if (nonFictional.IsEmpty())
-                    return CreateEmpty();
-                else if (nonFictional.IsFull())
-                    return CreateFull();
-                else
-                    return nonFictional;
-            }
-
-            public FullAttributeComponent<TValue> CreateFull()
+            public override FullAttributeComponent<TValue> CreateFull(AttributeDomain<TValue> domain = null)
             {
                 return new FullAttributeComponent<TValue>(_factoryDomain);
             }

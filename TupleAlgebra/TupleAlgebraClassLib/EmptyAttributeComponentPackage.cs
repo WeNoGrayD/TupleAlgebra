@@ -35,11 +35,11 @@ namespace TupleAlgebraClassLib
         private class EmptyAttributeComponentOperationExecutersContainer : SetOperationExecutersContainer
         {
             public EmptyAttributeComponentOperationExecutersContainer() : base(
-                new EmptyAttributeComponentIntersectionOperator(),
-                new EmptyAttributeComponentUnionOperator(),
-                new EmptyAttributeComponentInclusionComparer(),
-                new EmptyAttributeComponentEqualityComparer(),
-                new EmptyAttributeComponentInclusionOrEqualityComparer())
+                new EmptyAttributeComponentIntersectionOperator<TValue>(),
+                new EmptyAttributeComponentUnionOperator<TValue>(),
+                new EmptyAttributeComponentInclusionComparer<TValue>(),
+                new EmptyAttributeComponentEqualityComparer<TValue>(),
+                new EmptyAttributeComponentInclusionOrEqualityComparer<TValue>())
             { }
         }
 
@@ -49,113 +49,121 @@ namespace TupleAlgebraClassLib
         }
     }
 
-    public sealed class EmptyAttributeComponentIntersectionOperator
-        : AttributeComponentAcceptor<AttributeComponent>, ICrossContentTypesAttributeComponentAcceptor<AttributeComponent>
+    public sealed class EmptyAttributeComponentIntersectionOperator<TValue>
+        : CrossContentTypesFactoryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
     {
-        public AttributeComponent Accept<TValue>(AttributeComponent<TValue> first, EmptyAttributeComponent<TValue> empty)
-            where TValue : IComparable<TValue>
+        public override AttributeComponent<TValue> Accept(
+            AttributeComponent first, 
+            EmptyAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
         {
-            return AttributeComponentIntersectionRules.Intersect(empty, first as EmptyAttributeComponent<TValue>);
+            return AttributeComponentIntersectionRules.Intersect(second, first as EmptyAttributeComponent<TValue>);
         }
 
-        public AttributeComponent Accept<TValue>(AttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> nonFictional)
-            where TValue : IComparable<TValue>
+        public override AttributeComponent<TValue> Accept(
+            AttributeComponent first, 
+            NonFictionalAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
         {
-            return AttributeComponentIntersectionRules.Intersect(first as EmptyAttributeComponent<TValue>, nonFictional);
+            return AttributeComponentIntersectionRules.Intersect(first as EmptyAttributeComponent<TValue>, second);
         }
 
-        public AttributeComponent Accept<TValue>(AttributeComponent<TValue> first, FullAttributeComponent<TValue> full)
-            where TValue : IComparable<TValue>
+        public override AttributeComponent<TValue> Accept(
+            AttributeComponent first, 
+            FullAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
         {
-            return AttributeComponentIntersectionRules.Intersect(first as EmptyAttributeComponent<TValue>, full);
+            return AttributeComponentIntersectionRules.Intersect(first as EmptyAttributeComponent<TValue>, second);
         }
     }
 
-    public sealed class EmptyAttributeComponentUnionOperator
-        : AttributeComponentAcceptor<AttributeComponent>, ICrossContentTypesAttributeComponentAcceptor<AttributeComponent>
+    public sealed class EmptyAttributeComponentUnionOperator<TValue>
+        : CrossContentTypesFactoryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
     {
-        public AttributeComponent Accept<TValue>(AttributeComponent<TValue> first, EmptyAttributeComponent<TValue> empty)
-            where TValue : IComparable<TValue>
+        public AttributeComponent<TValue> Accept(
+            AttributeComponent<TValue> first, 
+            EmptyAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
         {
-            return AttributeComponentUnionRules.Union(empty, first as EmptyAttributeComponent<TValue>);
+            return AttributeComponentUnionRules.Union(second, first as EmptyAttributeComponent<TValue>);
         }
 
-        public AttributeComponent Accept<TValue>(AttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> nonFictional)
-            where TValue : IComparable<TValue>
+        public AttributeComponent<TValue> Accept(
+            AttributeComponent<TValue> first,
+            NonFictionalAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
         {
-            return AttributeComponentUnionRules.Union(first as EmptyAttributeComponent<TValue>, nonFictional);
+            return AttributeComponentUnionRules.Union(first as EmptyAttributeComponent<TValue>, second);
         }
 
-        public AttributeComponent Accept<TValue>(AttributeComponent<TValue> first, FullAttributeComponent<TValue> full)
-            where TValue : IComparable<TValue>
+        public AttributeComponent<TValue> Accept(
+            AttributeComponent<TValue> first, 
+            FullAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
         {
-            return AttributeComponentUnionRules.Union(first as EmptyAttributeComponent<TValue>, full);
+            return AttributeComponentIntersectionRules.Intersect(first as EmptyAttributeComponent<TValue>, second);
         }
     }
 
-    public sealed class EmptyAttributeComponentInclusionComparer
-        : AttributeComponentAcceptor<bool>, ICrossContentTypesAttributeComponentAcceptor<bool>
+    public sealed class EmptyAttributeComponentInclusionComparer<TValue>
+        : ICrossContentTypesAttributeComponentAcceptor<TValue, bool>
+        where TValue : IComparable<TValue>
     {
-        public bool Accept<TValue>(AttributeComponent<TValue> first, EmptyAttributeComponent<TValue> empty)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(empty, first as EmptyAttributeComponent<TValue>);
+            return AttributeComponentInclusionRules.Include(second, first as EmptyAttributeComponent<TValue>);
         }
 
-        public bool Accept<TValue>(AttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> nonFictional)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(first as EmptyAttributeComponent<TValue>, nonFictional);
+            return AttributeComponentInclusionRules.Include(first as EmptyAttributeComponent<TValue>, second);
         }
 
-        public bool Accept<TValue>(AttributeComponent<TValue> first, FullAttributeComponent<TValue> full)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(first as EmptyAttributeComponent<TValue>, full);
+            return AttributeComponentInclusionRules.Include(first as EmptyAttributeComponent<TValue>, second);
         }
     }
 
-    public sealed class EmptyAttributeComponentEqualityComparer
-        : AttributeComponentAcceptor<bool>, ICrossContentTypesAttributeComponentAcceptor<bool>
+    public sealed class EmptyAttributeComponentEqualityComparer<TValue>
+        : ICrossContentTypesAttributeComponentAcceptor<TValue, bool>
+        where TValue : IComparable<TValue>
     {
-        public bool Accept<TValue>(AttributeComponent<TValue> first, EmptyAttributeComponent<TValue> empty)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(empty, first as EmptyAttributeComponent<TValue>);
+            return AttributeComponentEqualityRules.Equal(second, first as EmptyAttributeComponent<TValue>);
         }
 
-        public bool Accept<TValue>(AttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> nonFictional)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(first as EmptyAttributeComponent<TValue>, nonFictional);
+            return AttributeComponentEqualityRules.Equal(first as EmptyAttributeComponent<TValue>, second);
         }
 
-        public bool Accept<TValue>(AttributeComponent<TValue> first, FullAttributeComponent<TValue> full)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(first as EmptyAttributeComponent<TValue>, full);
+            return AttributeComponentEqualityRules.Equal(first as EmptyAttributeComponent<TValue>, second);
         }
     }
 
-    public sealed class EmptyAttributeComponentInclusionOrEqualityComparer
-        : AttributeComponentAcceptor<bool>, ICrossContentTypesAttributeComponentAcceptor<bool>
+    public sealed class EmptyAttributeComponentInclusionOrEqualityComparer<TValue>
+        : ICrossContentTypesAttributeComponentAcceptor<TValue, bool>
+        where TValue : IComparable<TValue>
     {
-        public bool Accept<TValue>(AttributeComponent<TValue> first, EmptyAttributeComponent<TValue> empty)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(empty, first as EmptyAttributeComponent<TValue>);
+            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(second, first as EmptyAttributeComponent<TValue>);
         }
 
-        public bool Accept<TValue>(AttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> nonFictional)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first as EmptyAttributeComponent<TValue>, nonFictional);
+            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first as EmptyAttributeComponent<TValue>, second);
         }
 
-        public bool Accept<TValue>(AttributeComponent<TValue> first, FullAttributeComponent<TValue> full)
-            where TValue : IComparable<TValue>
+        public override bool Accept(AttributeComponent first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first as EmptyAttributeComponent<TValue>, full);
+            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first as EmptyAttributeComponent<TValue>, second);
         }
     }
 }

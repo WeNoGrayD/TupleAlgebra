@@ -6,57 +6,42 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib
 {
-    public interface IAttributeComponentFactory<TValue>
+    public class AttributeComponentFactoryArgs<TValue>
         where TValue : IComparable<TValue>
     {
-        EmptyAttributeComponent<TValue> CreateEmpty();
+        public readonly AttributeDomain<TValue> Domain;
 
-        AttributeComponent<TValue> CreateNonFictional(IEnumerable<TValue> values);
-
-        FullAttributeComponent<TValue> CreateFull();
+        public AttributeComponentFactoryArgs(AttributeDomain<TValue> domain)
+        {
+            Domain = domain;
+        }
     }
 
-    /*
-    public class AttributeComponentFactory<TValue> : IAttributeComponentFactory<TValue>
+    public abstract class AttributeComponentFactory<TValue> 
         where TValue : IComparable<TValue>
     {
-        public NonFictionalAttributeComponent<TValue> CreateNonFictional(IEnumerable<TValue> values)
-        {
-            return new NonFictionalAttributeComponent<TValue>(values);
-        }
-
         public EmptyAttributeComponent<TValue> CreateEmpty()
         {
-            throw new NotImplementedException();
+            return EmptyAttributeComponent<TValue>.Instance;
         }
 
-        public FullAttributeComponent<TValue> CreateFull()
+        public AttributeComponent<TValue> CreateNonFictional(AttributeComponentFactoryArgs<TValue> args)
         {
-            throw new NotImplementedException();
-        }
-    }
-    */
-
-    public static class AttributeComponentFactory<TValue>
-        where TValue : IComparable<TValue>
-    {
-        /*
-        public static AttributeComponent<TValue> CreateNonFictional(
-            AttributeDomain<TValue> domain, 
-            IEnumerable<TValue> values)
-        {
-            return new NonFictionalAttributeComponent<TValue>(domain, values);
-        }
-        */
-
-        public static EmptyAttributeComponent<TValue> CreateEmpty()
-        {
-            throw new NotImplementedException();
+            NonFictionalAttributeComponent<TValue> nonFictional = CreateSpecificNonFictional(args);
+            if (nonFictional.IsEmpty())
+                return CreateEmpty();
+            else if (nonFictional.IsFull())
+                return CreateFull(args);
+            else
+                return nonFictional;
         }
 
-        public static FullAttributeComponent<TValue> CreateFull(AttributeDomain<TValue> domain)
+        protected abstract NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional(
+            AttributeComponentFactoryArgs<TValue> args);
+
+        public virtual FullAttributeComponent<TValue> CreateFull(AttributeComponentFactoryArgs<TValue> args)
         {
-            throw new NotImplementedException();
+            return new FullAttributeComponent<TValue>(args.Domain);
         }
     }
 }
