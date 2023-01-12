@@ -7,7 +7,21 @@ using System.Diagnostics;
 
 namespace TupleAlgebraClassLib
 {
-    public interface IAttributeComponentAcceptor<TValue, in TOperand1, in TOperand2, out TOperationResult>
+    public interface IInstantAttributeComponentAcceptor<TValue, in TOperand, out TOperationResult>
+        where TValue : IComparable<TValue>
+        where TOperand : AttributeComponent<TValue>
+    {
+        TOperationResult Accept(TOperand first);
+    }
+
+    public interface IFactoryAttributeComponentAcceptor<TValue, in TOperand, out TOperationResult>
+        where TValue : IComparable<TValue>
+        where TOperand : AttributeComponent<TValue>
+    {
+        TOperationResult Accept(TOperand first, AttributeComponentFactory<TValue> factory);
+    }
+
+    public interface IInstantAttributeComponentAcceptor<TValue, in TOperand1, in TOperand2, out TOperationResult>
         where TValue : IComparable<TValue>
         where TOperand1 : AttributeComponent<TValue>
         where TOperand2 : AttributeComponent<TValue>
@@ -21,9 +35,30 @@ namespace TupleAlgebraClassLib
         where TOperand2 : AttributeComponent<TValue>
     {
         TOperationResult Accept(
-            TOperand1 first, 
-            TOperand2 second, 
+            TOperand1 first,
+            TOperand2 second,
             AttributeComponentFactory<TValue> factory);
+    }
+
+    public abstract class InstantUnaryAttributeComponentAcceptor<TValue, TOperationResult>
+        where TValue : IComparable<TValue>
+    {
+        public TOperationResult Accept(AttributeComponent<TValue> first)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            var data = DowncastOperandToContentType((dynamic)first);
+            sw.Stop();
+            var (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            return data;
+        }
+
+        protected TOperationResult DowncastOperandToContentType<TOperand1, TOperand2>(TOperand1 first)
+            where TOperand1 : AttributeComponent<TValue>
+        {
+            var data = (this as IInstantAttributeComponentAcceptor<TValue, TOperand1, TOperationResult>).Accept(first);
+            return data;
+        }
     }
 
     /// <summary>
@@ -33,7 +68,8 @@ namespace TupleAlgebraClassLib
     /// для вызова методов потомков с динамическим приведением второго параметра.
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
-    public abstract class AttributeComponentAcceptor<TOperationResult>
+    public abstract class InstantBinaryAttributeComponentAcceptor<TValue, TOperationResult>
+        where TValue : IComparable<TValue>
     {
         #region Methods
 
@@ -44,35 +80,59 @@ namespace TupleAlgebraClassLib
         /// <param name="first"></param>
         /// <param name="second"></param>
         /// <returns></returns>
-        
-        public TOperationResult Accept<TValue>(
-            dynamic first, 
-            dynamic second)
-            where TValue : IComparable<TValue>
+
+        public TOperationResult Accept(
+            AttributeComponent<TValue> first,
+            AttributeComponent<TValue> second)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            var data = UpcastSecondOperandToContentType(first, second);
+            var data = DowncastOperandsToContentType((dynamic)first, (dynamic)second);
             sw.Stop();
-            var(ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            var (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
             return data;
         }
 
-        protected TOperationResult UpcastSecondOperandToContentType<TValue, TOperand1, TOperand2>(
-            TOperand1 first, 
+        protected TOperationResult DowncastOperandsToContentType<TOperand1, TOperand2>(
+            TOperand1 first,
             TOperand2 second)
-            where TValue : IComparable<TValue>
             where TOperand1 : AttributeComponent<TValue>
             where TOperand2 : AttributeComponent<TValue>
         {
-            var data = (this as IAttributeComponentAcceptor<TValue, TOperand1, TOperand2, TOperationResult>).Accept(first, second);
+            var data = (this as IInstantAttributeComponentAcceptor<TValue, TOperand1, TOperand2, TOperationResult>).Accept(first, second);
             return data;
         }
 
         #endregion
     }
 
-    public abstract class FactoryAttributeComponentAcceptor<TOperationResult>
+    public abstract class FactoryUnaryAttributeComponentAcceptor<TValue, TOperationResult>
+        where TValue : IComparable<TValue>
+    {
+        public TOperationResult Accept(
+            AttributeComponent<TValue> first,
+            AttributeComponentFactory<TValue> factory)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            var data = DowncastOperandToContentType((dynamic)first, factory);
+            sw.Stop();
+            var (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            return data;
+        }
+
+        protected TOperationResult DowncastOperandToContentType<TOperand1, TOperand2>(
+            TOperand1 first,
+            AttributeComponentFactory<TValue> factory)
+            where TOperand1 : AttributeComponent<TValue>
+        {
+            var data = (this as IFactoryAttributeComponentAcceptor<TValue, TOperand1, TOperationResult>).Accept(first, factory);
+            return data;
+        }
+    }
+
+    public abstract class FactoryBinaryAttributeComponentAcceptor<TValue, TOperationResult>
+        where TValue : IComparable<TValue>
     {
         #region Methods
 
@@ -84,29 +144,27 @@ namespace TupleAlgebraClassLib
         /// <param name="second"></param>
         /// <returns></returns>
 
-        public TOperationResult Accept<TValue>(
-            dynamic first, 
-            dynamic second,
+        public TOperationResult Accept(
+            AttributeComponent<TValue> first,
+            AttributeComponent<TValue> second,
             AttributeComponentFactory<TValue> factory)
-            where TValue : IComparable<TValue>
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            var data = UpcastSecondOperandToContentType(first, second, factory);
+            var data = DowncastOperandsToContentType((dynamic)first, (dynamic)second, factory);
             sw.Stop();
             var (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
             return data;
         }
 
-        protected TOperationResult UpcastSecondOperandToContentType<TValue, TOperand1, TOperand2>(
+        protected TOperationResult DowncastOperandsToContentType<TOperand1, TOperand2>(
             TOperand1 first, 
             TOperand2 second,
             AttributeComponentFactory<TValue> factory)
-            where TValue : IComparable<TValue>
             where TOperand1 : AttributeComponent<TValue>
             where TOperand2 : AttributeComponent<TValue>
         {
-            var data = (this as IAttributeComponentAcceptor<TValue, TOperand1, TOperand2, TOperationResult>).Accept(first, second);
+            var data = (this as IFactoryAttributeComponentAcceptor<TValue, TOperand1, TOperand2, TOperationResult>).Accept(first, second, factory);
             return data;
         }
 
@@ -120,11 +178,11 @@ namespace TupleAlgebraClassLib
     /// паттерн "приниматель" (название временное).
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
-    public abstract class CrossContentTypesAttributeComponentAcceptor<TValue, TOperand1, TOperationResult> 
-        : AttributeComponentAcceptor<TOperationResult>,
-          IAttributeComponentAcceptor<TValue, TOperand1, EmptyAttributeComponent<TValue>, TOperationResult>, 
-          IAttributeComponentAcceptor<TValue, TOperand1, NonFictionalAttributeComponent<TValue>, TOperationResult>, 
-          IAttributeComponentAcceptor<TValue, TOperand1, FullAttributeComponent<TValue>, TOperationResult>
+    public abstract class CrossContentTypesInstantAttributeComponentAcceptor<TValue, TOperand1, TOperationResult> 
+        : InstantBinaryAttributeComponentAcceptor<TValue, TOperationResult>,
+          IInstantAttributeComponentAcceptor<TValue, TOperand1, EmptyAttributeComponent<TValue>, TOperationResult>, 
+          IInstantAttributeComponentAcceptor<TValue, TOperand1, NonFictionalAttributeComponent<TValue>, TOperationResult>, 
+          IInstantAttributeComponentAcceptor<TValue, TOperand1, FullAttributeComponent<TValue>, TOperationResult>
         where TValue : IComparable<TValue>
         where TOperand1 : AttributeComponent<TValue>
     {
@@ -142,7 +200,7 @@ namespace TupleAlgebraClassLib
     }
     
     public abstract class CrossContentTypesFactoryAttributeComponentAcceptor<TValue, TOperand1, TOperationResult>
-        : FactoryAttributeComponentAcceptor<TOperationResult>,
+        : FactoryBinaryAttributeComponentAcceptor<TValue, TOperationResult>,
           IFactoryAttributeComponentAcceptor<TValue, TOperand1, EmptyAttributeComponent<TValue>, TOperationResult>,
           IFactoryAttributeComponentAcceptor<TValue, TOperand1, NonFictionalAttributeComponent<TValue>, TOperationResult>,
           IFactoryAttributeComponentAcceptor<TValue, TOperand1, FullAttributeComponent<TValue>, TOperationResult>
@@ -173,8 +231,8 @@ namespace TupleAlgebraClassLib
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
     public abstract class IFiniteEnumerableNonFictionalAttributeComponentAcceptor<TValue, TOperationResult>
-        : AttributeComponentAcceptor<TOperationResult>,
-          IAttributeComponentAcceptor<FiniteEnumerableNonFictionalAttributeComponent<TValue>, TOperationResult>
+        : InstantBinaryAttributeComponentAcceptor<TOperationResult>,
+          IInstantAttributeComponentAcceptor<FiniteEnumerableNonFictionalAttributeComponent<TValue>, TOperationResult>
         where TValue : IComparable<TValue>
     {
         #region Methods

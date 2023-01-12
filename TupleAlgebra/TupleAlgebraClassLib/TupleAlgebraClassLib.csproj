@@ -41,6 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlgebraicTuple.cs" />
+    <Compile Include="AttributeComponentComplementionRules.cs" />
     <Compile Include="AttributeComponentEqualityRules.cs" />
     <Compile Include="AttributeComponentFactory.cs" />
     <Compile Include="AttributeComponentInclusionOrEqualityRules.cs" />

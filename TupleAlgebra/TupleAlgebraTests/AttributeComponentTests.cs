@@ -13,26 +13,29 @@ namespace TupleAlgebraTests
         protected MockAttributeComponentFactory<int> intFactory;
         protected MockAttributeComponentFactory<string> stringFactory;
 
-        protected class MockAttributeComponentFactory<TValue> : AttributeComponentFactory<TValue>
+        protected class MockAttributeComponentFactory<TValue> : FiniteEnumerableNonFictionalAttributeComponentFactory<TValue>
             where TValue : IComparable<TValue>
         {
-            private readonly AttributeDomain<TValue> _factoryDomain;
+            public readonly AttributeDomain<TValue> FactoryDomain;
 
             public MockAttributeComponentFactory(AttributeDomain<TValue> factoryDomain)
             {
-                _factoryDomain = factoryDomain;
+                FactoryDomain = factoryDomain;
             }
 
-            protected override NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional(
-                AttributeDomain<TValue> factoryDomain = null,
-                IEnumerable<TValue> values = null)
+            public AttributeComponent<TValue> CreateNonFictional(
+                IEnumerable<TValue> values)
             {
-                return new FiniteEnumerableNonFictionalAttributeComponent<TValue>(_factoryDomain, values);
+                FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> factoryArgs =
+                    new FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>(FactoryDomain, values);
+                return CreateNonFictional(factoryArgs);
             }
 
-            public override FullAttributeComponent<TValue> CreateFull(AttributeDomain<TValue> domain = null)
+            public FullAttributeComponent<TValue> CreateFull()
             {
-                return new FullAttributeComponent<TValue>(_factoryDomain);
+                AttributeComponentFactoryArgs<TValue> factoryArgs = 
+                    new AttributeComponentFactoryArgs<TValue>(FactoryDomain);
+                return CreateFull(factoryArgs);
             }
         }
 

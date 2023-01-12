@@ -149,10 +149,13 @@ namespace TupleAlgebraClassLib
     public abstract class AttributeComponent<TValue> : AttributeComponent, IEnumerable<TValue>
         where TValue : IComparable<TValue>
     {
+        protected static AttributeComponentFactory<TValue> _baseFactory;
+
         private static Dictionary<AttributeComponentContentType, SetOperationExecutersContainer<TValue>> _setOperations;
 
         static AttributeComponent()
         {
+            _fictionalFactory = new AttributeComponentFactory<TValue>();
             _setOperations = new Dictionary<AttributeComponentContentType, SetOperationExecutersContainer<TValue>>();
         }
 
@@ -167,14 +170,19 @@ namespace TupleAlgebraClassLib
             _setOperations[contentType] = setOperations;
         }
 
+        protected AttributeComponent<TValue> ComplementThe()
+        {
+            return _setOperations[ContentType].Complement(this);
+        }
+
         protected AttributeComponent<TValue> IntersectWith(AttributeComponent<TValue> second)
         {
-            return _setOperations[ContentType].Intersect(this, second) as AttributeComponent<TValue>;
+            return _setOperations[ContentType].Intersect(this, second);
         }
 
         protected AttributeComponent<TValue> UnionWith(AttributeComponent<TValue> second)
         {
-            return _setOperations[ContentType].Union(this, second) as AttributeComponent<TValue>;
+            return _setOperations[ContentType].Union(this, second);
         }
 
         protected bool Includes(AttributeComponent<TValue> second)
@@ -197,6 +205,12 @@ namespace TupleAlgebraClassLib
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public static AttributeComponent<TValue> operator !(
+            AttributeComponent<TValue> first)
+        {
+            return first.ComplementThe();
         }
 
         public static AttributeComponent<TValue> operator &(

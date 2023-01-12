@@ -17,7 +17,14 @@ namespace TupleAlgebraClassLib
         }
     }
 
-    public abstract class AttributeComponentFactory<TValue> 
+    public interface NonFictionalAttributeComponentFactory<TValue, TFactoryArgs>
+        where TValue : IComparable<TValue>
+        where TFactoryArgs : AttributeComponentFactoryArgs<TValue>
+    {
+        NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional(TFactoryArgs args);
+    }
+
+    public class AttributeComponentFactory<TValue> 
         where TValue : IComparable<TValue>
     {
         public EmptyAttributeComponent<TValue> CreateEmpty()
@@ -25,9 +32,17 @@ namespace TupleAlgebraClassLib
             return EmptyAttributeComponent<TValue>.Instance;
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public AttributeComponent<TValue> CreateNonFictional(AttributeComponentFactoryArgs<TValue> args)
         {
-            NonFictionalAttributeComponent<TValue> nonFictional = CreateSpecificNonFictional(args);
+            /*
+             * Предполагается, что проверка компоненты на пустотность
+             * является более простой, чем проверка на полноту.
+             */
+            NonFictionalAttributeComponent<TValue> nonFictional = CreateSpecificNonFictional((dynamic)args);
             if (nonFictional.IsEmpty())
                 return CreateEmpty();
             else if (nonFictional.IsFull())
@@ -36,8 +51,11 @@ namespace TupleAlgebraClassLib
                 return nonFictional;
         }
 
-        protected abstract NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional(
-            AttributeComponentFactoryArgs<TValue> args);
+        protected NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional<TFactoryArgs>(TFactoryArgs args)
+            where TFactoryArgs : AttributeComponentFactoryArgs<TValue>
+        {
+            return (this as NonFictionalAttributeComponentFactory<TValue, TFactoryArgs>).CreateSpecificNonFictional(args);
+        }
 
         public virtual FullAttributeComponent<TValue> CreateFull(AttributeComponentFactoryArgs<TValue> args)
         {
