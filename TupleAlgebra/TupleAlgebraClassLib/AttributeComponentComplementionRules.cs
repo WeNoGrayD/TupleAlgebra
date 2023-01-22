@@ -8,22 +8,22 @@ namespace TupleAlgebraClassLib
 {
     internal static class AttributeComponentComplementionRules
     {
-        public static Func<AttributeComponentFactory<TValue>, FullAttributeComponent<TValue>> Complement<TValue>(EmptyAttributeComponent<TValue> first)
+        public static FullAttributeComponent<TValue> Complement<TValue>(EmptyAttributeComponent<TValue> first)
             where TValue : IComparable<TValue>
         {
-            return (factory) => factory.CreateFull();
+            return FullAttributeComponent<TValue>.Instance;
         }
 
-        public static Func<AttributeComponentFactory<TValue>, AttributeComponent<TValue>> Complement<TValue>(NonFictionalAttributeComponent<TValue> first)
+        public static AttributeComponent<TValue> Complement<TValue>(NonFictionalAttributeComponent<TValue> first)
             where TValue : IComparable<TValue>
         {
-            return first.ComplementThe();
+            return first.Domain.Universum ^ first;
         }
 
-        public static Func<AttributeComponentFactory<TValue>, EmptyAttributeComponent<TValue>> Complement<TValue>(FullAttributeComponent<TValue> first)
+        public static EmptyAttributeComponent<TValue> Complement<TValue>(FullAttributeComponent<TValue> first)
             where TValue : IComparable<TValue>
         {
-            return (factory) => factory.CreateEmpty();
+            return EmptyAttributeComponent<TValue>.Instance;
         }
     }
 }

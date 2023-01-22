@@ -9,9 +9,10 @@ namespace TupleAlgebraTests
     [TestClass]
     public class AttributeComponentTests
     {
-        protected AttributeComponent<string> component1, component2;
+        protected AttributeComponent<int> component1, component2;
         protected MockAttributeComponentFactory<int> intFactory;
         protected MockAttributeComponentFactory<string> stringFactory;
+        protected Dictionary<Type, object> factories;
 
         protected class MockAttributeComponentFactory<TValue> : FiniteEnumerableNonFictionalAttributeComponentFactory<TValue>
             where TValue : IComparable<TValue>
@@ -47,6 +48,20 @@ namespace TupleAlgebraTests
             stringFactory = new MockAttributeComponentFactory<string>(
                 new FiniteEnumerableAttributeDomain<string>(
                     new[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }));
+            factories = new Dictionary<Type, object>()
+            { { typeof(int), intFactory }, { typeof(string), stringFactory } };
+        }
+
+        protected IEnumerable<T> SortedComplement<T>(
+            HashSet<T> first)
+            where T : IComparable<T>
+        {
+            MockAttributeComponentFactory<T> factory =
+                factories[typeof(T)] as MockAttributeComponentFactory<T>;
+            first.SymmetricExceptWith(factory.FactoryDomain);
+            List<T> resultValuesList = new List<T>(first);
+            resultValuesList.Sort();
+            return resultValuesList;
         }
 
         protected IEnumerable<T> SortedBinarySetOperation<T>(
@@ -70,6 +85,18 @@ namespace TupleAlgebraTests
         {
             return SortedBinarySetOperation(first, second,
                 (set1, set2) => set1.UnionWith(set2));
+        }
+
+        protected IEnumerable<T> SortedExcept<T>(HashSet<T> first, HashSet<T> second)
+        {
+            return SortedBinarySetOperation(first, second,
+                (set1, set2) => set1.ExceptWith(set2));
+        }
+
+        protected IEnumerable<T> SortedSymmetricExcept<T>(HashSet<T> first, HashSet<T> second)
+        {
+            return SortedBinarySetOperation(first, second,
+                (set1, set2) => set1.SymmetricExceptWith(set2));
         }
     }
 }

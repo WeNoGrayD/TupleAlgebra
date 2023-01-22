@@ -10,7 +10,8 @@ namespace TupleAlgebraClassLib
     public sealed class FullAttributeComponent<TValue> : AttributeComponent<TValue>
         where TValue : IComparable<TValue>
     {
-        public readonly AttributeDomain<TValue> Domain;
+        public static FullAttributeComponent<TValue> Instance { get; } =
+            new FullAttributeComponent<TValue>();
 
         private const AttributeComponentContentType CONTENT_TYPE = AttributeComponentContentType.Full;
 
@@ -22,24 +23,24 @@ namespace TupleAlgebraClassLib
                 CONTENT_TYPE, new FullAttributeComponentOperationExecutersContainer());
         }
 
-        public FullAttributeComponent(AttributeDomain<TValue> domain) 
+        private FullAttributeComponent() 
             : base(new FullAttributeComponentPower())
-        {
-            Domain = domain;
-        }
+        { }
 
         public override IEnumerator<TValue> GetEnumerator()
         {
-            return Domain.GetEnumerator();
+            yield break;
+            //return Domain.GetEnumerator();
         }
 
         private class FullAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TValue>
         {
             public FullAttributeComponentOperationExecutersContainer() : base(
-                _baseFactory,
                 new FullAttributeComponentComplementionOperator<TValue>(),
                 new FullAttributeComponentIntersectionOperator<TValue>(),
                 new FullAttributeComponentUnionOperator<TValue>(),
+                new FullAttributeComponentExceptionOperator<TValue>(),
+                new FullAttributeComponentSymmetricExceptionOperator<TValue>(),
                 new FullAttributeComponentInclusionComparer<TValue>(),
                 new FullAttributeComponentEqualityComparer<TValue>(),
                 new FullAttributeComponentInclusionOrEqualityComparer<TValue>())
@@ -53,15 +54,13 @@ namespace TupleAlgebraClassLib
     }
 
     public sealed class FullAttributeComponentComplementionOperator<TValue>
-        : FactoryUnaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
-          IFactoryAttributeComponentAcceptor<TValue, FullAttributeComponent<TValue>, EmptyAttributeComponent<TValue>>
+        : InstantUnaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
+          IInstantAttributeComponentAcceptor<TValue, FullAttributeComponent<TValue>, AttributeComponent<TValue>>
         where TValue : IComparable<TValue>
     {
-        public EmptyAttributeComponent<TValue> Accept(
-            FullAttributeComponent<TValue> first,
-            AttributeComponentFactory<TValue> factory)
+        public AttributeComponent<TValue> Accept(FullAttributeComponent<TValue> first)
         {
-            return AttributeComponentComplementionRules.Complement(first)(factory);
+            return AttributeComponentComplementionRules.Complement(first);
         }
     }
 
@@ -117,23 +116,78 @@ namespace TupleAlgebraClassLib
         }
     }
 
+    public sealed class FullAttributeComponentExceptionOperator<TValue>
+        : CrossContentTypesInstantAttributeComponentAcceptor<TValue, FullAttributeComponent<TValue>, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
+    {
+        public override AttributeComponent<TValue> Accept(
+            FullAttributeComponent<TValue> first,
+            EmptyAttributeComponent<TValue> second)
+        {
+            return AttributeComponentExceptRules.Except(first, second);
+        }
+
+        public override AttributeComponent<TValue> Accept(
+            FullAttributeComponent<TValue> first,
+            NonFictionalAttributeComponent<TValue> second)
+        {
+            return AttributeComponentExceptRules.Except(first, second);
+        }
+
+        public override AttributeComponent<TValue> Accept(
+            FullAttributeComponent<TValue> first,
+            FullAttributeComponent<TValue> second)
+        {
+            return AttributeComponentExceptRules.Except(first, second);
+        }
+    }
+
+    public sealed class FullAttributeComponentSymmetricExceptionOperator<TValue>
+        : CrossContentTypesInstantAttributeComponentAcceptor<TValue, FullAttributeComponent<TValue>, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
+    {
+        public override AttributeComponent<TValue> Accept(
+            FullAttributeComponent<TValue> first,
+            EmptyAttributeComponent<TValue> second)
+        {
+            return AttributeComponentSymmetricExceptionRules.SymmetricExcept(second, first);
+        }
+
+        public override AttributeComponent<TValue> Accept(
+            FullAttributeComponent<TValue> first,
+            NonFictionalAttributeComponent<TValue> second)
+        {
+            return AttributeComponentSymmetricExceptionRules.SymmetricExcept(second, first);
+        }
+
+        public override AttributeComponent<TValue> Accept(
+            FullAttributeComponent<TValue> first,
+            FullAttributeComponent<TValue> second)
+        {
+            return AttributeComponentSymmetricExceptionRules.SymmetricExcept(first, second);
+        }
+    }
+
     public sealed class FullAttributeComponentInclusionComparer<TValue>
         : CrossContentTypesInstantAttributeComponentAcceptor<TValue, FullAttributeComponent<TValue>, bool>
         where TValue : IComparable<TValue>
     {
         public override bool Accept(FullAttributeComponent<TValue> first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(second, first as FullAttributeComponent<TValue>);
+            return true;
+            //return AttributeComponentInclusionRules.Include(second, first as FullAttributeComponent<TValue>);
         }
 
         public override bool Accept(FullAttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(second, first as FullAttributeComponent<TValue>);
+            return true;
+            //return AttributeComponentInclusionRules.Include(second, first as FullAttributeComponent<TValue>);
         }
 
         public override bool Accept(FullAttributeComponent<TValue> first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(first as FullAttributeComponent<TValue>, second);
+            return false;
+            //return AttributeComponentInclusionRules.Include(first as FullAttributeComponent<TValue>, second);
         }
     }
 
@@ -143,17 +197,20 @@ namespace TupleAlgebraClassLib
     {
         public override bool Accept(FullAttributeComponent<TValue> first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(second, first as FullAttributeComponent<TValue>);
+            return false;
+            //return AttributeComponentEqualityRules.Equal(second, first);
         }
 
         public override bool Accept(FullAttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(second, first as FullAttributeComponent<TValue>);
+            return false;
+            //return AttributeComponentEqualityRules.Equal(second, first);
         }
 
         public override bool Accept(FullAttributeComponent<TValue> first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(first as FullAttributeComponent<TValue>, second);
+            return true;
+            //return AttributeComponentEqualityRules.Equal(first, second);
         }
     }
 
@@ -163,17 +220,20 @@ namespace TupleAlgebraClassLib
     {
         public override bool Accept(FullAttributeComponent<TValue> first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(second, first as FullAttributeComponent<TValue>);
+            return true;
+            //return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(second, first);
         }
 
         public override bool Accept(FullAttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(second, first as FullAttributeComponent<TValue>);
+            return true;
+            //return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(second, first);
         }
 
         public override bool Accept(FullAttributeComponent<TValue> first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first as FullAttributeComponent<TValue>, second);
+            return true;
+            //return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first, second);
         }
     }
 }

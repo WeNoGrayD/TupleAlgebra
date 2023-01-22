@@ -43,21 +43,24 @@
   <ItemGroup>
     <Compile Include="AlgebraicTuple.cs" />
     <Compile Include="AttributeComponentComplementionRules.cs" />
+    <Compile Include="AttributeComponentExceptionRules.cs" />
     <Compile Include="AttributeComponentEqualityRules.cs" />
     <Compile Include="AttributeComponentFactory.cs" />
     <Compile Include="AttributeComponentInclusionOrEqualityRules.cs" />
     <Compile Include="AttributeComponentInclusionRules.cs" />
     <Compile Include="AttributeComponentIntersectionRules.cs" />
     <Compile Include="AttributeComponents.cs" />
+    <Compile Include="AttributeComponentSymmetricExceptionRules.cs" />
     <Compile Include="AttributeComponentUnionRules.cs" />
     <Compile Include="EmptyAttributeComponentPackage.cs" />
     <Compile Include="FiniteEnumerableNonFictionalAttributeComponentPackage.cs" />
     <Compile Include="FullAttributeComponentPackage.cs" />
-    <Compile Include="IAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponentAcceptors.cs" />
     <Compile Include="AttributeDomains.cs" />
     <Compile Include="NonFictionalAttributeComponentPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetOperationExecutersContainer.cs" />
+    <Compile Include="SpecializedAttributeDomainPackage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

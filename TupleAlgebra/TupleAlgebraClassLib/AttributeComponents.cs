@@ -149,14 +149,11 @@ namespace TupleAlgebraClassLib
     public abstract class AttributeComponent<TValue> : AttributeComponent, IEnumerable<TValue>
         where TValue : IComparable<TValue>
     {
-        protected static AttributeComponentFactory<TValue> _baseFactory;
-
-        private static Dictionary<AttributeComponentContentType, SetOperationExecutersContainer<TValue>> _setOperations;
+        private static Dictionary<AttributeComponentContentType, InstantSetOperationExecutersContainer<TValue>> _setOperations;
 
         static AttributeComponent()
         {
-            _fictionalFactory = new AttributeComponentFactory<TValue>();
-            _setOperations = new Dictionary<AttributeComponentContentType, SetOperationExecutersContainer<TValue>>();
+            _setOperations = new Dictionary<AttributeComponentContentType, InstantSetOperationExecutersContainer<TValue>>();
         }
 
         public AttributeComponent(AttributeComponentPower power) 
@@ -165,7 +162,7 @@ namespace TupleAlgebraClassLib
 
         protected static void InitSetOperations(
             AttributeComponentContentType contentType,
-            SetOperationExecutersContainer<TValue> setOperations)
+            InstantSetOperationExecutersContainer<TValue> setOperations)
         {
             _setOperations[contentType] = setOperations;
         }
@@ -183,6 +180,16 @@ namespace TupleAlgebraClassLib
         protected AttributeComponent<TValue> UnionWith(AttributeComponent<TValue> second)
         {
             return _setOperations[ContentType].Union(this, second);
+        }
+
+        protected AttributeComponent<TValue> ExceptWith(AttributeComponent<TValue> second)
+        {
+            return _setOperations[ContentType].Except(this, second);
+        }
+
+        protected AttributeComponent<TValue> SymmetricExceptWith(AttributeComponent<TValue> second)
+        {
+            return _setOperations[ContentType].SymmetricExcept(this, second);
         }
 
         protected bool Includes(AttributeComponent<TValue> second)
@@ -225,6 +232,20 @@ namespace TupleAlgebraClassLib
             AttributeComponent<TValue> second)
         {
             return first.UnionWith(second);
+        }
+
+        public static AttributeComponent<TValue> operator /(
+            AttributeComponent<TValue> first,
+            AttributeComponent<TValue> second)
+        {
+            return first.ExceptWith(second);
+        }
+
+        public static AttributeComponent<TValue> operator ^(
+            AttributeComponent<TValue> first,
+            AttributeComponent<TValue> second)
+        {
+            return first.SymmetricExceptWith(second);
         }
 
         public static bool operator ==(AttributeComponent<TValue> first, AttributeComponent<TValue> second)

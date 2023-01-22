@@ -53,7 +53,7 @@ namespace TupleAlgebraClassLib
             return data;
         }
 
-        protected TOperationResult DowncastOperandToContentType<TOperand1, TOperand2>(TOperand1 first)
+        protected TOperationResult DowncastOperandToContentType<TOperand1>(TOperand1 first)
             where TOperand1 : AttributeComponent<TValue>
         {
             var data = (this as IInstantAttributeComponentAcceptor<TValue, TOperand1, TOperationResult>).Accept(first);
@@ -121,7 +121,7 @@ namespace TupleAlgebraClassLib
             return data;
         }
 
-        protected TOperationResult DowncastOperandToContentType<TOperand1, TOperand2>(
+        protected TOperationResult DowncastOperandToContentType<TOperand1>(
             TOperand1 first,
             AttributeComponentFactory<TValue> factory)
             where TOperand1 : AttributeComponent<TValue>

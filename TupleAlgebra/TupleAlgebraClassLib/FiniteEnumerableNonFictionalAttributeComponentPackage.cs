@@ -51,8 +51,10 @@ namespace TupleAlgebraClassLib
                 new FiniteEnumerableNonFictionalAttributeComponentFactory<TValue>(),
                 new FiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TValue>(),
                 new FiniteEnumerableNonFictionalAttributeComponentUnionOperator<TValue>(),
-                null,
-                null,
+                new FiniteEnumerableNonFictionalAttributeComponentExceptionOperator<TValue>(),
+                new FiniteEnumerableNonFictionalAttributeComponentSymmetricExceptionOperator<TValue>(),
+                new FiniteEnumerableNonFictionalAttributeComponentInclusionComparer<TValue>(),
+                new FiniteEnumerableNonFictionalAttributeComponentEqualityComparer<TValue>(),
                 new FiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer<TValue>())
             { }
         }
@@ -85,7 +87,7 @@ namespace TupleAlgebraClassLib
 
     public class FiniteEnumerableNonFictionalAttributeComponentFactory<TValue> 
         : AttributeComponentFactory<TValue>,
-          NonFictionalAttributeComponentFactory<TValue, FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>>
+          INonFictionalAttributeComponentFactory<TValue, FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>>
         where TValue : IComparable<TValue>
     {
         public NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional(FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> args)
@@ -301,6 +303,318 @@ namespace TupleAlgebraClassLib
         }
     }
 
+    public sealed class FiniteEnumerableNonFictionalAttributeComponentExceptionOperator<TValue>
+        : FactoryBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
+          IFactoryAttributeComponentAcceptor<TValue, FiniteEnumerableNonFictionalAttributeComponent<TValue>, FiniteEnumerableNonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
+    {
+        public AttributeComponent<TValue> Accept(
+            FiniteEnumerableNonFictionalAttributeComponent<TValue> first,
+            FiniteEnumerableNonFictionalAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
+        {
+            IEnumerable<TValue> remainedElements = ExceptComponentsElements();
+            FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> factoryArgs =
+                new FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>(first.Domain, remainedElements);
+            AttributeComponent<TValue> resultComponent = factory.CreateNonFictional(factoryArgs);
+
+            return resultComponent;
+
+            IEnumerable<TValue> ExceptComponentsElements()
+            {
+                int firstPower = (first.Power as FiniteEnumerableNonFictionalAttributeComponent<TValue>.FiniteEnumerableNonFictionalAttributeComponentPower).Value;
+                List<TValue> remained = new List<TValue>(firstPower);
+                IEnumerator<TValue> firstEnumerator = first.GetEnumerator(),
+                                    secondEnumerator = second.GetEnumerator(),
+                                    withLowerBoundEnumerator = firstEnumerator,
+                                    withGreaterBoundEnumerator = secondEnumerator;
+                bool isContinuesWithLowerBoundEnumerator,
+                     isContinuesWithGreaterBoundEnumerator,
+                     enumeratorsHadSwapped = false;
+                TValue firstElement, secondElement;
+                int elementsComparisonResult;
+
+                ReadComponentsUntilAtLeastOneIsOver();
+                FinishReadingIfAnyComponentRemains();
+
+                return remained;
+
+                void ReadComponentsUntilAtLeastOneIsOver()
+                {
+                    WithLowerBoundEnumeratorMoveNextAndReadCurrent();
+                    WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
+
+                    while (isContinuesWithLowerBoundEnumerator && isContinuesWithGreaterBoundEnumerator)
+                    {
+                        elementsComparisonResult = firstElement.CompareTo(secondElement);
+                        switch (elementsComparisonResult)
+                        {
+                            case -1:
+                                {
+                                    if (!enumeratorsHadSwapped)
+                                        remained.Add(firstElement);
+                                    break;
+                                }
+                            case 0:
+                                {
+                                    WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    SwapEnumeratorsAndCurrentElements();
+                                    if (!enumeratorsHadSwapped)
+                                        remained.Add(firstElement);
+                                    break;
+                                }
+                        }
+
+                        WithLowerBoundEnumeratorMoveNextAndReadCurrent();
+                    }
+                }
+
+                void FinishReadingIfAnyComponentRemains()
+                {
+                    if ((isContinuesWithLowerBoundEnumerator && firstEnumerator.Equals(withLowerBoundEnumerator)) || 
+                        (isContinuesWithGreaterBoundEnumerator && firstEnumerator.Equals(withGreaterBoundEnumerator)))
+                    {
+                        if (isContinuesWithGreaterBoundEnumerator)
+                            SwapEnumeratorsAndCurrentElements();
+                        FinishReadingRemainingComponent();
+                    }
+                }
+
+                void FinishReadingRemainingComponent()
+                {
+                    do
+                    {
+                        remained.Add(firstElement);
+                        WithLowerBoundEnumeratorMoveNextAndReadCurrent();
+                    }
+                    while (isContinuesWithLowerBoundEnumerator);
+                }
+
+                void SwapEnumeratorsAndCurrentElements()
+                {
+                    (withLowerBoundEnumerator, withGreaterBoundEnumerator) =
+                        (withGreaterBoundEnumerator, withLowerBoundEnumerator);
+                    (firstElement, secondElement) = (secondElement, firstElement);
+                    enumeratorsHadSwapped = !enumeratorsHadSwapped;
+                }
+
+                void WithLowerBoundEnumeratorMoveNextAndReadCurrent()
+                {
+                    isContinuesWithLowerBoundEnumerator = withLowerBoundEnumerator.MoveNext();
+                    firstElement = withLowerBoundEnumerator.Current;
+                }
+
+                void WithGreaterBoundEnumeratorMoveNextAndReadCurrent()
+                {
+                    isContinuesWithGreaterBoundEnumerator = withGreaterBoundEnumerator.MoveNext();
+                    secondElement = withGreaterBoundEnumerator.Current;
+                }
+            }
+        }
+    }
+
+    public sealed class FiniteEnumerableNonFictionalAttributeComponentSymmetricExceptionOperator<TValue>
+        : FactoryBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
+          IFactoryAttributeComponentAcceptor<TValue, FiniteEnumerableNonFictionalAttributeComponent<TValue>, FiniteEnumerableNonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
+    {
+        public AttributeComponent<TValue> Accept(
+            FiniteEnumerableNonFictionalAttributeComponent<TValue> first,
+            FiniteEnumerableNonFictionalAttributeComponent<TValue> second,
+            AttributeComponentFactory<TValue> factory)
+        {
+            IEnumerable<TValue> remainedElements = ExceptComponentsElements();
+            FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> factoryArgs =
+                new FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>(first.Domain, remainedElements);
+            AttributeComponent<TValue> resultComponent = factory.CreateNonFictional(factoryArgs);
+
+            return resultComponent;
+
+            IEnumerable<TValue> ExceptComponentsElements()
+            {
+                int summaryPower = (first.Power as FiniteEnumerableNonFictionalAttributeComponent<TValue>.FiniteEnumerableNonFictionalAttributeComponentPower).Value +
+                    (second.Power as FiniteEnumerableNonFictionalAttributeComponent<TValue>.FiniteEnumerableNonFictionalAttributeComponentPower).Value;
+                List<TValue> remained = new List<TValue>(summaryPower);
+                IEnumerator<TValue> firstEnumerator = first.GetEnumerator(),
+                                    secondEnumerator = second.GetEnumerator(),
+                                    withLowerBoundEnumerator = firstEnumerator,
+                                    withGreaterBoundEnumerator = secondEnumerator;
+                bool isContinuesWithLowerBoundEnumerator,
+                     isContinuesWithGreaterBoundEnumerator;
+                TValue firstElement, secondElement;
+                int elementsComparisonResult;
+
+                ReadComponentsUntilAtLeastOneIsOver();
+                FinishReadingIfAnyComponentRemains();
+
+                return remained;
+
+                void ReadComponentsUntilAtLeastOneIsOver()
+                {
+                    WithLowerBoundEnumeratorMoveNextAndReadCurrent();
+                    WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
+
+                    while (isContinuesWithLowerBoundEnumerator && isContinuesWithGreaterBoundEnumerator)
+                    {
+                        elementsComparisonResult = firstElement.CompareTo(secondElement);
+                        switch (elementsComparisonResult)
+                        {
+                            case -1:
+                                {
+                                    remained.Add(firstElement);
+                                    break;
+                                }
+                            case 0:
+                                {
+                                    WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    SwapEnumeratorsAndCurrentElements();
+                                    remained.Add(firstElement);
+                                    break;
+                                }
+                        }
+
+                        WithLowerBoundEnumeratorMoveNextAndReadCurrent();
+                    }
+                }
+
+                void FinishReadingIfAnyComponentRemains()
+                {
+                    if (isContinuesWithLowerBoundEnumerator || isContinuesWithGreaterBoundEnumerator)
+                    {
+                        if (isContinuesWithGreaterBoundEnumerator)
+                            SwapEnumeratorsAndCurrentElements();
+                        FinishReadingRemainingComponent();
+                    }
+                }
+
+                void FinishReadingRemainingComponent()
+                {
+                    do
+                    {
+                        remained.Add(firstElement);
+                        WithLowerBoundEnumeratorMoveNextAndReadCurrent();
+                    }
+                    while (isContinuesWithLowerBoundEnumerator);
+                }
+
+                void SwapEnumeratorsAndCurrentElements()
+                {
+                    (withLowerBoundEnumerator, withGreaterBoundEnumerator) =
+                        (withGreaterBoundEnumerator, withLowerBoundEnumerator);
+                    (firstElement, secondElement) = (secondElement, firstElement);
+                }
+
+                void WithLowerBoundEnumeratorMoveNextAndReadCurrent()
+                {
+                    isContinuesWithLowerBoundEnumerator = withLowerBoundEnumerator.MoveNext();
+                    firstElement = withLowerBoundEnumerator.Current;
+                }
+
+                void WithGreaterBoundEnumeratorMoveNextAndReadCurrent()
+                {
+                    isContinuesWithGreaterBoundEnumerator = withGreaterBoundEnumerator.MoveNext();
+                    secondElement = withGreaterBoundEnumerator.Current;
+                }
+            }
+        }
+    }
+
+    public sealed class FiniteEnumerableNonFictionalAttributeComponentInclusionComparer<TValue>
+        : InstantBinaryAttributeComponentAcceptor<TValue, bool>,
+          IInstantAttributeComponentAcceptor<TValue, FiniteEnumerableNonFictionalAttributeComponent<TValue>, FiniteEnumerableNonFictionalAttributeComponent<TValue>, bool>
+        where TValue : IComparable<TValue>
+    {
+        public bool Accept(FiniteEnumerableNonFictionalAttributeComponent<TValue> greater, 
+                           FiniteEnumerableNonFictionalAttributeComponent<TValue> lesser)
+        {
+            bool isIncludes = false;
+            IEnumerator<TValue> greaterEnumerator = greater.GetEnumerator(),
+                                lesserEnumerator = lesser.GetEnumerator();
+            bool isContinuesGreaterEnumerator,
+                 isContinuesLesserEnumerator;
+            TValue firstElement, secondElement;
+            int elementsComparisonResult;
+
+            ReadComponentsUntilAnyIsOver();
+
+            return isIncludes;
+
+            void ReadComponentsUntilAnyIsOver()
+            {
+                GreaterEnumeratorMoveNextAndReadCurrent();
+                LesserEnumeratorMoveNextAndReadCurrent();
+
+                while (isContinuesGreaterEnumerator && isContinuesLesserEnumerator &&
+                       IsGreaterIncludesCurrentElementFromLesser())
+                {
+                    LesserEnumeratorMoveNextAndReadCurrent();
+                }
+                
+                isIncludes = !isContinuesLesserEnumerator && (isContinuesGreaterEnumerator || greater.Power > lesser.Power);
+
+                return;
+            }
+
+            bool IsGreaterIncludesCurrentElementFromLesser()
+            {
+                while (isContinuesGreaterEnumerator)
+                {
+                    elementsComparisonResult = firstElement.CompareTo(secondElement);
+                    switch (elementsComparisonResult)
+                    {
+                        case -1:
+                            {
+                                GreaterEnumeratorMoveNextAndReadCurrent();
+                                break;
+                            }
+                        case 0:
+                            {
+                                GreaterEnumeratorMoveNextAndReadCurrent();
+                                return true;
+                            }
+                        case 1:
+                            {
+                                return false;
+                            }
+                    }
+                }
+
+                return false;
+            }
+
+            void GreaterEnumeratorMoveNextAndReadCurrent()
+            {
+                isContinuesGreaterEnumerator = greaterEnumerator.MoveNext();
+                firstElement = greaterEnumerator.Current;
+            }
+
+            void LesserEnumeratorMoveNextAndReadCurrent()
+            {
+                isContinuesLesserEnumerator = lesserEnumerator.MoveNext();
+                secondElement = lesserEnumerator.Current;
+            }
+        }
+    }
+
+    public sealed class FiniteEnumerableNonFictionalAttributeComponentEqualityComparer<TValue>
+        : InstantBinaryAttributeComponentAcceptor<TValue, bool>,
+          IInstantAttributeComponentAcceptor<TValue, FiniteEnumerableNonFictionalAttributeComponent<TValue>, FiniteEnumerableNonFictionalAttributeComponent<TValue>, bool>
+        where TValue : IComparable<TValue>
+    {
+        public bool Accept(FiniteEnumerableNonFictionalAttributeComponent<TValue> first, FiniteEnumerableNonFictionalAttributeComponent<TValue> second)
+        {
+            return Enumerable.SequenceEqual(first, second);
+        }
+    }
+
     public class FiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer<TValue>
         : InstantBinaryAttributeComponentAcceptor<TValue, bool>,
           IInstantAttributeComponentAcceptor<TValue, FiniteEnumerableNonFictionalAttributeComponent<TValue>, FiniteEnumerableNonFictionalAttributeComponent<TValue>, bool>
@@ -352,6 +666,7 @@ namespace TupleAlgebraClassLib
                             }
                         case 0:
                             {
+                                GreaterEnumeratorMoveNextAndReadCurrent();
                                 return true;
                             }
                         case 1:

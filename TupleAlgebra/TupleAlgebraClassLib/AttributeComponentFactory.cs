@@ -17,14 +17,14 @@ namespace TupleAlgebraClassLib
         }
     }
 
-    public interface NonFictionalAttributeComponentFactory<TValue, TFactoryArgs>
+    public interface INonFictionalAttributeComponentFactory<TValue, TFactoryArgs>
         where TValue : IComparable<TValue>
         where TFactoryArgs : AttributeComponentFactoryArgs<TValue>
     {
         NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional(TFactoryArgs args);
     }
 
-    public class AttributeComponentFactory<TValue> 
+    public abstract class AttributeComponentFactory<TValue>
         where TValue : IComparable<TValue>
     {
         public EmptyAttributeComponent<TValue> CreateEmpty()
@@ -54,12 +54,12 @@ namespace TupleAlgebraClassLib
         protected NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional<TFactoryArgs>(TFactoryArgs args)
             where TFactoryArgs : AttributeComponentFactoryArgs<TValue>
         {
-            return (this as NonFictionalAttributeComponentFactory<TValue, TFactoryArgs>).CreateSpecificNonFictional(args);
+            return (this as INonFictionalAttributeComponentFactory<TValue, TFactoryArgs>).CreateSpecificNonFictional(args);
         }
 
         public virtual FullAttributeComponent<TValue> CreateFull(AttributeComponentFactoryArgs<TValue> args)
         {
-            return new FullAttributeComponent<TValue>(args.Domain);
+            return FullAttributeComponent<TValue>.Instance;
         }
     }
 }

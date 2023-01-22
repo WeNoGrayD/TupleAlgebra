@@ -46,11 +46,6 @@ namespace TupleAlgebraClassLib
             _nonFictionalSpecificSetOperations[natureType] = setOperations;
         }
 
-        internal new AttributeComponent<TValue> ComplementThe()
-        {
-            return _nonFictionalSpecificSetOperations[NatureType].Complement(this);
-        }
-
         internal AttributeComponent<TValue> IntersectWith(NonFictionalAttributeComponent<TValue> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].Intersect(this, second) as AttributeComponent<TValue>;
@@ -59,6 +54,16 @@ namespace TupleAlgebraClassLib
         internal AttributeComponent<TValue> UnionWith(NonFictionalAttributeComponent<TValue> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].Union(this, second) as AttributeComponent<TValue>;
+        }
+
+        internal AttributeComponent<TValue> ExceptWith(NonFictionalAttributeComponent<TValue> second)
+        {
+            return _nonFictionalSpecificSetOperations[NatureType].Except(this, second) as AttributeComponent<TValue>;
+        }
+
+        internal AttributeComponent<TValue> SymmetricExceptWith(NonFictionalAttributeComponent<TValue> second)
+        {
+            return _nonFictionalSpecificSetOperations[NatureType].SymmetricExcept(this, second) as AttributeComponent<TValue>;
         }
 
         internal bool Includes(NonFictionalAttributeComponent<TValue> second)
@@ -86,10 +91,11 @@ namespace TupleAlgebraClassLib
         private sealed class NonFictionalAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TValue>
         {
             public NonFictionalAttributeComponentOperationExecutersContainer() : base(
-                _baseFactory,
                 new NonFictionalAttributeComponentComplementionOperator<TValue>(),
                 new NonFictionalAttributeComponentIntersectionOperator<TValue>(),
                 new NonFictionalAttributeComponentUnionOperator<TValue>(),
+                new NonFictionalAttributeComponentExceptionOperator<TValue>(),
+                new NonFictionalAttributeComponentSymmetricExceptionOperator<TValue>(),
                 new NonFictionalAttributeComponentInclusionComparer<TValue>(),
                 new NonFictionalAttributeComponentEqualityComparer<TValue>(),
                 new NonFictionalAttributeComponentInclusionOrEqualityComparer<TValue>())
@@ -114,15 +120,13 @@ namespace TupleAlgebraClassLib
     }
 
     public sealed class NonFictionalAttributeComponentComplementionOperator<TValue>
-        : FactoryUnaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
-          IFactoryAttributeComponentAcceptor<TValue, NonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+        : InstantUnaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
+          IInstantAttributeComponentAcceptor<TValue, NonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
         where TValue : IComparable<TValue>
     {
-        public AttributeComponent<TValue> Accept(
-            NonFictionalAttributeComponent<TValue> first,
-            AttributeComponentFactory<TValue> factory)
+        public AttributeComponent<TValue> Accept(NonFictionalAttributeComponent<TValue> first)
         {
-            return AttributeComponentComplementionRules.Complement(first)(factory);
+            return AttributeComponentComplementionRules.Complement(first);
         }
     }
 
@@ -134,21 +138,21 @@ namespace TupleAlgebraClassLib
             NonFictionalAttributeComponent<TValue> first, 
             EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentIntersectionRules.Intersect(second, first as NonFictionalAttributeComponent<TValue>);
+            return AttributeComponentIntersectionRules.Intersect(second, first);
         }
 
         public override AttributeComponent<TValue> Accept(
             NonFictionalAttributeComponent<TValue> first, 
             NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentIntersectionRules.Intersect(first as NonFictionalAttributeComponent<TValue>, second);
+            return AttributeComponentIntersectionRules.Intersect(first, second);
         }
 
         public override AttributeComponent<TValue> Accept(
             NonFictionalAttributeComponent<TValue> first, 
             FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentIntersectionRules.Intersect(first as NonFictionalAttributeComponent<TValue>, second);
+            return AttributeComponentIntersectionRules.Intersect(first, second);
         }
     }
 
@@ -160,21 +164,73 @@ namespace TupleAlgebraClassLib
             NonFictionalAttributeComponent<TValue> first, 
             EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentUnionRules.Union(second, first as NonFictionalAttributeComponent<TValue>);
+            return AttributeComponentUnionRules.Union(second, first);
         }
 
         public override AttributeComponent<TValue> Accept(
             NonFictionalAttributeComponent<TValue> first, 
             NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentUnionRules.Union(first as NonFictionalAttributeComponent<TValue>, second);
+            return AttributeComponentUnionRules.Union(first, second);
         }
 
         public override AttributeComponent<TValue> Accept(
             NonFictionalAttributeComponent<TValue> first, 
             FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentUnionRules.Union(first as NonFictionalAttributeComponent<TValue>, second);
+            return AttributeComponentUnionRules.Union(first, second);
+        }
+    }
+
+    public sealed class NonFictionalAttributeComponentExceptionOperator<TValue>
+        : CrossContentTypesInstantAttributeComponentAcceptor<TValue, NonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
+    {
+        public override AttributeComponent<TValue> Accept(
+            NonFictionalAttributeComponent<TValue> first,
+            EmptyAttributeComponent<TValue> second)
+        {
+            return AttributeComponentExceptRules.Except(first, second);
+        }
+
+        public override AttributeComponent<TValue> Accept(
+            NonFictionalAttributeComponent<TValue> first,
+            NonFictionalAttributeComponent<TValue> second)
+        {
+            return AttributeComponentExceptRules.Except(first, second);
+        }
+
+        public override AttributeComponent<TValue> Accept(
+            NonFictionalAttributeComponent<TValue> first,
+            FullAttributeComponent<TValue> second)
+        {
+            return AttributeComponentExceptRules.Except(first, second);
+        }
+    }
+
+    public sealed class NonFictionalAttributeComponentSymmetricExceptionOperator<TValue>
+        : CrossContentTypesInstantAttributeComponentAcceptor<TValue, NonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+        where TValue : IComparable<TValue>
+    {
+        public override AttributeComponent<TValue> Accept(
+            NonFictionalAttributeComponent<TValue> first,
+            EmptyAttributeComponent<TValue> second)
+        {
+            return AttributeComponentSymmetricExceptionRules.SymmetricExcept(second, first);
+        }
+
+        public override AttributeComponent<TValue> Accept(
+            NonFictionalAttributeComponent<TValue> first,
+            NonFictionalAttributeComponent<TValue> second)
+        {
+            return AttributeComponentSymmetricExceptionRules.SymmetricExcept(second, first);
+        }
+
+        public override AttributeComponent<TValue> Accept(
+            NonFictionalAttributeComponent<TValue> first,
+            FullAttributeComponent<TValue> second)
+        {
+            return AttributeComponentSymmetricExceptionRules.SymmetricExcept(first, second);
         }
     }
 
@@ -184,17 +240,20 @@ namespace TupleAlgebraClassLib
     {
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(second, first as NonFictionalAttributeComponent<TValue>);
+            return true;
+            //return !AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(second, first);
         }
 
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(first as NonFictionalAttributeComponent<TValue>, second);
+            return first.Includes(second);
+            //return AttributeComponentInclusionRules.Include(first, second);
         }
 
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionRules.Include(first as NonFictionalAttributeComponent<TValue>, second);
+            return false;
+            //return AttributeComponentInclusionRules.Include(first, second);
         }
     }
 
@@ -204,17 +263,20 @@ namespace TupleAlgebraClassLib
     {
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(second, first as NonFictionalAttributeComponent<TValue>);
+            return false;
+            //return AttributeComponentEqualityRules.Equal(second, first);
         }
 
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(first as NonFictionalAttributeComponent<TValue>, second);
+            return first.EqualsTo(second);
+            //return AttributeComponentEqualityRules.Equal(first, second);
         }
 
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentEqualityRules.Equal(first as NonFictionalAttributeComponent<TValue>, second);
+            return false;
+            //return AttributeComponentEqualityRules.Equal(first, second);
         }
     }
 
@@ -224,17 +286,20 @@ namespace TupleAlgebraClassLib
     {
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, EmptyAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(second, first as NonFictionalAttributeComponent<TValue>);
+            return true;
+            //return !AttributeComponentInclusionRules.Include(second, first);
         }
 
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first as NonFictionalAttributeComponent<TValue>, second);
+            return first.IncludesOrEqualsTo(second);
+            //return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first, second);
         }
 
         public override bool Accept(NonFictionalAttributeComponent<TValue> first, FullAttributeComponent<TValue> second)
         {
-            return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first as NonFictionalAttributeComponent<TValue>, second);
+            return false;
+            //return AttributeComponentInclusionOrEqualityRules.IncludeOrEqual(first, second);
         }
     }
 }
