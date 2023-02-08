@@ -3,6 +3,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TupleAlgebraClassLib;
 using System.Collections.Generic;
 using System.Linq;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure;
 
 namespace TupleAlgebraTests
 {
@@ -14,7 +16,7 @@ namespace TupleAlgebraTests
         protected MockAttributeComponentFactory<string> stringFactory;
         protected Dictionary<Type, object> factories;
 
-        protected class MockAttributeComponentFactory<TValue> : FiniteEnumerableNonFictionalAttributeComponentFactory<TValue>
+        protected class MockAttributeComponentFactory<TValue> : OrderedFiniteEnumerableNonFictionalAttributeComponentFactory<TValue>
             where TValue : IComparable<TValue>
         {
             public readonly AttributeDomain<TValue> FactoryDomain;
@@ -27,8 +29,8 @@ namespace TupleAlgebraTests
             public AttributeComponent<TValue> CreateNonFictional(
                 IEnumerable<TValue> values)
             {
-                FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> factoryArgs =
-                    new FiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>(FactoryDomain, values);
+                OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> factoryArgs =
+                    new OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>(FactoryDomain, values);
                 return CreateNonFictional(factoryArgs);
             }
 
@@ -44,9 +46,9 @@ namespace TupleAlgebraTests
         public void SetUp()
         {
             intFactory = new MockAttributeComponentFactory<int>(
-                new FiniteEnumerableAttributeDomain<int>(Enumerable.Range(0, 10)));
+                new OrderedFiniteEnumerableAttributeDomain<int>(Enumerable.Range(0, 10)));
             stringFactory = new MockAttributeComponentFactory<string>(
-                new FiniteEnumerableAttributeDomain<string>(
+                new OrderedFiniteEnumerableAttributeDomain<string>(
                     new[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }));
             factories = new Dictionary<Type, object>()
             { { typeof(int), intFactory }, { typeof(string), stringFactory } };

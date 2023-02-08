@@ -50,11 +50,15 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataModels\ForumUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AttributeComponentTests.cs" />
     <Compile Include="FiniteEnumerableNonFictionalAttributeComponentTests.cs" />
     <Compile Include="FullComponentAttributeTests.cs" />
     <Compile Include="EmptyComponentAttributeTests.cs" />
+    <Compile Include="AlgebraicTupleTests.cs" />
+    <Compile Include="SpecializedAttributeDomainsTests.cs" />
+    <Compile Include="AttributeComponentQueryProviderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

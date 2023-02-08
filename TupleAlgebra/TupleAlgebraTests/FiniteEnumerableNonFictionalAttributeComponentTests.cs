@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace TupleAlgebraTests
 {
     [TestClass]
-    public class FiniteEnumerableNonFictionalAttributeComponentTests : AttributeComponentTests
+    public class OrderedFiniteEnumerableNonFictionalAttributeComponentTests : AttributeComponentTests
     {
         [TestMethod]
         public void NonFictionalComponentCreating()
