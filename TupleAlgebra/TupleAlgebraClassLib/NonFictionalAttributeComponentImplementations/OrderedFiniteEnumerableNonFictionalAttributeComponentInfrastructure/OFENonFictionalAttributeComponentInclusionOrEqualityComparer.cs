@@ -5,22 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
-namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure
+namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer<TValue>
-        : InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TValue>,
-          IInstantAttributeComponentAcceptor<TValue, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>, bool>
+    public class OrderedFiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer<TData>
+        : InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>,
+          IInstantAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
     {
         public bool Accept(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> greater,
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> lesser)
+            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> greater,
+            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> lesser)
         {
             bool isIncludes = false;
-            IEnumerator<TValue> greaterEnumerator = greater.GetEnumerator(),
+            IEnumerator<TData> greaterEnumerator = greater.GetEnumerator(),
                                 lesserEnumerator = lesser.GetEnumerator();
             bool isContinuesLesserEnumerator = true,
                  isContinuesGreaterEnumerator = true;
-            TValue firstElement = default(TValue), secondElement = default(TValue);
+            TData firstElement = default(TData), secondElement = default(TData);
             int elementsComparisonResult;
 
             ReadComponentsUntilAnyIsOver();

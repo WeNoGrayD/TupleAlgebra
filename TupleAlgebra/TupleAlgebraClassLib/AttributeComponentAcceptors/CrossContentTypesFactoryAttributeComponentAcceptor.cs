@@ -7,26 +7,26 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
-    public abstract class CrossContentTypesFactoryAttributeComponentAcceptor<TValue, TOperand1, TOperationResult>
-        : FactoryBinaryAttributeComponentAcceptor<TValue, TOperationResult>,
-          IFactoryAttributeComponentAcceptor<TValue, TOperand1, EmptyAttributeComponent<TValue>, TOperationResult>,
-          IFactoryAttributeComponentAcceptor<TValue, TOperand1, NonFictionalAttributeComponent<TValue>, TOperationResult>,
-          IFactoryAttributeComponentAcceptor<TValue, TOperand1, FullAttributeComponent<TValue>, TOperationResult>
-        where TOperand1 : AttributeComponent<TValue>
+    public abstract class CrossContentTypesFactoryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
+        : FactoryBinaryAttributeComponentAcceptor<TData, TOperationResult>,
+          IFactoryAttributeComponentAcceptor<TData, TOperand1, EmptyAttributeComponent<TData>, TOperationResult>,
+          IFactoryAttributeComponentAcceptor<TData, TOperand1, NonFictionalAttributeComponent<TData>, TOperationResult>,
+          IFactoryAttributeComponentAcceptor<TData, TOperand1, FullAttributeComponent<TData>, TOperationResult>
+        where TOperand1 : AttributeComponent<TData>
     {
         public abstract TOperationResult Accept(
             TOperand1 first,
-            EmptyAttributeComponent<TValue> second,
-            AttributeComponentFactory<TValue> factory);
+            EmptyAttributeComponent<TData> second,
+            AttributeComponentFactory<TData> factory);
 
         public abstract TOperationResult Accept(
             TOperand1 first,
-            NonFictionalAttributeComponent<TValue> second,
-            AttributeComponentFactory<TValue> factory);
+            NonFictionalAttributeComponent<TData> second,
+            AttributeComponentFactory<TData> factory);
 
         public abstract TOperationResult Accept(
             TOperand1 first,
-            FullAttributeComponent<TValue> second,
-            AttributeComponentFactory<TValue> factory);
+            FullAttributeComponent<TData> second,
+            AttributeComponentFactory<TData> factory);
     }
 }

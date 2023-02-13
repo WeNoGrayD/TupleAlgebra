@@ -7,13 +7,13 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.DecidableNonFictionalAttributeComponent
 {
-    public class PredicateBasedDecidableNonFictionalAttributeComponentFactory<TValue>
-        : AttributeComponentFactory<TValue>,
-          INonFictionalAttributeComponentFactory<TValue, PredicateBasedDecidableNonFictionalAttributeComponentFactoryArgs<TValue>>
+    public class PredicateBasedDecidableNonFictionalAttributeComponentFactory<TData>
+        : AttributeComponentFactory<TData>,
+          INonFictionalAttributeComponentFactory<TData, PredicateBasedDecidableNonFictionalAttributeComponentFactoryArgs<TData>>
     {
-        public NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional(PredicateBasedDecidableNonFictionalAttributeComponentFactoryArgs<TValue> args)
+        public NonFictionalAttributeComponent<TData> CreateSpecificNonFictional(PredicateBasedDecidableNonFictionalAttributeComponentFactoryArgs<TData> args)
         {
-            return new PredicateBasedDecidableNonFictionalAttributeComponent<TValue>(args.Domain, null);
+            return new PredicateBasedDecidableNonFictionalAttributeComponent<TData>(args.Domain, null);
         }
     }
 }

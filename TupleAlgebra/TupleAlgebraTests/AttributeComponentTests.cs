@@ -4,7 +4,8 @@ using TupleAlgebraClassLib;
 using System.Collections.Generic;
 using System.Linq;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraTests
 {
@@ -16,28 +17,35 @@ namespace TupleAlgebraTests
         protected MockAttributeComponentFactory<string> stringFactory;
         protected Dictionary<Type, object> factories;
 
-        protected class MockAttributeComponentFactory<TValue> : OrderedFiniteEnumerableNonFictionalAttributeComponentFactory<TValue>
-            where TValue : IComparable<TValue>
+        protected class MockAttributeComponentFactory<TData> : OrderedFiniteEnumerableAttributeComponentFactory<TData>
+            where TData : IComparable<TData>
         {
-            public readonly AttributeDomain<TValue> FactoryDomain;
+            public readonly AttributeDomain<TData> FactoryDomain;
 
-            public MockAttributeComponentFactory(AttributeDomain<TValue> factoryDomain)
+            public MockAttributeComponentFactory(AttributeDomain<TData> factoryDomain)
             {
                 FactoryDomain = factoryDomain;
             }
 
-            public AttributeComponent<TValue> CreateNonFictional(
-                IEnumerable<TValue> values)
+            public EmptyAttributeComponent<TData> CreateEmpty()
             {
-                OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> factoryArgs =
-                    new OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>(FactoryDomain, values);
+                AttributeComponentFactoryArgs<TData> factoryArgs =
+                    new AttributeComponentFactoryArgs<TData>(FactoryDomain);
+                return CreateEmpty(factoryArgs);
+            }
+
+            public AttributeComponent<TData> CreateNonFictional(
+                IEnumerable<TData> values)
+            {
+                OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
+                    new OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(FactoryDomain, values);
                 return CreateNonFictional(factoryArgs);
             }
 
-            public FullAttributeComponent<TValue> CreateFull()
+            public FullAttributeComponent<TData> CreateFull()
             {
-                AttributeComponentFactoryArgs<TValue> factoryArgs = 
-                    new AttributeComponentFactoryArgs<TValue>(FactoryDomain);
+                AttributeComponentFactoryArgs<TData> factoryArgs = 
+                    new AttributeComponentFactoryArgs<TData>(FactoryDomain);
                 return CreateFull(factoryArgs);
             }
         }

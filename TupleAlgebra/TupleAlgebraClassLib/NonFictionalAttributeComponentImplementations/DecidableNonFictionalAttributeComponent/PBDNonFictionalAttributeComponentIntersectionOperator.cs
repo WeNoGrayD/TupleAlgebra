@@ -9,17 +9,17 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.DecidableNonFictionalAttributeComponent
 {
-    public class PredicateBasedDecidableNonFictionalAttributeComponentIntersectionOperator<TValue>
-        : FactoryBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
-          IFactoryAttributeComponentAcceptor<TValue, PredicateBasedDecidableNonFictionalAttributeComponent<TValue>, PredicateBasedDecidableNonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public class PredicateBasedDecidableNonFictionalAttributeComponentIntersectionOperator<TData>
+        : FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>,
+          IFactoryAttributeComponentAcceptor<TData, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public AttributeComponent<TValue> Accept(
-            PredicateBasedDecidableNonFictionalAttributeComponent<TValue> first,
-            PredicateBasedDecidableNonFictionalAttributeComponent<TValue> second,
-            AttributeComponentFactory<TValue> factory)
+        public AttributeComponent<TData> Accept(
+            PredicateBasedDecidableNonFictionalAttributeComponent<TData> first,
+            PredicateBasedDecidableNonFictionalAttributeComponent<TData> second,
+            AttributeComponentFactory<TData> factory)
         {
-            IEnumerable<Expression<Predicate<TValue>>> exprs1 = first.Rules.Cast<Expression<Predicate<TValue>>>(),
-                                                       exprs2 = second.Rules.Cast<Expression<Predicate<TValue>>>();
+            IEnumerable<Expression<Predicate<TData>>> exprs1 = first.Rules.Cast<Expression<Predicate<TData>>>(),
+                                                       exprs2 = second.Rules.Cast<Expression<Predicate<TData>>>();
 
             return null;
         }

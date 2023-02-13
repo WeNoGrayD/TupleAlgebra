@@ -5,39 +5,40 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 
-namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure
+namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TValue>
-        : FactoryBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TValue>,
-          IFactoryAttributeComponentAcceptor<TValue, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public class OrderedFiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TData>
+        : FactoryBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>,
+          IFactoryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public AttributeComponent<TValue> Accept(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> first,
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> second,
-            AttributeComponentFactory<TValue> factory)
+        public AttributeComponent<TData> Accept(
+            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
+            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
+            AttributeComponentFactory<TData> factory)
         {
-            IEnumerable<TValue> intersectedElements = IntersectComponentsElements();
-            OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> factoryArgs =
-                new OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>(first.Domain, intersectedElements);
-            AttributeComponent<TValue> resultComponent = factory.CreateNonFictional(factoryArgs);
+            IEnumerable<TData> intersectedElements = IntersectComponentsElements();
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
+                new OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(first.Domain, intersectedElements);
+            AttributeComponent<TData> resultComponent = factory.CreateNonFictional(factoryArgs);
 
             return resultComponent;
 
-            IEnumerable<TValue> IntersectComponentsElements()
+            IEnumerable<TData> IntersectComponentsElements()
             {
                 int minPower = (Enumerable.Min(new[] { first.Power, second.Power })
-                    as OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>
+                    as OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>
                            .OrderedFiniteEnumerableNonFictionalAttributeComponentPower)
                         .Value;
-                List<TValue> intersected = new List<TValue>(minPower);
-                IEnumerator<TValue> firstEnumerator = first.GetEnumerator(),
+                List<TData> intersected = new List<TData>(minPower);
+                IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
                                     secondEnumerator = second.GetEnumerator(),
                                     withLowerBoundEnumerator = firstEnumerator,
                                     withGreaterBoundEnumerator = secondEnumerator;
                 bool isContinuesWithLowerBoundEnumerator = true,
                      isContinuesWithGreaterBoundEnumerator = true;
-                TValue firstElement = default(TValue), secondElement = default(TValue);
+                TData firstElement = default(TData), secondElement = default(TData);
                 int elementsComparisonResult;
 
                 ReadComponentsUntilAtLeastOneIsOver();

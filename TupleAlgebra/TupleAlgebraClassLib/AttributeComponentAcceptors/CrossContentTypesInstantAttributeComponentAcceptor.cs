@@ -13,23 +13,23 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     /// паттерн "приниматель" (название временное).
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
-    public abstract class CrossContentTypesInstantAttributeComponentAcceptor<TValue, TOperand1, TOperationResult>
-        : InstantBinaryAttributeComponentAcceptor<TValue, TOperationResult>,
-          IInstantAttributeComponentAcceptor<TValue, TOperand1, EmptyAttributeComponent<TValue>, TOperationResult>,
-          IInstantAttributeComponentAcceptor<TValue, TOperand1, NonFictionalAttributeComponent<TValue>, TOperationResult>,
-          IInstantAttributeComponentAcceptor<TValue, TOperand1, FullAttributeComponent<TValue>, TOperationResult>
-        where TOperand1 : AttributeComponent<TValue>
+    public abstract class CrossContentTypesInstantAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
+        : InstantBinaryAttributeComponentAcceptor<TData, TOperationResult>,
+          IInstantAttributeComponentAcceptor<TData, TOperand1, EmptyAttributeComponent<TData>, TOperationResult>,
+          IInstantAttributeComponentAcceptor<TData, TOperand1, NonFictionalAttributeComponent<TData>, TOperationResult>,
+          IInstantAttributeComponentAcceptor<TData, TOperand1, FullAttributeComponent<TData>, TOperationResult>
+        where TOperand1 : AttributeComponent<TData>
     {
         public abstract TOperationResult Accept(
             TOperand1 first,
-            EmptyAttributeComponent<TValue> second);
+            EmptyAttributeComponent<TData> second);
 
         public abstract TOperationResult Accept(
             TOperand1 first,
-            NonFictionalAttributeComponent<TValue> second);
+            NonFictionalAttributeComponent<TData> second);
 
         public abstract TOperationResult Accept(
             TOperand1 first,
-            FullAttributeComponent<TValue> second);
+            FullAttributeComponent<TData> second);
     }
 }

@@ -7,26 +7,26 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
-    public sealed class NonFictionalAttributeComponentSymmetricExceptionOperator<TValue>
-        : CrossContentTypesInstantAttributeComponentAcceptor<TValue, NonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public sealed class NonFictionalAttributeComponentSymmetricExceptionOperator<TData>
+        : CrossContentTypesInstantAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public override AttributeComponent<TValue> Accept(
-            NonFictionalAttributeComponent<TValue> first,
-            EmptyAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            NonFictionalAttributeComponent<TData> first,
+            EmptyAttributeComponent<TData> second)
         {
             return first;
         }
 
-        public override AttributeComponent<TValue> Accept(
-            NonFictionalAttributeComponent<TValue> first,
-            NonFictionalAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            NonFictionalAttributeComponent<TData> first,
+            NonFictionalAttributeComponent<TData> second)
         {
             return first.SymmetricExceptWith(second);
         }
 
-        public override AttributeComponent<TValue> Accept(
-            NonFictionalAttributeComponent<TValue> first,
-            FullAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            NonFictionalAttributeComponent<TData> first,
+            FullAttributeComponent<TData> second)
         {
             return !first;
         }

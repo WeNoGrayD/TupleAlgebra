@@ -7,11 +7,11 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
-    public sealed class NonFictionalAttributeComponentComplementionOperator<TValue>
-        : InstantUnaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
-          IInstantAttributeComponentAcceptor<TValue, NonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public sealed class NonFictionalAttributeComponentComplementionOperator<TData>
+        : InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>,
+          IInstantAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public AttributeComponent<TValue> Accept(NonFictionalAttributeComponent<TValue> first)
+        public AttributeComponent<TData> Accept(NonFictionalAttributeComponent<TData> first)
         {
             return first.Domain ^ first;
         }

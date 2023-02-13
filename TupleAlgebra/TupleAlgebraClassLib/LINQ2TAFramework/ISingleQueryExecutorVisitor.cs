@@ -14,4 +14,13 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         void VisitEveryDataInstanceReader<TData, TQueryResult>(
             EveryDataInstanceReader<TData, TQueryResult> reader);
     }
+
+    public interface ISingleQueryExecutorVisitor<TData>
+    {
+        void VisitWholeDataSourceReader<TQueryResult>(
+            WholeDataSourceReader<TData, TQueryResult> reader);
+
+        void VisitEveryDataInstanceReader<TQueryResult>(
+            EveryDataInstanceReader<TData, TQueryResult> reader);
+    }
 }

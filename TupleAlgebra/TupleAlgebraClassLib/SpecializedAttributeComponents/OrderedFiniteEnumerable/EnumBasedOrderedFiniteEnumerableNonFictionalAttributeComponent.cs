@@ -4,28 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SpecializedAttributeDomains;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnumerable
 {
-    public class EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>
-        : OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>
-        where TValue : struct, IComparable
+    public class EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TData>
+        : OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>
+        where TData : struct, IComparable
     {
         public EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
-            EnumBasedOrderedFiniteEnumerableAttributeDomain<TValue> domain,
-            IEnumerable<TValue> values)
+            EnumBasedOrderedFiniteEnumerableAttributeDomain<TData> domain,
+            IEnumerable<TData> values)
             : base(domain, values)
         { }
 
-        protected override IComparer<TValue> InitOrderingComparerImpl()
+        protected override IComparer<TData> InitOrderingComparerImpl()
         {
             return new EnumComparer();
         }
 
-        private class EnumComparer : IComparer<TValue>
+        private class EnumComparer : IComparer<TData>
         {
-            public int Compare(TValue first, TValue second)
+            public int Compare(TData first, TData second)
             {
                 return first.CompareTo(second);
             }

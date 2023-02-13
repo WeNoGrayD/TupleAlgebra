@@ -32,5 +32,12 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
             return;
         }
+
+        public void Accept(ISingleQueryExecutorVisitor<TData> visitor)
+        {
+            visitor.VisitWholeDataSourceReader(this);
+
+            return;
+        }
     }
 }

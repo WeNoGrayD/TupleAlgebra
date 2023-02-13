@@ -8,11 +8,11 @@ using System.Diagnostics;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
-    public abstract class FactoryUnaryAttributeComponentAcceptor<TValue, TOperationResult>
+    public abstract class FactoryUnaryAttributeComponentAcceptor<TData, TOperationResult>
     {
         public TOperationResult Accept(
-            AttributeComponent<TValue> first,
-            AttributeComponentFactory<TValue> factory)
+            AttributeComponent<TData> first,
+            AttributeComponentFactory<TData> factory)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -24,10 +24,10 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 
         protected TOperationResult DowncastOperandToContentType<TOperand1>(
             TOperand1 first,
-            AttributeComponentFactory<TValue> factory)
-            where TOperand1 : AttributeComponent<TValue>
+            AttributeComponentFactory<TData> factory)
+            where TOperand1 : AttributeComponent<TData>
         {
-            var data = (this as IFactoryAttributeComponentAcceptor<TValue, TOperand1, TOperationResult>).Accept(first, factory);
+            var data = (this as IFactoryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>).Accept(first, factory);
             return data;
         }
     }

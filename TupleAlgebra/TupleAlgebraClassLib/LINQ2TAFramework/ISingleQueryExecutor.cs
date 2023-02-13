@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework
 {
-    public interface ISingleQueryExecutor<TData, TQueryResult> : IQueryPipelineExecutorAcceptor
+    public interface ISingleQueryExecutor<TData, TQueryResult> 
+        : IQueryPipelineExecutorAcceptor, IQueryPipelineExecutorAcceptor<TData>
     {
         Func<TData, bool> Predicate { get; }
 

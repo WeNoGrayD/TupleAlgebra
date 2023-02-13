@@ -8,18 +8,18 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.DecidableNonFictionalAttributeComponent
 {
-    public abstract class DecidableNonFictionalAttributeComponent<TValue> : NonFictionalAttributeComponent<TValue>
+    public abstract class DecidableNonFictionalAttributeComponent<TData> : NonFictionalAttributeComponent<TData>
     {
         public DecidableNonFictionalAttributeComponent(
-            AttributeDomain<TValue> domain, NonFictionalAttributeComponentPower power)
+            AttributeDomain<TData> domain, NonFictionalAttributeComponentPower power)
             : base(domain, power)
         { }
 
-        public abstract bool Decide(TValue value);
+        public abstract bool Decide(TData value);
 
         public override bool IsEmpty()
         {
-            return (Domain & this) is EmptyAttributeComponent<TValue>;
+            return (Domain & this) is EmptyAttributeComponent<TData>;
         }
 
         public override bool IsFull()
@@ -28,91 +28,91 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         }
 
         /*
-        public override IEnumerator<TValue> GetEnumerator()
+        public override IEnumerator<TData> GetEnumerator()
         {
             yield break;
         }
         */
     }
 
-    public abstract class GeneratingDecidableNonFictionalAttributeComponent<TValue>
-        : DecidableNonFictionalAttributeComponent<TValue>
+    public abstract class GeneratingDecidableNonFictionalAttributeComponent<TData>
+        : DecidableNonFictionalAttributeComponent<TData>
     {
-        private DecidableNonFictionalAttributeComponent<TValue> _slave;
+        private DecidableNonFictionalAttributeComponent<TData> _slave;
 
         public GeneratingDecidableNonFictionalAttributeComponent(
-            DecidableNonFictionalAttributeComponent<TValue> slave)
+            DecidableNonFictionalAttributeComponent<TData> slave)
             : base(slave.Domain, slave.Power as NonFictionalAttributeComponentPower)
         { }
 
-        public override IEnumerator<TValue> GetEnumeratorImpl()
+        public override IEnumerator<TData> GetEnumeratorImpl()
         {
             yield break;
         }
     }
 
     /*
-    internal class PredicateBasedRuleSet<TValue> : 
+    internal class PredicateBasedRuleSet<TData> : 
     {
-        List<IEnumerable<Predicate<TValue>>> _rule
+        List<IEnumerable<Predicate<TData>>> _rule
     }
     */
-    public class PredicateBasedDecidableNonFictionalAttributeComponent<TValue>
-        : DecidableNonFictionalAttributeComponent<TValue>
+    public class PredicateBasedDecidableNonFictionalAttributeComponent<TData>
+        : DecidableNonFictionalAttributeComponent<TData>
     {
         private const string NATURE_TYPE = "PredicateBasedDecidable";
 
         protected override string NatureType { get => NATURE_TYPE; }
 
-        public IEnumerable<Predicate<TValue>> Rules { get; private set; }
+        public IEnumerable<Predicate<TData>> Rules { get; private set; }
 
         static PredicateBasedDecidableNonFictionalAttributeComponent()
         {
-            NonFictionalAttributeComponent<TValue>.InitSetOperations(
+            NonFictionalAttributeComponent<TData>.InitSetOperations(
                 NATURE_TYPE,
                 new PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer());
         }
 
         public PredicateBasedDecidableNonFictionalAttributeComponent(
-            AttributeDomain<TValue> domain,
-            IEnumerable<Predicate<TValue>> rules)
+            AttributeDomain<TData> domain,
+            IEnumerable<Predicate<TData>> rules)
             : base(domain, new PredicateBasedDecidableNonFictionalAttributeComponentPower(rules))
         {
             Rules = rules;
         }
 
-        public override IEnumerator<TValue> GetEnumeratorImpl()
+        public override IEnumerator<TData> GetEnumeratorImpl()
         {
             yield break;
         }
 
-        public override bool Decide(TValue value)
+        public override bool Decide(TData value)
         {
             return Rules.All(rule => rule(value));
         }
 
-        private class PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer : FactorySetOperationExecutersContainer<TValue>
+        private class PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer : FactorySetOperationExecutersContainer<TData>
         {
             public PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer() : base(
-                new PredicateBasedDecidableNonFictionalAttributeComponentFactory<TValue>(),
-                new PredicateBasedDecidableNonFictionalAttributeComponentIntersectionOperator<TValue>(),
-                new PredicateBasedDecidableNonFictionalAttributeComponentUnionOperator<TValue>(),
-                new PredicateBasedDecidableNonFictionalAttributeComponentExceptionOperator<TValue>(),
-                new PredicateBasedDecidableNonFictionalAttributeComponentSymmetricExceptionOperator<TValue>(),
-                new PredicateBasedDecidableNonFictionalAttributeComponentInclusionComparer<TValue>(),
-                new PredicateBasedDecidableNonFictionalAttributeComponentEqualityComparer<TValue>(),
-                new PredicateBasedDecidableNonFictionalAttributeComponentInclusionOrEqualityComparer<TValue>())
+                new PredicateBasedDecidableNonFictionalAttributeComponentFactory<TData>(),
+                new PredicateBasedDecidableNonFictionalAttributeComponentIntersectionOperator<TData>(),
+                new PredicateBasedDecidableNonFictionalAttributeComponentUnionOperator<TData>(),
+                new PredicateBasedDecidableNonFictionalAttributeComponentExceptionOperator<TData>(),
+                new PredicateBasedDecidableNonFictionalAttributeComponentSymmetricExceptionOperator<TData>(),
+                new PredicateBasedDecidableNonFictionalAttributeComponentInclusionComparer<TData>(),
+                new PredicateBasedDecidableNonFictionalAttributeComponentEqualityComparer<TData>(),
+                new PredicateBasedDecidableNonFictionalAttributeComponentInclusionOrEqualityComparer<TData>())
             { }
         }
 
         public class PredicateBasedDecidableNonFictionalAttributeComponentPower : NonFictionalAttributeComponentPower
         {
-            private IEnumerable<Predicate<TValue>> _componentRules;
+            private IEnumerable<Predicate<TData>> _componentRules;
 
             public int Value { get => _componentRules.Count(); }
 
             public PredicateBasedDecidableNonFictionalAttributeComponentPower(
-                IEnumerable<Predicate<TValue>> componentRules)
+                IEnumerable<Predicate<TData>> componentRules)
             {
                 _componentRules = componentRules;
             }

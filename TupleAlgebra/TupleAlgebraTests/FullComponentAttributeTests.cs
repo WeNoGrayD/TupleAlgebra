@@ -16,7 +16,7 @@ namespace TupleAlgebraTests
             component1 = intFactory.CreateFull();
             component2 = intFactory.CreateFull();
 
-            Assert.AreEqual(component1, component2);
+            Assert.AreNotEqual(component1, component2);
         }
 
         [TestMethod]

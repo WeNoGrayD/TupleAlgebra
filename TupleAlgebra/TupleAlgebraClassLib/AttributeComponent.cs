@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using System.Linq.Expressions;
+using TupleAlgebraClassLib.LINQ2TAFramework;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib
 {
@@ -15,20 +18,32 @@ namespace TupleAlgebraClassLib
     /// Определяет операторы и методы для операций пересечения, объединения,
     /// дополнения, сравнения на равенство и включения.
     /// </summary>
-    /// <typeparam name="TValue">Тип значения, которое может принимать атрибут.</typeparam>
-    public abstract class AttributeComponent<TValue> : IEnumerable, IEnumerable<TValue>, IQueryable<TValue>
+    /// <typeparam name="TData">Тип значения, которое может принимать атрибут.</typeparam>
+    public abstract class AttributeComponent<TData>
+        : IEnumerable<TData>, 
+          IQueryable<TData>, 
+          //IReproducingQueryable,
+          IReproducingQueryable<TData>
     {
         public virtual Expression Expression { get; protected set; }
 
-        public virtual Type ElementType { get => typeof(TValue); }
+        public virtual Type ElementType { get => typeof(TData); }
 
         public virtual IQueryProvider Provider { get; protected set; }
 
-        protected abstract AttributeComponentContentType ContentType { get; }
+        /// <summary>
+        /// Домен атрибута.
+        /// </summary>
+        public AttributeDomain<TData> Domain { get; protected set; }
 
         public readonly AttributeComponentPower Power;
 
-        private static Dictionary<AttributeComponentContentType, InstantSetOperationExecutersContainer<TValue>> _setOperations;
+        protected abstract AttributeComponentContentType ContentType { get; }
+
+        private static Dictionary<AttributeComponentContentType, InstantSetOperationExecutersContainer<TData>> _setOperations;
+
+        public static readonly AttributeComponentFactory<TData> FictionalAttributeComponentFactory
+            = new AttributeComponentFactory<TData>();
 
         #region Constructors
 
@@ -37,138 +52,193 @@ namespace TupleAlgebraClassLib
         /// </summary>
         static AttributeComponent()
         {
-            _setOperations = new Dictionary<AttributeComponentContentType, InstantSetOperationExecutersContainer<TValue>>();
+            _setOperations = new Dictionary<AttributeComponentContentType, InstantSetOperationExecutersContainer<TData>>();
         }
 
         /// <summary>
         /// Конструктор.
         /// </summary>
         /// <param name="power"></param>
-        public AttributeComponent(AttributeComponentPower power)
+        public AttributeComponent(
+            AttributeComponentPower power,
+            AttributeComponentQueryProvider queryProvider,
+            Expression queryExpression)
         {
             Power = power;
+            Provider = queryProvider;
+            Expression = queryExpression ?? Expression.Constant(this);
+        }
+
+        /// <summary>
+        /// Конструктор.
+        /// </summary>
+        /// <param name="power"></param>
+        public AttributeComponent(
+            AttributeDomain<TData> domain,
+            AttributeComponentPower power,
+            AttributeComponentQueryProvider queryProvider,
+            Expression queryExpression)
+            : this(power, queryProvider, queryExpression)
+        {
+            Domain = domain;
+        }
+
+        #endregion
+
+        #region Instance methods
+
+        public virtual AttributeComponentFactoryArgs<TData> ZipInfo(
+            IEnumerable<TData> populatingData)
+        {
+            return new AttributeComponentFactoryArgs<TData>(
+                this.Domain, 
+                this.Provider as AttributeComponentQueryProvider);
+        }
+
+        protected abstract AttributeComponent<TData> ReproduceImpl(
+            AttributeComponentFactoryArgs<TData> factoryArgs);
+
+        public AttributeComponent<TReproducedData> Reproduce<TReproducedData>(
+            AttributeComponentFactoryArgs<TReproducedData> factoryArgs)
+        {
+            return ReproduceImpl(factoryArgs as AttributeComponentFactoryArgs<TData>)
+                as AttributeComponent<TReproducedData>;
+        }
+
+        public IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
+            IEnumerable<TReproducedData> reproducedData)
+        {
+            if (typeof(TData) != typeof(TReproducedData))
+            {
+                throw new ArgumentException($"Тип {this.GetType()} не может воспроизводить " +
+                    $"компоненты атрибутов, чей тип данных отличается от типа данных {this.GetType()}.\n" +
+                    $"Тип данных воспроизводимой компоненты атрибута: {typeof(TReproducedData)}.");
+            }
+
+            return ReproduceImpl(ZipInfo(reproducedData as IEnumerable<TData>))
+                as IReproducingQueryable<TReproducedData>;
         }
 
         #endregion
 
         protected static void InitSetOperations(
             AttributeComponentContentType contentType,
-            InstantSetOperationExecutersContainer<TValue> setOperations)
+            InstantSetOperationExecutersContainer<TData> setOperations)
         {
             _setOperations[contentType] = setOperations;
         }
 
-        public IEnumerator<TValue> GetEnumerator()
+        public IEnumerator<TData> GetEnumerator()
         {
-            return Provider.Execute<AttributeComponent<TValue>>(Expression).GetEnumeratorImpl();
+            return Provider.Execute<AttributeComponent<TData>>(Expression).GetEnumeratorImpl();
         }
 
-        public abstract IEnumerator<TValue> GetEnumeratorImpl();
+        public abstract IEnumerator<TData> GetEnumeratorImpl();
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
 
-        protected AttributeComponent<TValue> ComplementThe()
+        protected AttributeComponent<TData> ComplementThe()
         {
             return _setOperations[ContentType].Complement(this);
         }
 
-        protected AttributeComponent<TValue> IntersectWith(AttributeComponent<TValue> second)
+        protected AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second)
         {
             return _setOperations[ContentType].Intersect(this, second);
         }
 
-        protected AttributeComponent<TValue> UnionWith(AttributeComponent<TValue> second)
+        protected AttributeComponent<TData> UnionWith(AttributeComponent<TData> second)
         {
             return _setOperations[ContentType].Union(this, second);
         }
 
-        protected AttributeComponent<TValue> ExceptWith(AttributeComponent<TValue> second)
+        protected AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second)
         {
             return _setOperations[ContentType].Except(this, second);
         }
 
-        protected AttributeComponent<TValue> SymmetricExceptWith(AttributeComponent<TValue> second)
+        protected AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second)
         {
             return _setOperations[ContentType].SymmetricExcept(this, second);
         }
 
-        protected bool Includes(AttributeComponent<TValue> second)
+        protected bool Includes(AttributeComponent<TData> second)
         {
             return _setOperations[ContentType].Include(this, second);
         }
 
-        protected bool EqualsTo(AttributeComponent<TValue> second)
+        protected bool EqualsTo(AttributeComponent<TData> second)
         {
             return _setOperations[ContentType].Equal(this, second);
         }
 
-        protected bool IncludesOrEqualsTo(AttributeComponent<TValue> second)
+        protected bool IncludesOrEqualsTo(AttributeComponent<TData> second)
         {
             return _setOperations[ContentType].IncludeOrEqual(this, second);
         }
 
-        public static AttributeComponent<TValue> operator !(AttributeComponent<TValue> first)
+        public static AttributeComponent<TData> operator !(AttributeComponent<TData> first)
         {
             return first.ComplementThe();
         }
 
-        public static AttributeComponent<TValue> operator &(
-            AttributeComponent<TValue> first,
-            AttributeComponent<TValue> second)
+        public static AttributeComponent<TData> operator &(
+            AttributeComponent<TData> first,
+            AttributeComponent<TData> second)
         {
             return first.IntersectWith(second);
         }
 
-        public static AttributeComponent<TValue> operator |(
-            AttributeComponent<TValue> first,
-            AttributeComponent<TValue> second)
+        public static AttributeComponent<TData> operator |(
+            AttributeComponent<TData> first,
+            AttributeComponent<TData> second)
         {
             return first.UnionWith(second);
         }
 
-        public static AttributeComponent<TValue> operator /(
-            AttributeComponent<TValue> first,
-            AttributeComponent<TValue> second)
+        public static AttributeComponent<TData> operator /(
+            AttributeComponent<TData> first,
+            AttributeComponent<TData> second)
         {
             return first.ExceptWith(second);
         }
 
-        public static AttributeComponent<TValue> operator ^(
-            AttributeComponent<TValue> first,
-            AttributeComponent<TValue> second)
+        public static AttributeComponent<TData> operator ^(
+            AttributeComponent<TData> first,
+            AttributeComponent<TData> second)
         {
             return first.SymmetricExceptWith(second);
         }
 
-        public static bool operator ==(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public static bool operator ==(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return first.EqualsTo(second);
         }
 
-        public static bool operator !=(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public static bool operator !=(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return !(first == second);
         }
 
-        public static bool operator >(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public static bool operator >(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return first.Includes(second);
         }
 
-        public static bool operator >=(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public static bool operator >=(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return first.IncludesOrEqualsTo(second);
         }
 
-        public static bool operator <(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public static bool operator <(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return second.Includes(first);
         }
 
-        public static bool operator <=(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public static bool operator <=(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return second.IncludesOrEqualsTo(first);
         }

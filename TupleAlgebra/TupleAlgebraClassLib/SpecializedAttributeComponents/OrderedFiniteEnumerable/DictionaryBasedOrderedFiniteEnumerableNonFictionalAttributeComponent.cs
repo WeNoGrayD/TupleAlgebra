@@ -4,28 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SpecializedAttributeDomains;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnumerable
 {
-    public class DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TValue>
-        : OrderedFiniteEnumerableNonFictionalAttributeComponent<KeyValuePair<TKey, TValue>>
+    public class DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>
+        : OrderedFiniteEnumerableNonFictionalAttributeComponent<KeyValuePair<TKey, TData>>
         where TKey : IComparable<TKey>
     {
         public DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
-            DictionaryBasedOrderedFiniteEnumerableAttributeDomain<TKey, TValue> domain,
-            IDictionary<TKey, TValue> values)
+            DictionaryBasedOrderedFiniteEnumerableAttributeDomain<TKey, TData> domain,
+            IDictionary<TKey, TData> values)
             : base(domain, values)
         { }
 
-        protected override IComparer<KeyValuePair<TKey, TValue>> InitOrderingComparerImpl()
+        protected override IComparer<KeyValuePair<TKey, TData>> InitOrderingComparerImpl()
         {
             return new KeyValuePairComparer();
         }
 
-        private class KeyValuePairComparer : IComparer<KeyValuePair<TKey, TValue>>
+        private class KeyValuePairComparer : IComparer<KeyValuePair<TKey, TData>>
         {
-            public int Compare(KeyValuePair<TKey, TValue> first, KeyValuePair<TKey, TValue> second)
+            public int Compare(KeyValuePair<TKey, TData> first, KeyValuePair<TKey, TData> second)
             {
                 return first.Key.CompareTo(second.Key);
             }

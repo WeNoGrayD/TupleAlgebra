@@ -4,16 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 {
-    public sealed class EmptyAttributeComponentComplementionOperator<TValue>
-        : InstantUnaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
-          IInstantAttributeComponentAcceptor<TValue, EmptyAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public sealed class EmptyAttributeComponentComplementionOperator<TData>
+        : InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>,
+          IInstantAttributeComponentAcceptor<TData, EmptyAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public AttributeComponent<TValue> Accept(EmptyAttributeComponent<TValue> first)
+        public AttributeComponent<TData> Accept(EmptyAttributeComponent<TData> first)
         {
-            return FullAttributeComponent<TValue>.Instance;
+            return FullAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull
+                (new AttributeComponentFactoryArgs<TData>(first.Domain));
         }
     }
 }

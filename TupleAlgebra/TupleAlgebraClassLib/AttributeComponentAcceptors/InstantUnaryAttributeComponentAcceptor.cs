@@ -7,9 +7,9 @@ using System.Diagnostics;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
-    public abstract class InstantUnaryAttributeComponentAcceptor<TValue, TOperationResult>
+    public abstract class InstantUnaryAttributeComponentAcceptor<TData, TOperationResult>
     {
-        public TOperationResult Accept(AttributeComponent<TValue> first)
+        public TOperationResult Accept(AttributeComponent<TData> first)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -20,9 +20,9 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
         }
 
         protected TOperationResult DowncastOperandToContentType<TOperand1>(TOperand1 first)
-            where TOperand1 : AttributeComponent<TValue>
+            where TOperand1 : AttributeComponent<TData>
         {
-            var data = (this as IInstantAttributeComponentAcceptor<TValue, TOperand1, TOperationResult>).Accept(first);
+            var data = (this as IInstantAttributeComponentAcceptor<TData, TOperand1, TOperationResult>).Accept(first);
             return data;
         }
     }

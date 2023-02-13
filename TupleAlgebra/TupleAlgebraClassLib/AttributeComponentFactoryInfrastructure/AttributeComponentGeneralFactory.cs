@@ -16,16 +16,16 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TData"></typeparam>
         /// <param name="factoryType"></param>
         /// <param name="factoryArgs"></param>
         /// <returns></returns>
-        public static AttributeComponent<TValue> CreateNonFictional<TValue>(
+        public static AttributeComponent<TData> CreateNonFictional<TData>(
             Type factoryType, 
-            AttributeComponentFactoryArgs<TValue> factoryArgs)
+            AttributeComponentFactoryArgs<TData> factoryArgs)
         {
-            AttributeComponentFactory<TValue> componentFactory = 
-                factoryType.GetConstructor(new Type[0]).Invoke(null) as AttributeComponentFactory<TValue>;
+            AttributeComponentFactory<TData> componentFactory = 
+                factoryType.GetConstructor(new Type[0]).Invoke(null) as AttributeComponentFactory<TData>;
 
             return componentFactory.CreateNonFictional(factoryArgs);
         }

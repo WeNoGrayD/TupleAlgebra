@@ -6,41 +6,53 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
-    public abstract class AttributeComponentFactory<TValue>
+    public class AttributeComponentFactory<TData>
     {
-        public EmptyAttributeComponent<TValue> CreateEmpty()
+        public virtual EmptyAttributeComponent<TData> CreateEmpty(
+            AttributeComponentFactoryArgs<TData> factoryArgs)
         {
-            return EmptyAttributeComponent<TValue>.Instance;
+            return new EmptyAttributeComponent<TData>(
+                factoryArgs.Domain,
+                factoryArgs.QueryProvider,
+                factoryArgs.QueryExpression);
         }
 
         /// <summary>
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public AttributeComponent<TValue> CreateNonFictional(AttributeComponentFactoryArgs<TValue> args)
+        public AttributeComponent<TData> CreateNonFictional(
+            AttributeComponentFactoryArgs<TData> factoryArgs)
         {
             /*
              * Предполагается, что проверка компоненты на пустотность
              * является более простой, чем проверка на полноту.
              */
-            NonFictionalAttributeComponent<TValue> nonFictional = CreateSpecificNonFictional((dynamic)args);
+            NonFictionalAttributeComponent<TData> nonFictional = 
+                CreateSpecificNonFictional((dynamic)factoryArgs);
             if (nonFictional.IsEmpty())
-                return CreateEmpty();
+                return CreateEmpty(factoryArgs);
             else if (nonFictional.IsFull())
-                return CreateFull(args);
+                return CreateFull(factoryArgs);
             else
                 return nonFictional;
         }
 
-        protected NonFictionalAttributeComponent<TValue> CreateSpecificNonFictional<TFactoryArgs>(TFactoryArgs args)
-            where TFactoryArgs : AttributeComponentFactoryArgs<TValue>
+        protected NonFictionalAttributeComponent<TData> CreateSpecificNonFictional<TFactoryArgs>(
+            TFactoryArgs factoryArgs)
+            where TFactoryArgs : AttributeComponentFactoryArgs<TData>
         {
-            return (this as INonFictionalAttributeComponentFactory<TValue, TFactoryArgs>).CreateSpecificNonFictional(args);
+            return (this as INonFictionalAttributeComponentFactory<TData, TFactoryArgs>)
+                .CreateSpecificNonFictional(factoryArgs);
         }
 
-        public virtual FullAttributeComponent<TValue> CreateFull(AttributeComponentFactoryArgs<TValue> args)
+        public virtual FullAttributeComponent<TData> CreateFull(
+            AttributeComponentFactoryArgs<TData> factoryArgs)
         {
-            return FullAttributeComponent<TValue>.Instance;
+            return new FullAttributeComponent<TData>(
+                factoryArgs.Domain,
+                factoryArgs.QueryProvider,
+                factoryArgs.QueryExpression);
         }
     }
 }

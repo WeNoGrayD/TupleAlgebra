@@ -41,8 +41,8 @@ namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
             return SetupWizard;
         }
 
-        public void SetSetupWizard<TValue>(
-            IAlgebraicTupleAttributeSetupWizard<TValue> setupWizard)
+        public void SetSetupWizard<TData>(
+            IAlgebraicTupleAttributeSetupWizard<TData> setupWizard)
         {
             SetupWizard = setupWizard;
 

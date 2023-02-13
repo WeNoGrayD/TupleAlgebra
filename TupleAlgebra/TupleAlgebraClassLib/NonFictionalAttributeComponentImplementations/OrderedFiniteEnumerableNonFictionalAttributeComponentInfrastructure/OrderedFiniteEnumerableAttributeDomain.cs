@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure
+namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableAttributeDomain<TValue> : AttributeDomain<TValue>
+    public class OrderedFiniteEnumerableAttributeDomain<TData> : AttributeDomain<TData>
     {
-        public OrderedFiniteEnumerableAttributeDomain(IEnumerable<TValue> universum)
+        public OrderedFiniteEnumerableAttributeDomain(IEnumerable<TData> universum)
             : base(BuildUniversum(universum, out _setDomainCallback))
         {
             _setDomainCallback(this);
@@ -16,17 +16,17 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         }
 
         protected OrderedFiniteEnumerableAttributeDomain(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> universum)
+            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> universum)
             : base(universum)
         {
             _setDomainCallback(this);
             _setDomainCallback = null;
         }
 
-        protected static OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> BuildUniversum(
-            IEnumerable<TValue> universum, out Action<AttributeDomain<TValue>> setDomainCallback)
+        protected static OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> BuildUniversum(
+            IEnumerable<TData> universum, out Action<AttributeDomain<TData>> setDomainCallback)
         {
-            return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>(
+            return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(
                 universum, 
                 out setDomainCallback);
         }

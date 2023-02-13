@@ -7,20 +7,20 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 {
-    public sealed class EmptyAttributeComponentInclusionOrEqualityComparer<TValue>
-        : CrossContentTypesInstantAttributeComponentAcceptor<TValue, EmptyAttributeComponent<TValue>, bool>
+    public sealed class EmptyAttributeComponentInclusionOrEqualityComparer<TData>
+        : CrossContentTypesInstantAttributeComponentAcceptor<TData, EmptyAttributeComponent<TData>, bool>
     {
-        public override bool Accept(EmptyAttributeComponent<TValue> first, EmptyAttributeComponent<TValue> second)
+        public override bool Accept(EmptyAttributeComponent<TData> first, EmptyAttributeComponent<TData> second)
         {
             return true;
         }
 
-        public override bool Accept(EmptyAttributeComponent<TValue> first, NonFictionalAttributeComponent<TValue> second)
+        public override bool Accept(EmptyAttributeComponent<TData> first, NonFictionalAttributeComponent<TData> second)
         {
             return false;
         }
 
-        public override bool Accept(EmptyAttributeComponent<TValue> first, FullAttributeComponent<TValue> second)
+        public override bool Accept(EmptyAttributeComponent<TData> first, FullAttributeComponent<TData> second)
         {
             return false;
         }

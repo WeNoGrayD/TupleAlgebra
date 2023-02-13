@@ -1,25 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Linq.Expressions;
-using System.Diagnostics;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
-using TupleAlgebraClassLib.SetOperationExecutersContainers;
-using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
-using TupleAlgebraClassLib.LINQ2TAFramework;
-using System.Reflection;
 
-namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure
+namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable
 {
+    /*
     /// <summary>
     /// Провайдер запросов к упорядоченной конечной перечислимой компонентой аттрибута.
     /// </summary>
-    public class OrderedFiniteEnumerableNonFictionalAttributeComponentQueryProvider
-        : NonFictionalAttributeComponentQueryProvider
+    public class OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor
+        : QueryPipelineExecutor
     {
+        
         /// <summary>
         /// Построение фабричных аргументов для создания IQueryable-компоненты.
         /// </summary>
@@ -28,16 +22,17 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         /// <param name="queryResultDomain"></param>
         /// <returns></returns>
         protected override AttributeComponentFactoryArgs<TQueryResult> ConstructFactoryArgs<TQueryResult>(
-            NonFictionalAttributeComponent<TQueryResult> component,
+            AttributeComponent<TQueryResult> component,
             IEnumerable<TQueryResult> values,
-            NonFictionalAttributeComponentQueryProvider queryProvider,
-            Expression queryExpression = null)
+            AttributeComponentQueryProvider queryProvider,
+            Expression queryExpression)
         {
-            return new OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TQueryResult>(
+            return new OrderedFiniteEnumerableAttributeComponentFactoryArgs<TQueryResult>(
                 component.Domain,
                 values,
                 queryProvider,
                 queryExpression);
         }
     }
+    */
 }

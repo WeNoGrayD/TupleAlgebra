@@ -7,26 +7,26 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 {
-    public sealed class EmptyAttributeComponentSymmetricExceptionOperator<TValue>
-        : CrossContentTypesInstantAttributeComponentAcceptor<TValue, EmptyAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public sealed class EmptyAttributeComponentSymmetricExceptionOperator<TData>
+        : CrossContentTypesInstantAttributeComponentAcceptor<TData, EmptyAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public override AttributeComponent<TValue> Accept(
-            EmptyAttributeComponent<TValue> first,
-            EmptyAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            EmptyAttributeComponent<TData> first,
+            EmptyAttributeComponent<TData> second)
         {
             return first;
         }
 
-        public override AttributeComponent<TValue> Accept(
-            EmptyAttributeComponent<TValue> first,
-            NonFictionalAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            EmptyAttributeComponent<TData> first,
+            NonFictionalAttributeComponent<TData> second)
         {
             return second;
         }
 
-        public override AttributeComponent<TValue> Accept(
-            EmptyAttributeComponent<TValue> first,
-            FullAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            EmptyAttributeComponent<TData> first,
+            FullAttributeComponent<TData> second)
         {
             return second;
         }

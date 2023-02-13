@@ -6,44 +6,61 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using TupleAlgebraClassLib.FullAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.LINQ2TAFramework;
+using System.Linq.Expressions;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib
 {
-    public sealed class FullAttributeComponent<TValue> : AttributeComponent<TValue>
+    public sealed class FullAttributeComponent<TData> : AttributeComponent<TData>
     {
-        public static FullAttributeComponent<TValue> Instance { get; } =
-            new FullAttributeComponent<TValue>();
-
         private const AttributeComponentContentType CONTENT_TYPE = AttributeComponentContentType.Full;
 
         protected override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
 
         static FullAttributeComponent()
         {
-            AttributeComponent<TValue>.InitSetOperations(
+            AttributeComponent<TData>.InitSetOperations(
                 CONTENT_TYPE, new FullAttributeComponentOperationExecutersContainer());
         }
 
-        private FullAttributeComponent() 
-            : base(new FullAttributeComponentPower())
+        public FullAttributeComponent(
+            AttributeDomain<TData> domain,
+            AttributeComponentQueryProvider queryProvider = null,
+            Expression queryExpression = null) 
+            : base(domain, new FullAttributeComponentPower(), queryProvider, queryExpression)
         { }
 
-        public override IEnumerator<TValue> GetEnumeratorImpl()
+        public override IEnumerator<TData> GetEnumeratorImpl()
         {
-            yield break;
+            return Domain.Universum.GetEnumerator();
         }
 
-        private class FullAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TValue>
+        #region Instance methods
+
+        protected override AttributeComponent<TData> ReproduceImpl(
+            AttributeComponentFactoryArgs<TData> factoryArgs)
+        {
+            return new FullAttributeComponent<TData>(
+                factoryArgs.Domain,
+                factoryArgs.QueryProvider,
+                factoryArgs.QueryExpression);
+        }
+
+        #endregion
+
+        private class FullAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TData>
         {
             public FullAttributeComponentOperationExecutersContainer() : base(
-                new FullAttributeComponentComplementionOperator<TValue>(),
-                new FullAttributeComponentIntersectionOperator<TValue>(),
-                new FullAttributeComponentUnionOperator<TValue>(),
-                new FullAttributeComponentExceptionOperator<TValue>(),
-                new FullAttributeComponentSymmetricExceptionOperator<TValue>(),
-                new FullAttributeComponentInclusionComparer<TValue>(),
-                new FullAttributeComponentEqualityComparer<TValue>(),
-                new FullAttributeComponentInclusionOrEqualityComparer<TValue>())
+                new FullAttributeComponentComplementionOperator<TData>(),
+                new FullAttributeComponentIntersectionOperator<TData>(),
+                new FullAttributeComponentUnionOperator<TData>(),
+                new FullAttributeComponentExceptionOperator<TData>(),
+                new FullAttributeComponentSymmetricExceptionOperator<TData>(),
+                new FullAttributeComponentInclusionComparer<TData>(),
+                new FullAttributeComponentEqualityComparer<TData>(),
+                new FullAttributeComponentInclusionOrEqualityComparer<TData>())
             { }
         }
 

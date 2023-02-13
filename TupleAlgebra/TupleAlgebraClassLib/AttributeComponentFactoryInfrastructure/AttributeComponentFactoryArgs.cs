@@ -5,20 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.LINQ2TAFramework;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
-    public class AttributeComponentFactoryArgs<TValue>
+    public class AttributeComponentFactoryArgs<TData>
     {
-        public readonly AttributeDomain<TValue> Domain;
+        public readonly AttributeDomain<TData> Domain;
 
-        public readonly NonFictionalAttributeComponentQueryProvider QueryProvider;
+        public readonly AttributeComponentQueryProvider QueryProvider;
 
-        public readonly Expression QueryExpression;
+        public Expression QueryExpression { get; set; }
 
         public AttributeComponentFactoryArgs(
-            AttributeDomain<TValue> domain, 
-            NonFictionalAttributeComponentQueryProvider queryProvider = null, 
+            AttributeDomain<TData> domain, 
+            AttributeComponentQueryProvider queryProvider = null, 
             Expression queryExpression = null)
         {
             Domain = domain;

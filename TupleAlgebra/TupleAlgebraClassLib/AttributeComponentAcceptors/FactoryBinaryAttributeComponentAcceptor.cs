@@ -8,22 +8,22 @@ using System.Diagnostics;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
-    public abstract class FactoryBinaryAttributeComponentAcceptor<TValue, TOperationResult>
+    public abstract class FactoryBinaryAttributeComponentAcceptor<TData, TOperationResult>
     {
         #region Methods
 
         /// <summary>
         /// Метод для приёма любых двух компонент.
         /// </summary>
-        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TData"></typeparam>
         /// <param name="first"></param>
         /// <param name="second"></param>
         /// <returns></returns>
 
         public TOperationResult Accept(
-            AttributeComponent<TValue> first,
-            AttributeComponent<TValue> second,
-            AttributeComponentFactory<TValue> factory)
+            AttributeComponent<TData> first,
+            AttributeComponent<TData> second,
+            AttributeComponentFactory<TData> factory)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -36,11 +36,11 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
         protected TOperationResult DowncastOperandsToContentType<TOperand1, TOperand2>(
             TOperand1 first,
             TOperand2 second,
-            AttributeComponentFactory<TValue> factory)
-            where TOperand1 : AttributeComponent<TValue>
-            where TOperand2 : AttributeComponent<TValue>
+            AttributeComponentFactory<TData> factory)
+            where TOperand1 : AttributeComponent<TData>
+            where TOperand2 : AttributeComponent<TData>
         {
-            var data = (this as IFactoryAttributeComponentAcceptor<TValue, TOperand1, TOperand2, TOperationResult>).Accept(first, second, factory);
+            var data = (this as IFactoryAttributeComponentAcceptor<TData, TOperand1, TOperand2, TOperationResult>).Accept(first, second, factory);
             return data;
         }
 

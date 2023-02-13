@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
-namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure
+namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public sealed class OrderedFiniteEnumerableNonFictionalAttributeComponentEqualityComparer<TValue>
-        : InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TValue>,
-          IInstantAttributeComponentAcceptor<TValue, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>, bool>
+    public sealed class OrderedFiniteEnumerableNonFictionalAttributeComponentEqualityComparer<TData>
+        : InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>,
+          IInstantAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
     {
-        public bool Accept(OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> first, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> second)
+        public bool Accept(OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second)
         {
             return Enumerable.SequenceEqual(first, second);
         }

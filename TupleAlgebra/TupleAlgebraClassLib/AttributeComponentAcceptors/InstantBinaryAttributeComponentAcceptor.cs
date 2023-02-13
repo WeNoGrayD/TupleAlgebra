@@ -14,21 +14,21 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     /// для вызова методов потомков с динамическим приведением второго параметра.
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
-    public abstract class InstantBinaryAttributeComponentAcceptor<TValue, TOperationResult>
+    public abstract class InstantBinaryAttributeComponentAcceptor<TData, TOperationResult>
     {
         #region Methods
 
         /// <summary>
         /// Метод для приёма любых двух компонент.
         /// </summary>
-        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TData"></typeparam>
         /// <param name="first"></param>
         /// <param name="second"></param>
         /// <returns></returns>
 
         public TOperationResult Accept(
-            AttributeComponent<TValue> first,
-            AttributeComponent<TValue> second)
+            AttributeComponent<TData> first,
+            AttributeComponent<TData> second)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -41,10 +41,10 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
         protected TOperationResult DowncastOperandsToContentType<TOperand1, TOperand2>(
             TOperand1 first,
             TOperand2 second)
-            where TOperand1 : AttributeComponent<TValue>
-            where TOperand2 : AttributeComponent<TValue>
+            where TOperand1 : AttributeComponent<TData>
+            where TOperand2 : AttributeComponent<TData>
         {
-            var data = (this as IInstantAttributeComponentAcceptor<TValue, TOperand1, TOperand2, TOperationResult>).Accept(first, second);
+            var data = (this as IInstantAttributeComponentAcceptor<TData, TOperand1, TOperand2, TOperationResult>).Accept(first, second);
             return data;
         }
 

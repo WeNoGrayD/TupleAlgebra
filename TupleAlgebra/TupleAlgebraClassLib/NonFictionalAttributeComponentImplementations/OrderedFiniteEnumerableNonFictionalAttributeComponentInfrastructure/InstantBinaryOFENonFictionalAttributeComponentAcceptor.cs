@@ -5,14 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
-namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure
+namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public abstract class InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TValue>
-        : InstantBinaryAttributeComponentAcceptor<TValue, bool>
+    public abstract class InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>
+        : InstantBinaryAttributeComponentAcceptor<TData, bool>
     {
-        protected static IComparer<TValue> _orderingComparer;
+        protected static IComparer<TData> _orderingComparer;
 
-        internal static void InitOrderingComparer(IComparer<TValue> orderingComparer)
+        internal static void InitOrderingComparer(IComparer<TData> orderingComparer)
         {
             _orderingComparer = orderingComparer;
         }

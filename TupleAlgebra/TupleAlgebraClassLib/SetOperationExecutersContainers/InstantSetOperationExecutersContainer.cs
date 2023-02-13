@@ -7,23 +7,23 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.SetOperationExecutersContainers
 {
-    public abstract class InstantSetOperationExecutersContainer<TValue> : SetOperationExecutersContainer<TValue>
+    public abstract class InstantSetOperationExecutersContainer<TData> : SetOperationExecutersContainer<TData>
     {
-        protected InstantUnaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> _complementionOperator;
-        protected InstantBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> _intersectionOperator;
-        protected InstantBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> _unionOperator;
-        protected InstantBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> _differenceOperator;
-        protected InstantBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> _symmetricExceptionOperator;
+        protected InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _complementionOperator;
+        protected InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _intersectionOperator;
+        protected InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _unionOperator;
+        protected InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _differenceOperator;
+        protected InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _symmetricExceptionOperator;
 
         public InstantSetOperationExecutersContainer(
-            InstantUnaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> complementionOperator,
-            InstantBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> intersectionOperator,
-            InstantBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> unionOperator,
-            InstantBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> differenceOperator,
-            InstantBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>> symmetricExceptionOperator,
-            InstantBinaryAttributeComponentAcceptor<TValue, bool> inclusionComparer,
-            InstantBinaryAttributeComponentAcceptor<TValue, bool> equalityComparer,
-            InstantBinaryAttributeComponentAcceptor<TValue, bool> inclusionOrEquationComparer)
+            InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> complementionOperator,
+            InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> intersectionOperator,
+            InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> unionOperator,
+            InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> differenceOperator,
+            InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> symmetricExceptionOperator,
+            InstantBinaryAttributeComponentAcceptor<TData, bool> inclusionComparer,
+            InstantBinaryAttributeComponentAcceptor<TData, bool> equalityComparer,
+            InstantBinaryAttributeComponentAcceptor<TData, bool> inclusionOrEquationComparer)
             : base(inclusionComparer,
                    equalityComparer,
                    inclusionOrEquationComparer)
@@ -35,27 +35,27 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
             _symmetricExceptionOperator = symmetricExceptionOperator;
         }
 
-        public AttributeComponent<TValue> Complement(AttributeComponent<TValue> first)
+        public AttributeComponent<TData> Complement(AttributeComponent<TData> first)
         {
             return _complementionOperator.Accept(first);
         }
 
-        public override AttributeComponent<TValue> Intersect(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Intersect(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return _intersectionOperator.Accept(first, second);
         }
 
-        public override AttributeComponent<TValue> Union(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Union(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return _unionOperator.Accept(first, second);
         }
 
-        public override AttributeComponent<TValue> Except(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Except(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return _differenceOperator.Accept(first, second);
         }
 
-        public override AttributeComponent<TValue> SymmetricExcept(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public override AttributeComponent<TData> SymmetricExcept(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return _symmetricExceptionOperator.Accept(first, second);
         }

@@ -7,41 +7,41 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.SetOperationExecutersContainers
 {
-    public abstract class SetOperationExecutersContainer<TValue>
+    public abstract class SetOperationExecutersContainer<TData>
     {
-        protected InstantBinaryAttributeComponentAcceptor<TValue, bool> _inclusionComparer;
-        protected InstantBinaryAttributeComponentAcceptor<TValue, bool> _equalityComparer;
-        protected InstantBinaryAttributeComponentAcceptor<TValue, bool> _inclusionOrEqualityComparer;
+        protected InstantBinaryAttributeComponentAcceptor<TData, bool> _inclusionComparer;
+        protected InstantBinaryAttributeComponentAcceptor<TData, bool> _equalityComparer;
+        protected InstantBinaryAttributeComponentAcceptor<TData, bool> _inclusionOrEqualityComparer;
 
         public SetOperationExecutersContainer(
-            InstantBinaryAttributeComponentAcceptor<TValue, bool> inclusionComparer,
-            InstantBinaryAttributeComponentAcceptor<TValue, bool> equalityComparer,
-            InstantBinaryAttributeComponentAcceptor<TValue, bool> inclusionOrEquationComparer)
+            InstantBinaryAttributeComponentAcceptor<TData, bool> inclusionComparer,
+            InstantBinaryAttributeComponentAcceptor<TData, bool> equalityComparer,
+            InstantBinaryAttributeComponentAcceptor<TData, bool> inclusionOrEquationComparer)
         {
             _inclusionComparer = inclusionComparer;
             _equalityComparer = equalityComparer;
             _inclusionOrEqualityComparer = inclusionOrEquationComparer;
         }
 
-        public abstract AttributeComponent<TValue> Intersect(AttributeComponent<TValue> first, AttributeComponent<TValue> second);
+        public abstract AttributeComponent<TData> Intersect(AttributeComponent<TData> first, AttributeComponent<TData> second);
 
-        public abstract AttributeComponent<TValue> Union(AttributeComponent<TValue> first, AttributeComponent<TValue> second);
+        public abstract AttributeComponent<TData> Union(AttributeComponent<TData> first, AttributeComponent<TData> second);
 
-        public abstract AttributeComponent<TValue> Except(AttributeComponent<TValue> first, AttributeComponent<TValue> second);
+        public abstract AttributeComponent<TData> Except(AttributeComponent<TData> first, AttributeComponent<TData> second);
 
-        public abstract AttributeComponent<TValue> SymmetricExcept(AttributeComponent<TValue> first, AttributeComponent<TValue> second);
+        public abstract AttributeComponent<TData> SymmetricExcept(AttributeComponent<TData> first, AttributeComponent<TData> second);
 
-        public bool Include(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public bool Include(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return _inclusionComparer.Accept(first, second);
         }
 
-        public bool Equal(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public bool Equal(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return _equalityComparer.Accept(first, second);
         }
 
-        public bool IncludeOrEqual(AttributeComponent<TValue> first, AttributeComponent<TValue> second)
+        public bool IncludeOrEqual(AttributeComponent<TData> first, AttributeComponent<TData> second)
         {
             return _inclusionOrEqualityComparer.Accept(first, second);
         }

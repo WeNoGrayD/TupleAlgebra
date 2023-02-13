@@ -8,7 +8,7 @@ using System.Diagnostics;
 using TupleAlgebraClassLib.TAFrameworkCustomAttributes;
 using TupleAlgebraClassLib.SpecializedAttributeDomains;
 using TupleAlgebraClassLib.AlgebraicTupleInfrastructure;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 using TupleAlgebraTests.DataModels;
 
 namespace TupleAlgebraTests

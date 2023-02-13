@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.DecidableNonFictionalAttributeComponent
 {
-    public abstract class DecidableAttributeDomain<TValue> : AttributeDomain<TValue>
+    public abstract class DecidableAttributeDomain<TData> : AttributeDomain<TData>
     {
         public DecidableAttributeDomain()
             : base(null)

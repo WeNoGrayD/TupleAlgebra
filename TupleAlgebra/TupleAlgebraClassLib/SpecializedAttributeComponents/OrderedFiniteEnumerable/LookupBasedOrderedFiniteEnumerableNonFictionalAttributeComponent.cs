@@ -4,28 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SpecializedAttributeDomains;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnumerable
 {
-    public class LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TValue>
-        : OrderedFiniteEnumerableNonFictionalAttributeComponent<IGrouping<TKey, TValue>>
+    public class LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>
+        : OrderedFiniteEnumerableNonFictionalAttributeComponent<IGrouping<TKey, TData>>
         where TKey : IComparable<TKey>
     {
         public LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
-            LookupBasedOrderedFiniteEnumerableAttributeDomain<TKey, TValue> domain,
-            ILookup<TKey, TValue> values)
+            LookupBasedOrderedFiniteEnumerableAttributeDomain<TKey, TData> domain,
+            ILookup<TKey, TData> values)
             : base(domain, values)
         { }
 
-        protected override IComparer<IGrouping<TKey, TValue>> InitOrderingComparerImpl()
+        protected override IComparer<IGrouping<TKey, TData>> InitOrderingComparerImpl()
         {
             return new KeyValuePairComparer();
         }
 
-        private class KeyValuePairComparer : IComparer<IGrouping<TKey, TValue>>
+        private class KeyValuePairComparer : IComparer<IGrouping<TKey, TData>>
         {
-            public int Compare(IGrouping<TKey, TValue> first, IGrouping<TKey, TValue> second)
+            public int Compare(IGrouping<TKey, TData> first, IGrouping<TKey, TData> second)
             {
                 return first.Key.CompareTo(second.Key);
             }

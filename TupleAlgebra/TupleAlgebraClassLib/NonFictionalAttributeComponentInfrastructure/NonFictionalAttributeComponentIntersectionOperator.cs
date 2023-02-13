@@ -7,26 +7,26 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
-    public sealed class NonFictionalAttributeComponentIntersectionOperator<TValue>
-        : CrossContentTypesInstantAttributeComponentAcceptor<TValue, NonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public sealed class NonFictionalAttributeComponentIntersectionOperator<TData>
+        : CrossContentTypesInstantAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public override AttributeComponent<TValue> Accept(
-            NonFictionalAttributeComponent<TValue> first,
-            EmptyAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            NonFictionalAttributeComponent<TData> first,
+            EmptyAttributeComponent<TData> second)
         {
             return second;
         }
 
-        public override AttributeComponent<TValue> Accept(
-            NonFictionalAttributeComponent<TValue> first,
-            NonFictionalAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            NonFictionalAttributeComponent<TData> first,
+            NonFictionalAttributeComponent<TData> second)
         {
             return first.IntersectWith(second);
         }
 
-        public override AttributeComponent<TValue> Accept(
-            NonFictionalAttributeComponent<TValue> first,
-            FullAttributeComponent<TValue> second)
+        public override AttributeComponent<TData> Accept(
+            NonFictionalAttributeComponent<TData> first,
+            FullAttributeComponent<TData> second)
         {
             return first;
         }

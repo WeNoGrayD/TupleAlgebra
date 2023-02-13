@@ -9,12 +9,12 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.DecidableNonFictionalAttributeComponent
 {
-    public sealed class PredicateBasedDecidableNonFictionalAttributeComponentInclusionComparer<TValue>
-        : InstantBinaryAttributeComponentAcceptor<TValue, bool>,
-          IInstantAttributeComponentAcceptor<TValue, PredicateBasedDecidableNonFictionalAttributeComponent<TValue>, PredicateBasedDecidableNonFictionalAttributeComponent<TValue>, bool>
+    public sealed class PredicateBasedDecidableNonFictionalAttributeComponentInclusionComparer<TData>
+        : InstantBinaryAttributeComponentAcceptor<TData, bool>,
+          IInstantAttributeComponentAcceptor<TData, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, bool>
     {
-        public bool Accept(PredicateBasedDecidableNonFictionalAttributeComponent<TValue> greater,
-                           PredicateBasedDecidableNonFictionalAttributeComponent<TValue> lesser)
+        public bool Accept(PredicateBasedDecidableNonFictionalAttributeComponent<TData> greater,
+                           PredicateBasedDecidableNonFictionalAttributeComponent<TData> lesser)
         {
             return false;
         }

@@ -5,37 +5,38 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 
-namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure
+namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public sealed class OrderedFiniteEnumerableNonFictionalAttributeComponentSymmetricExceptionOperator<TValue>
-        : FactoryBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TValue>,
-          IFactoryAttributeComponentAcceptor<TValue, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public sealed class OrderedFiniteEnumerableNonFictionalAttributeComponentSymmetricExceptionOperator<TData>
+        : FactoryBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>,
+          IFactoryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public AttributeComponent<TValue> Accept(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> first,
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue> second,
-            AttributeComponentFactory<TValue> factory)
+        public AttributeComponent<TData> Accept(
+            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
+            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
+            AttributeComponentFactory<TData> factory)
         {
-            IEnumerable<TValue> remainedElements = ExceptComponentsElements();
-            OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue> factoryArgs =
-                new OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs<TValue>(first.Domain, remainedElements);
-            AttributeComponent<TValue> resultComponent = factory.CreateNonFictional(factoryArgs);
+            IEnumerable<TData> remainedElements = ExceptComponentsElements();
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
+                new OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(first.Domain, remainedElements);
+            AttributeComponent<TData> resultComponent = factory.CreateNonFictional(factoryArgs);
 
             return resultComponent;
 
-            IEnumerable<TValue> ExceptComponentsElements()
+            IEnumerable<TData> ExceptComponentsElements()
             {
-                int summaryPower = (first.Power as OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>.OrderedFiniteEnumerableNonFictionalAttributeComponentPower).Value +
-                    (second.Power as OrderedFiniteEnumerableNonFictionalAttributeComponent<TValue>.OrderedFiniteEnumerableNonFictionalAttributeComponentPower).Value;
-                List<TValue> remained = new List<TValue>(summaryPower);
-                IEnumerator<TValue> firstEnumerator = first.GetEnumerator(),
+                int summaryPower = (first.Power as OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>.OrderedFiniteEnumerableNonFictionalAttributeComponentPower).Value +
+                    (second.Power as OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>.OrderedFiniteEnumerableNonFictionalAttributeComponentPower).Value;
+                List<TData> remained = new List<TData>(summaryPower);
+                IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
                                     secondEnumerator = second.GetEnumerator(),
                                     withLowerBoundEnumerator = firstEnumerator,
                                     withGreaterBoundEnumerator = secondEnumerator;
                 bool isContinuesWithLowerBoundEnumerator = true,
                      isContinuesWithGreaterBoundEnumerator = true;
-                TValue firstElement = default(TValue), secondElement = default(TValue);
+                TData firstElement = default(TData), secondElement = default(TData);
                 int elementsComparisonResult;
 
                 ReadComponentsUntilAtLeastOneIsOver();

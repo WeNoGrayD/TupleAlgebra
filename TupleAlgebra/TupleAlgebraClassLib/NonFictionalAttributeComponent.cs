@@ -9,14 +9,15 @@ using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using System.Reflection;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib
 {
     /// <summary>
     /// Тип непустой компоненты атрибута.
     /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    public abstract class NonFictionalAttributeComponent<TValue> : AttributeComponent<TValue>, IQueryable<TValue>
+    /// <typeparam name="TData"></typeparam>
+    public abstract class NonFictionalAttributeComponent<TData> : AttributeComponent<TData>, IQueryable<TData>
     {
         #region Constants
 
@@ -34,7 +35,7 @@ namespace TupleAlgebraClassLib
         /// Ключ: строковое представление математического вида нефиктивной компоненты.
         /// Значение: фабричный контейнер исполнителей операций над компонентов атрибута.
         /// </summary>
-        private static Dictionary<string, FactorySetOperationExecutersContainer<TValue>> _nonFictionalSpecificSetOperations;
+        private static Dictionary<string, FactorySetOperationExecutersContainer<TData>> _nonFictionalSpecificSetOperations;
 
         #endregion
 
@@ -44,10 +45,6 @@ namespace TupleAlgebraClassLib
         /// Тип наполнения компоненты атрибута.
         /// </summary>
         protected override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
-        /// <summary>
-        /// Домен атрибута.
-        /// </summary>
-        public AttributeDomain<TValue> Domain { get; private set; }
 
         #endregion
 
@@ -68,10 +65,10 @@ namespace TupleAlgebraClassLib
         /// </summary>
         static NonFictionalAttributeComponent()
         {
-            AttributeComponent<TValue>.InitSetOperations(
+            AttributeComponent<TData>.InitSetOperations(
                 CONTENT_TYPE, new NonFictionalAttributeComponentOperationExecutersContainer());
 
-            _nonFictionalSpecificSetOperations = new Dictionary<string, FactorySetOperationExecutersContainer<TValue>>();
+            _nonFictionalSpecificSetOperations = new Dictionary<string, FactorySetOperationExecutersContainer<TData>>();
         }
 
         /// <summary>
@@ -82,16 +79,13 @@ namespace TupleAlgebraClassLib
         /// <param name="queryExpression"></param>
         /// <param name="queryProvider"></param>
         public NonFictionalAttributeComponent(
-            AttributeDomain<TValue> domain,
+            AttributeDomain<TData> domain,
             NonFictionalAttributeComponentPower power,
-            NonFictionalAttributeComponentQueryProvider queryProvider = null,
+            AttributeComponentQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(power)
+            : base(domain, power, queryProvider, queryExpression)
         {
             Domain = domain;
-            Expression = queryExpression ?? Expression.Constant(this);
-            Provider = queryProvider;
-            queryProvider.AppendDataSource(this);
         }
 
         /// <summary>
@@ -103,15 +97,12 @@ namespace TupleAlgebraClassLib
         /// <param name="queryProvider"></param>
         public NonFictionalAttributeComponent(
             NonFictionalAttributeComponentPower power,
-            out Action<AttributeDomain<TValue>> setDomainCallback,
-            NonFictionalAttributeComponentQueryProvider queryProvider = null,
+            out Action<AttributeDomain<TData>> setDomainCallback,
+            AttributeComponentQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(power)
+            : base(power, queryProvider, queryExpression)
         {
             setDomainCallback = (domain) => Domain = domain;
-            Expression = queryExpression ?? Expression.Constant(this);
-            Provider = queryProvider;
-            queryProvider.AppendDataSource(this);
         }
 
         #endregion
@@ -125,7 +116,7 @@ namespace TupleAlgebraClassLib
         /// <param name="setOperations"></param>
         protected static void InitSetOperations(
             string natureType,
-            FactorySetOperationExecutersContainer<TValue> setOperations)
+            FactorySetOperationExecutersContainer<TData> setOperations)
         {
             _nonFictionalSpecificSetOperations[natureType] = setOperations;
         }
@@ -134,8 +125,8 @@ namespace TupleAlgebraClassLib
 
         #region Instance methods
 
-        public AttributeComponent<TValueNew> ProduceNewOfSameNatureType<TValueNew>(
-            AttributeComponentFactoryArgs<TValueNew> factoryArgs)
+        protected override sealed AttributeComponent<TData> ReproduceImpl(
+            AttributeComponentFactoryArgs<TData> factoryArgs)
         {
             return _nonFictionalSpecificSetOperations[NatureType]
                 .ProduceNonFictionalAttributeComponent(factoryArgs);
@@ -166,7 +157,7 @@ namespace TupleAlgebraClassLib
         /// </summary>
         /// <param name="second"></param>
         /// <returns></returns>
-        internal AttributeComponent<TValue> IntersectWith(NonFictionalAttributeComponent<TValue> second)
+        internal AttributeComponent<TData> IntersectWith(NonFictionalAttributeComponent<TData> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].Intersect(this, second);
         }
@@ -176,7 +167,7 @@ namespace TupleAlgebraClassLib
         /// </summary>
         /// <param name="second"></param>
         /// <returns></returns>
-        internal AttributeComponent<TValue> UnionWith(NonFictionalAttributeComponent<TValue> second)
+        internal AttributeComponent<TData> UnionWith(NonFictionalAttributeComponent<TData> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].Union(this, second);
         }
@@ -186,7 +177,7 @@ namespace TupleAlgebraClassLib
         /// </summary>
         /// <param name="second"></param>
         /// <returns></returns>
-        internal AttributeComponent<TValue> ExceptWith(NonFictionalAttributeComponent<TValue> second)
+        internal AttributeComponent<TData> ExceptWith(NonFictionalAttributeComponent<TData> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].Except(this, second);
         }
@@ -196,7 +187,7 @@ namespace TupleAlgebraClassLib
         /// </summary>
         /// <param name="second"></param>
         /// <returns></returns>
-        internal AttributeComponent<TValue> SymmetricExceptWith(NonFictionalAttributeComponent<TValue> second)
+        internal AttributeComponent<TData> SymmetricExceptWith(NonFictionalAttributeComponent<TData> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].SymmetricExcept(this, second);
         }
@@ -206,7 +197,7 @@ namespace TupleAlgebraClassLib
         /// </summary>
         /// <param name="second"></param>
         /// <returns></returns>
-        internal bool Includes(NonFictionalAttributeComponent<TValue> second)
+        internal bool Includes(NonFictionalAttributeComponent<TData> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].Include(this, second);
         }
@@ -216,7 +207,7 @@ namespace TupleAlgebraClassLib
         /// </summary>
         /// <param name="second"></param>
         /// <returns></returns>
-        internal bool EqualsTo(NonFictionalAttributeComponent<TValue> second)
+        internal bool EqualsTo(NonFictionalAttributeComponent<TData> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].Equal(this, second);
         }
@@ -226,7 +217,7 @@ namespace TupleAlgebraClassLib
         /// </summary>
         /// <param name="second"></param>
         /// <returns></returns>
-        internal bool IncludesOrEqualsTo(NonFictionalAttributeComponent<TValue> second)
+        internal bool IncludesOrEqualsTo(NonFictionalAttributeComponent<TData> second)
         {
             return _nonFictionalSpecificSetOperations[NatureType].IncludeOrEqual(this, second);
         }
@@ -238,7 +229,7 @@ namespace TupleAlgebraClassLib
         /// <summary>
         /// Контейнер исполнителей операций над нефиктивными компонентами.
         /// </summary>
-        private sealed class NonFictionalAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TValue>
+        private sealed class NonFictionalAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TData>
         {
             #region Constructors
 
@@ -246,14 +237,14 @@ namespace TupleAlgebraClassLib
             /// Конструктор экземпляра.
             /// </summary>
             public NonFictionalAttributeComponentOperationExecutersContainer() : base(
-                new NonFictionalAttributeComponentComplementionOperator<TValue>(),
-                new NonFictionalAttributeComponentIntersectionOperator<TValue>(),
-                new NonFictionalAttributeComponentUnionOperator<TValue>(),
-                new NonFictionalAttributeComponentExceptionOperator<TValue>(),
-                new NonFictionalAttributeComponentSymmetricExceptionOperator<TValue>(),
-                new NonFictionalAttributeComponentInclusionComparer<TValue>(),
-                new NonFictionalAttributeComponentEqualityComparer<TValue>(),
-                new NonFictionalAttributeComponentInclusionOrEqualityComparer<TValue>())
+                new NonFictionalAttributeComponentComplementionOperator<TData>(),
+                new NonFictionalAttributeComponentIntersectionOperator<TData>(),
+                new NonFictionalAttributeComponentUnionOperator<TData>(),
+                new NonFictionalAttributeComponentExceptionOperator<TData>(),
+                new NonFictionalAttributeComponentSymmetricExceptionOperator<TData>(),
+                new NonFictionalAttributeComponentInclusionComparer<TData>(),
+                new NonFictionalAttributeComponentEqualityComparer<TData>(),
+                new NonFictionalAttributeComponentInclusionOrEqualityComparer<TData>())
             { }
 
             #endregion
@@ -286,7 +277,7 @@ namespace TupleAlgebraClassLib
         }
 
 
-        protected class NonFictionalAttributeComponentQueryContext
+        protected class AttributeComponentQueryContext
         {
             public object Execute(Expression queryExpression)
             {

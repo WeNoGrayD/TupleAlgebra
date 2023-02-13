@@ -23,10 +23,12 @@ namespace TupleAlgebraTests
                 s2 = Expression.Constant(fusers).ToString();
 
             Assert.AreEqual(fusers.Expression.ToString(), Expression.Constant(fusers).ToString());
+            Assert.IsTrue(Enumerable.SequenceEqual(fusers, fusersDomain));
 
             fusers = fusersDomain.Select(fuser => fuser);
 
             Assert.AreEqual(fusers.Expression.ToString(), Expression.Constant(fusers).ToString());
+            Assert.IsTrue(Enumerable.SequenceEqual(fusers, fusersDomain));
 
             //var fuserAchievmentsDomain = ForumUser.GetGainedAchievmentsDomain();
             //var fusersAchievments = fusersDomain.Select(fuser => fuser.GainedAchievments, fuserAchievmentsDomain);

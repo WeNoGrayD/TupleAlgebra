@@ -9,14 +9,14 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.DecidableNonFictionalAttributeComponent
 {
-    public sealed class PredicateBasedDecidableNonFictionalAttributeComponentExceptionOperator<TValue>
-        : FactoryBinaryAttributeComponentAcceptor<TValue, AttributeComponent<TValue>>,
-          IFactoryAttributeComponentAcceptor<TValue, PredicateBasedDecidableNonFictionalAttributeComponent<TValue>, PredicateBasedDecidableNonFictionalAttributeComponent<TValue>, AttributeComponent<TValue>>
+    public sealed class PredicateBasedDecidableNonFictionalAttributeComponentExceptionOperator<TData>
+        : FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>,
+          IFactoryAttributeComponentAcceptor<TData, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
-        public AttributeComponent<TValue> Accept(
-            PredicateBasedDecidableNonFictionalAttributeComponent<TValue> first,
-            PredicateBasedDecidableNonFictionalAttributeComponent<TValue> second,
-            AttributeComponentFactory<TValue> factory)
+        public AttributeComponent<TData> Accept(
+            PredicateBasedDecidableNonFictionalAttributeComponent<TData> first,
+            PredicateBasedDecidableNonFictionalAttributeComponent<TData> second,
+            AttributeComponentFactory<TData> factory)
         {
             return null;
         }

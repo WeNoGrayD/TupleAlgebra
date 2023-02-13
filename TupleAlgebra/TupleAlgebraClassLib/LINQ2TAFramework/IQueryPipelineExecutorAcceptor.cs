@@ -10,4 +10,9 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
     {
         void Accept(ISingleQueryExecutorVisitor visitor);
     }
+
+    public interface IQueryPipelineExecutorAcceptor<TData>
+    {
+        void Accept(ISingleQueryExecutorVisitor<TData> visitor);
+    }
 }

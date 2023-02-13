@@ -85,9 +85,14 @@
     <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentUnionOperator.cs" />
     <Compile Include="FullAttributeComponent.cs" />
     <Compile Include="AttributeDomain.cs" />
-    <Compile Include="LINQ2TAFramework\AttributeComponentQueryPipelineExecutor.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\AttributeComponentQueryContext.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\DefaultQueryExecutors\WhereQueryExecutor.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentQueryContext.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\AttributeComponentQueryPipelineExecutor.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor.cs" />
     <Compile Include="LINQ2TAFramework\EveryDataInstanceReader.cs" />
     <Compile Include="LINQ2TAFramework\IQueryPipelineExecutorAcceptor.cs" />
+    <Compile Include="LINQ2TAFramework\IReproducingQueryable.cs" />
     <Compile Include="LINQ2TAFramework\ISingleQueryExecutor.cs" />
     <Compile Include="LINQ2TAFramework\ISingleQueryExecutorVisitor.cs" />
     <Compile Include="LINQ2TAFramework\QueryableAttributeComponent.cs" />
@@ -115,16 +120,16 @@
     <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OFENonFictionalAttributeComponentUnionOperator.cs" />
     <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OrderedFiniteEnumerableAttributeDomain.cs" />
     <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OrderedFiniteEnumerableNonFictionalAttributeComponent.cs" />
-    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OrderedFiniteEnumerableNonFictionalAttributeComponentFactory.cs" />
-    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OrderedFiniteEnumerableNonFictionalAttributeComponentFactoryArgs.cs" />
-    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OrderedFiniteEnumerableNonFictionalAttributeComponentQueryProvider .cs" />
+    <Compile Include="AttributeComponentFactoryInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentFactory.cs" />
+    <Compile Include="AttributeComponentFactoryInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentFactoryArgs.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentQueryProvider.cs" />
     <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentComplementionOperator.cs" />
     <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentEqualityComparer.cs" />
     <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentExceptionOperator.cs" />
     <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentInclusionComparer.cs" />
     <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentInclusionOrEqualityComparer.cs" />
     <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentIntersectionOperator.cs" />
-    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentQueryProvider.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\AttributeComponentQueryProvider.cs" />
     <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentSymmetricExceptionOperator.cs" />
     <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentUnionOperator.cs" />
     <Compile Include="NonFictionalAttributeComponent.cs" />
@@ -148,6 +153,8 @@
     <Compile Include="TAFrameworkCustomAttributes\TAIgnoredAttribute.cs" />
     <Compile Include="TAFrameworkCustomAttributes\TAOneToOneRelationAttribute.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\QueryExecutors\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

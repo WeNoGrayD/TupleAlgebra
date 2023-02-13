@@ -7,16 +7,17 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib
 {
     /// <summary>
     /// Домен атрибута.
     /// </summary>
-    /// <typeparam name="TValue"></typeparam>
-    public abstract class AttributeDomain<TValue> : IEnumerable, IEnumerable<TValue>, IQueryable<TValue>
+    /// <typeparam name="TData"></typeparam>
+    public abstract class AttributeDomain<TData> : IEnumerable, IEnumerable<TData>, IQueryable<TData>
     {
-        #region IQueryable<TValue> implemented properties
+        #region IQueryable<TData> implemented properties
 
         /// <summary>
         /// Выражение запроса.
@@ -26,7 +27,7 @@ namespace TupleAlgebraClassLib
         /// <summary>
         /// Тип элемента запроса.
         /// </summary>
-        public virtual Type ElementType { get => typeof(TValue); }
+        public virtual Type ElementType { get => typeof(TData); }
 
         /// <summary>
         /// Провайдер запросов к домену.
@@ -37,7 +38,7 @@ namespace TupleAlgebraClassLib
 
         #region Static fields
 
-        protected static Action<AttributeDomain<TValue>> _setDomainCallback;
+        protected static Action<AttributeDomain<TData>> _setDomainCallback;
 
         #endregion
 
@@ -46,7 +47,7 @@ namespace TupleAlgebraClassLib
         /// <summary>
         /// Универсум домена.
         /// </summary>
-        public readonly NonFictionalAttributeComponent<TValue> Universum;
+        public readonly NonFictionalAttributeComponent<TData> Universum;
 
         #endregion
 
@@ -58,34 +59,30 @@ namespace TupleAlgebraClassLib
         /// <param name="universum"></param>
         /// <param name="queryExpression"></param>
         public AttributeDomain(
-            NonFictionalAttributeComponent<TValue> universum, 
+            NonFictionalAttributeComponent<TData> universum, 
             Expression queryExpression = null)
         {
             Universum = universum;
             Provider = universum.Provider;
-            (Provider as NonFictionalAttributeComponentQueryProvider).AppendDataSource(universum);
-            //Provider = new AttributeDomainQueryProvider(
-             //   Universum.Provider as NonFictionalAttributeComponentQueryProvider)
-            //{ Queryable = this };
             this.Expression = queryExpression ?? Expression.Constant(Universum);
         }
 
         #endregion
 
         public virtual AttributeComponent<TQueryResult> Select<TQueryResult>(
-            Expression<Func<TValue, TQueryResult>> selector,
+            Expression<Func<TData, TQueryResult>> selector,
             AttributeDomain<TQueryResult> queryResultDomain)
         {
             return Universum.Select(selector, queryResultDomain);
         }
 
-        #region IEnumerable<TValue> implemented methods
+        #region IEnumerable<TData> implemented methods
 
         /// <summary>
         /// Обобщённое получение перечислителя домена.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator<TValue> GetEnumerator()
+        public IEnumerator<TData> GetEnumerator()
         {
             return Universum.GetEnumerator();
         }
@@ -109,7 +106,7 @@ namespace TupleAlgebraClassLib
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static AttributeComponent<TValue> operator &(AttributeDomain<TValue> domain, NonFictionalAttributeComponent<TValue> component)
+        public static AttributeComponent<TData> operator &(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universum & component;
         }
@@ -120,7 +117,7 @@ namespace TupleAlgebraClassLib
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static AttributeComponent<TValue> operator |(AttributeDomain<TValue> domain, NonFictionalAttributeComponent<TValue> component)
+        public static AttributeComponent<TData> operator |(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universum | component;
         }
@@ -131,7 +128,7 @@ namespace TupleAlgebraClassLib
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static AttributeComponent<TValue> operator /(AttributeDomain<TValue> domain, NonFictionalAttributeComponent<TValue> component)
+        public static AttributeComponent<TData> operator /(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universum / component;
         }
@@ -142,7 +139,7 @@ namespace TupleAlgebraClassLib
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static AttributeComponent<TValue> operator ^(AttributeDomain<TValue> domain, NonFictionalAttributeComponent<TValue> component)
+        public static AttributeComponent<TData> operator ^(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universum ^ component;
         }
@@ -153,7 +150,7 @@ namespace TupleAlgebraClassLib
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static bool operator ==(AttributeDomain<TValue> domain, NonFictionalAttributeComponent<TValue> component)
+        public static bool operator ==(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universum == component;
         }
@@ -164,7 +161,7 @@ namespace TupleAlgebraClassLib
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static bool operator !=(AttributeDomain<TValue> domain, NonFictionalAttributeComponent<TValue> component)
+        public static bool operator !=(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return !(domain == component);
         }
@@ -183,13 +180,13 @@ namespace TupleAlgebraClassLib
             /// <summary>
             /// Провайдер запросов к универсуму домена атрибута.
             /// </summary>
-            private NonFictionalAttributeComponentQueryProvider UniversumQueryProvider;
+            private AttributeComponentQueryProvider UniversumQueryProvider;
 
             #endregion
 
             #region Instance properties
 
-            public AttributeDomain<TValue> Queryable { get; set; }
+            public AttributeDomain<TData> Queryable { get; set; }
 
             #endregion
 
@@ -200,7 +197,7 @@ namespace TupleAlgebraClassLib
             /// </summary>
             /// <param name="universumQueryProvider"></param>
             public AttributeDomainQueryProvider(
-                NonFictionalAttributeComponentQueryProvider universumQueryProvider)
+                AttributeComponentQueryProvider universumQueryProvider)
             {
                 UniversumQueryProvider = universumQueryProvider;
             }

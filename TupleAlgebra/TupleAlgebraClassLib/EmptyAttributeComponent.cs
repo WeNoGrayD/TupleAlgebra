@@ -6,44 +6,61 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.LINQ2TAFramework;
+using System.Linq.Expressions;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib
 {
-    public sealed class EmptyAttributeComponent<TValue> : AttributeComponent<TValue>
+    public sealed class EmptyAttributeComponent<TData> : AttributeComponent<TData>
     {
-        public static EmptyAttributeComponent<TValue> Instance { get; } =
-            new EmptyAttributeComponent<TValue>();
-
         private const AttributeComponentContentType CONTENT_TYPE = AttributeComponentContentType.Empty;
 
         protected override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
 
         static EmptyAttributeComponent()
         {
-            AttributeComponent<TValue>.InitSetOperations(
+            AttributeComponent<TData>.InitSetOperations(
                 CONTENT_TYPE, new EmptyAttributeComponentOperationExecutersContainer());
         }
 
-        private EmptyAttributeComponent()
-            : base(new EmptyAttributeComponentPower())
+        public EmptyAttributeComponent(
+            AttributeDomain<TData> domain,
+            AttributeComponentQueryProvider queryProvider = null,
+            Expression queryExpression = null)
+            : base(domain, new EmptyAttributeComponentPower(), queryProvider, queryExpression)
         { }
 
-        public override IEnumerator<TValue> GetEnumeratorImpl()
+        public override IEnumerator<TData> GetEnumeratorImpl()
         {
             yield break;
         }
 
-        private class EmptyAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TValue>
+        #region Instance methods
+
+        protected override AttributeComponent<TData> ReproduceImpl(
+            AttributeComponentFactoryArgs<TData> factoryArgs)
+        {
+            return new EmptyAttributeComponent<TData>(
+                factoryArgs.Domain,
+                factoryArgs.QueryProvider,
+                factoryArgs.QueryExpression);
+        }
+
+        #endregion
+
+        private class EmptyAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TData>
         {
             public EmptyAttributeComponentOperationExecutersContainer() : base(
-                new EmptyAttributeComponentComplementionOperator<TValue>(),
-                new EmptyAttributeComponentIntersectionOperator<TValue>(),
-                new EmptyAttributeComponentUnionOperator<TValue>(),
-                new EmptyAttributeComponentExceptionOperator<TValue>(),
-                new EmptyAttributeComponentSymmetricExceptionOperator<TValue>(),
-                new EmptyAttributeComponentInclusionComparer<TValue>(),
-                new EmptyAttributeComponentEqualityComparer<TValue>(),
-                new EmptyAttributeComponentInclusionOrEqualityComparer<TValue>())
+                new EmptyAttributeComponentComplementionOperator<TData>(),
+                new EmptyAttributeComponentIntersectionOperator<TData>(),
+                new EmptyAttributeComponentUnionOperator<TData>(),
+                new EmptyAttributeComponentExceptionOperator<TData>(),
+                new EmptyAttributeComponentSymmetricExceptionOperator<TData>(),
+                new EmptyAttributeComponentInclusionComparer<TData>(),
+                new EmptyAttributeComponentEqualityComparer<TData>(),
+                new EmptyAttributeComponentInclusionOrEqualityComparer<TData>())
             { }
         }
 

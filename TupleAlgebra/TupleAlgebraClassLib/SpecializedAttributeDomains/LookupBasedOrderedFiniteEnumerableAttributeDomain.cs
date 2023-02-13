@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraClassLib.SpecializedAttributeDomains
 {
-    public class LookupBasedOrderedFiniteEnumerableAttributeDomain<TKey, TValue>
-        : OrderedFiniteEnumerableAttributeDomain<IGrouping<TKey, TValue>>
+    public class LookupBasedOrderedFiniteEnumerableAttributeDomain<TKey, TData>
+        : OrderedFiniteEnumerableAttributeDomain<IGrouping<TKey, TData>>
         where TKey : IComparable<TKey>
     {
-        public LookupBasedOrderedFiniteEnumerableAttributeDomain(ILookup<TKey, TValue> universum)
+        public LookupBasedOrderedFiniteEnumerableAttributeDomain(ILookup<TKey, TData> universum)
             : base(universum)
         { }
     }
