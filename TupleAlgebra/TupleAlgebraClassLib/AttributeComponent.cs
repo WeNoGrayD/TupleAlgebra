@@ -61,7 +61,7 @@ namespace TupleAlgebraClassLib
         /// <param name="power"></param>
         public AttributeComponent(
             AttributeComponentPower power,
-            AttributeComponentQueryProvider queryProvider,
+            QueryProvider queryProvider,
             Expression queryExpression)
         {
             Power = power;
@@ -76,7 +76,7 @@ namespace TupleAlgebraClassLib
         public AttributeComponent(
             AttributeDomain<TData> domain,
             AttributeComponentPower power,
-            AttributeComponentQueryProvider queryProvider,
+            QueryProvider queryProvider,
             Expression queryExpression)
             : this(power, queryProvider, queryExpression)
         {
@@ -92,7 +92,7 @@ namespace TupleAlgebraClassLib
         {
             return new AttributeComponentFactoryArgs<TData>(
                 this.Domain, 
-                this.Provider as AttributeComponentQueryProvider);
+                this.Provider as QueryProvider);
         }
 
         protected abstract AttributeComponent<TData> ReproduceImpl(

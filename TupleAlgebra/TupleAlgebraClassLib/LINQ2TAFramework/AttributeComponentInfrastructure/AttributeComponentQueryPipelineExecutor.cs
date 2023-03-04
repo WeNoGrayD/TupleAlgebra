@@ -133,7 +133,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                     reader.PutData(data);
             }
 
-            TQueryResult queryResult = reader.GetResult();
+            TQueryResult queryResult = reader.Execute();
             DataSource = queryResult as IEnumerable<TData>;
             if (_dataSource is null)
                 _dataSource = new TQueryResult[] { queryResult };
@@ -154,7 +154,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                 }
             }
 
-            TQueryResult queryResult = reader.GetResult();
+            TQueryResult queryResult = reader.Execute();
             DataSource = queryResult as IEnumerable<TData>;
             if (_dataSource is null)
                 _dataSource = new TQueryResult[] { queryResult };

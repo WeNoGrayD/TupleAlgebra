@@ -17,19 +17,29 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
     /// Провайдер запросов к упорядоченной конечной перечислимой компоненте аттрибута.
     /// </summary>
     public class OrderedFiniteEnumerableAttributeComponentQueryProvider
-        : AttributeComponentQueryProvider
+        : QueryProvider
     {
         #region Static fields
 
-        private static AttributeComponentQueryContext _queryContext;
+        private static QueryContext _queryContext;
 
         #endregion
 
-        protected override AttributeComponentQueryContext QueryContext { get => _queryContext; }
+        protected override QueryContext QueryContext { get => _queryContext; }
 
         static OrderedFiniteEnumerableAttributeComponentQueryProvider()
         {
-            _queryContext = new AttributeComponentQueryContext();
+            _queryContext = null;// new QueryContext();
+        }
+
+        public override IQueryable<TData> CreateQuery<TData>(Expression queryExpression)
+        {
+            return null;
+        }
+
+        protected override QueryPipelineExecutor2 CreateQueryPipelineExecutor(object dataSource)
+        {
+            throw new NotImplementedException();
         }
     }
 }

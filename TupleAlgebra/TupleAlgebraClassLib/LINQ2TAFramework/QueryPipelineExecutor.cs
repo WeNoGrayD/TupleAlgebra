@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,7 +53,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                 IEnumerable<TData> dataSource,
                 IEnumerable<TQueryResultData> resultData);
 
-        public TQueryPipelineResult ExecutePipeline<TQueryPipelineResult>()
+        public TQueryPipelineResult ExecutePipeline<TData, TQueryPipelineResult>()
         {
             foreach (IQueryPipelineExecutorAcceptor singleQueryExecutor in _pipeline)
                 singleQueryExecutor.Accept(this);
@@ -72,7 +73,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                     reader.PutData(data);
             }
 
-            TQueryResult queryResult = reader.GetResult();
+            TQueryResult queryResult = reader.Execute();
             SetDataSource(queryResult as IEnumerable<TData>);
             if (_dataSource is null)
                 _dataSource = new TQueryResult[] { queryResult };
@@ -93,7 +94,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                 }
             }
 
-            TQueryResult queryResult = reader.GetResult();
+            TQueryResult queryResult = reader.Execute();
             SetDataSource(queryResult as IEnumerable<TData>);
             if (_dataSource is null)
                 _dataSource = new TQueryResult[] { queryResult };
@@ -115,5 +116,57 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
         public abstract void VisitEveryDataInstanceReader<TQueryResult>(
             EveryDataInstanceReader<TData, TQueryResult> reader);
+    }
+
+    public abstract class QueryPipelineExecutor2 : ISingleQueryExecutorVisitor2
+    {
+        private object _dataSource;
+
+        public IQueryPipelineMiddleware FirstQueryExecutor { get; set; }
+
+        protected QueryPipelineExecutor2(object dataSource)
+        {
+            _dataSource = dataSource;
+        }
+
+        private IEnumerable<TData> GetDataSource<TData>()
+        {
+            return _dataSource as IEnumerable<TData>;
+        }
+
+        public void SetDataSource<TData>(IEnumerable<TData> dataSource)
+        {
+            _dataSource = dataSource;
+
+            return;
+        }
+
+        public TPipelineQueryResult Execute<TPipelineQueryResult>()
+        {
+            FirstQueryExecutor.Accept(this);
+
+            return FirstQueryExecutor.GetPipelineQueryResult<TPipelineQueryResult>(this);
+        }
+
+        public void VisitWholeDataSourceReader<TData, TQueryResult>(
+            WholeDataSourceReader2<TData, TQueryResult> queryExecutor)
+        {
+            queryExecutor.LoadDataSource(GetDataSource<TData>());
+
+            return;
+        }
+
+        public void VisitEveryDataInstanceReader<TData, TQueryResult>(
+            EveryDataInstanceReader2<TData, TQueryResult> queryExecutor)
+        {
+            bool mustGoOn = false;
+            foreach (TData data in GetDataSource<TData>())
+            {
+                mustGoOn = queryExecutor.ExecuteOverDataInstance(data);
+                if (!mustGoOn) break;
+            }
+
+            return;
+        }
     }
 }

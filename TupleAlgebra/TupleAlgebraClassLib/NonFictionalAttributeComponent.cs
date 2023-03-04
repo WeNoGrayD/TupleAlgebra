@@ -81,7 +81,7 @@ namespace TupleAlgebraClassLib
         public NonFictionalAttributeComponent(
             AttributeDomain<TData> domain,
             NonFictionalAttributeComponentPower power,
-            AttributeComponentQueryProvider queryProvider = null,
+            QueryProvider queryProvider = null,
             Expression queryExpression = null)
             : base(domain, power, queryProvider, queryExpression)
         {
@@ -98,7 +98,7 @@ namespace TupleAlgebraClassLib
         public NonFictionalAttributeComponent(
             NonFictionalAttributeComponentPower power,
             out Action<AttributeDomain<TData>> setDomainCallback,
-            AttributeComponentQueryProvider queryProvider = null,
+            QueryProvider queryProvider = null,
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {

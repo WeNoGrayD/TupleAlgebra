@@ -27,7 +27,7 @@ namespace TupleAlgebraClassLib
 
         public FullAttributeComponent(
             AttributeDomain<TData> domain,
-            AttributeComponentQueryProvider queryProvider = null,
+            QueryProvider queryProvider = null,
             Expression queryExpression = null) 
             : base(domain, new FullAttributeComponentPower(), queryProvider, queryExpression)
         { }

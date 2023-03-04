@@ -14,13 +14,13 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
     {
         public readonly AttributeDomain<TData> Domain;
 
-        public readonly AttributeComponentQueryProvider QueryProvider;
+        public readonly QueryProvider QueryProvider;
 
         public Expression QueryExpression { get; set; }
 
         public AttributeComponentFactoryArgs(
             AttributeDomain<TData> domain, 
-            AttributeComponentQueryProvider queryProvider = null, 
+            QueryProvider queryProvider = null, 
             Expression queryExpression = null)
         {
             Domain = domain;

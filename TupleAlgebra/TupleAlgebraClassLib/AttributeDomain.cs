@@ -180,7 +180,7 @@ namespace TupleAlgebraClassLib
             /// <summary>
             /// Провайдер запросов к универсуму домена атрибута.
             /// </summary>
-            private AttributeComponentQueryProvider UniversumQueryProvider;
+            private QueryProvider UniversumQueryProvider;
 
             #endregion
 
@@ -197,7 +197,7 @@ namespace TupleAlgebraClassLib
             /// </summary>
             /// <param name="universumQueryProvider"></param>
             public AttributeDomainQueryProvider(
-                AttributeComponentQueryProvider universumQueryProvider)
+                QueryProvider universumQueryProvider)
             {
                 UniversumQueryProvider = universumQueryProvider;
             }
@@ -224,9 +224,7 @@ namespace TupleAlgebraClassLib
             /// <returns></returns>
             public IQueryable<TQueryResult> CreateQuery<TQueryResult>(Expression expression)
             {
-                return UniversumQueryProvider.CreateQuery<TQueryResult>(
-                    expression,
-                    this.Queryable.Universum as NonFictionalAttributeComponent<TQueryResult>);
+                return UniversumQueryProvider.CreateQuery<TQueryResult>(expression);
             }
 
             /// <summary>

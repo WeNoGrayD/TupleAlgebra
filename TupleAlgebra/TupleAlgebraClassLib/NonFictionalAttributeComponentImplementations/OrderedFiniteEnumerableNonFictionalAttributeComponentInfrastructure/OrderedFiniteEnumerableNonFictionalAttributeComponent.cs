@@ -7,7 +7,7 @@ using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
-using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
+using TupleAlgebraClassLib.LINQ2TAFramework;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
@@ -82,7 +82,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         public OrderedFiniteEnumerableNonFictionalAttributeComponent(
             AttributeDomain<TData> domain,
             IEnumerable<TData> values,
-            AttributeComponentQueryProvider queryProvider = null,
+            QueryProvider queryProvider = null,
             Expression queryExpression = null)
             : base(domain,
                    new OrderedFiniteEnumerableNonFictionalAttributeComponentPower(values),
@@ -104,7 +104,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         public OrderedFiniteEnumerableNonFictionalAttributeComponent(
             IEnumerable<TData> values,
             out Action<AttributeDomain<TData>> setDomainCallback,
-            AttributeComponentQueryProvider queryProvider = null,
+            QueryProvider queryProvider = null,
             Expression queryExpression = null)
             : base(new OrderedFiniteEnumerableNonFictionalAttributeComponentPower(values),
                    out setDomainCallback,
