@@ -4,129 +4,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework
 {
-    public abstract class QueryPipelineExecutor
-        : ISingleQueryExecutorVisitor
+    public abstract class QueryPipelineExecutor : ISingleQueryExecutorVisitor
     {
-        private Type _dataSourceType;
+        [DllImport("kernel32.dll")]
+        extern static IntPtr ConvertThreadToFiber(int fiberData);
 
-        private object _originalDataSource;
-        protected object _dataSource;
+        [DllImport("kernel32.dll")]
+        extern static IntPtr CreateFiber(int size, System.Delegate function, int handle);
 
-        private bool _isResultEnumerable;
+        [DllImport("kernel32.dll")]
+        extern static IntPtr SwitchToFiber(IntPtr fiberAddress);
 
-        private List<IQueryPipelineExecutorAcceptor> _pipeline;
+        [DllImport("kernel32.dll")]
+        extern static void DeleteFiber(IntPtr fiberAddress);
 
-        protected QueryPipelineExecutor(
-            Type dataSourceType,
-            object dataSource,
-            bool isResultEnumerable)
-        {
-            _dataSourceType = dataSourceType;
-            _originalDataSource = dataSource;
-            _dataSource = dataSource;
-            _isResultEnumerable = isResultEnumerable;
-            _pipeline = new List<IQueryPipelineExecutorAcceptor>();
-        }
+        [DllImport("kernel32.dll")]
+        extern static int GetLastError();
 
-        private IEnumerable<TData> GetDataSource<TData>()
-        {
-            return _dataSource as IEnumerable<TData>;
-        }
-
-        private void SetDataSource<TData>(IEnumerable<TData> dataSource)
-        {
-            _dataSource = dataSource;
-
-            return;
-        }
-
-        public void AddSingleQueryExecutor(
-            IQueryPipelineExecutorAcceptor queryExecutor)
-        {
-            _pipeline.Add(queryExecutor);
-        }
-
-        protected abstract IQueryable ProduceQueryResult<TData, TQueryResultData>(
-                IEnumerable<TData> dataSource,
-                IEnumerable<TQueryResultData> resultData);
-
-        public TQueryPipelineResult ExecutePipeline<TData, TQueryPipelineResult>()
-        {
-            foreach (IQueryPipelineExecutorAcceptor singleQueryExecutor in _pipeline)
-                singleQueryExecutor.Accept(this);
-
-            return _isResultEnumerable ?
-                (TQueryPipelineResult)ProduceQueryResult(
-                    (dynamic)_originalDataSource, (dynamic)_dataSource) :
-                (_dataSource as TQueryPipelineResult[]).SingleOrDefault();
-        }
-
-        public void VisitWholeDataSourceReader<TData, TQueryResult>(
-            WholeDataSourceReader<TData, TQueryResult> reader)
-        {
-            foreach (TData data in GetDataSource<TData>())
-            {
-                if (reader.Predicate(data))
-                    reader.PutData(data);
-            }
-
-            TQueryResult queryResult = reader.Execute();
-            SetDataSource(queryResult as IEnumerable<TData>);
-            if (_dataSource is null)
-                _dataSource = new TQueryResult[] { queryResult };
-
-            return;
-        }
-
-        public void VisitEveryDataInstanceReader<TData, TQueryResult>(
-            EveryDataInstanceReader<TData, TQueryResult> reader)
-        {
-            foreach (TData data in GetDataSource<TData>())
-            {
-                if (reader.Predicate(data))
-                {
-                    reader.PutData(data);
-                    if (reader.IsAlreadyOver())
-                        break;
-                }
-            }
-
-            TQueryResult queryResult = reader.Execute();
-            SetDataSource(queryResult as IEnumerable<TData>);
-            if (_dataSource is null)
-                _dataSource = new TQueryResult[] { queryResult };
-
-            return;
-        }
-    }
-
-    public abstract class QueryPipelineExecutor<TData>
-        : ISingleQueryExecutorVisitor<TData>
-    {
-        public abstract void AddSingleQueryExecutor(
-            IQueryPipelineExecutorAcceptor<TData> queryExecutor);
-
-        public abstract TQueryPipelineResult ExecutePipeline<TQueryPipelineResult>();
-
-        public abstract void VisitWholeDataSourceReader<TQueryResult>(
-            WholeDataSourceReader<TData, TQueryResult> reader);
-
-        public abstract void VisitEveryDataInstanceReader<TQueryResult>(
-            EveryDataInstanceReader<TData, TQueryResult> reader);
-    }
-
-    public abstract class QueryPipelineExecutor2 : ISingleQueryExecutorVisitor2
-    {
         private object _dataSource;
+
+        private MethodInfo _pipelineQueryExecutionMethodInfo;
+
+        private IQueryPipelineEndpoint _endpoint;
 
         public IQueryPipelineMiddleware FirstQueryExecutor { get; set; }
 
-        protected QueryPipelineExecutor2(object dataSource)
+        protected QueryPipelineExecutor(object dataSource, IQueryPipelineMiddleware firstQueryExecutor)
         {
             _dataSource = dataSource;
+            FirstQueryExecutor = firstQueryExecutor;
+            _endpoint = firstQueryExecutor.GetPipelineEndpoint();
+
+            _endpoint.InitializeAsQueryPipelineEndpoint();
         }
 
         private IEnumerable<TData> GetDataSource<TData>()
@@ -141,32 +56,215 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             return;
         }
 
-        public TPipelineQueryResult Execute<TPipelineQueryResult>()
+        public TPipelineQueryResult ContinueQueryExecuting<TQueryResultData, TPipelineQueryResult>(
+            IQueryPipelineMiddleware nextMiddleware,
+            IEnumerable<TQueryResultData> dataSource)
         {
-            FirstQueryExecutor.Accept(this);
+            // Установка текущего источника данных в конвейере значением результата выполненного запроса.
+            SetDataSource(dataSource);
+            FirstQueryExecutor = nextMiddleware;
+            return (TPipelineQueryResult)_pipelineQueryExecutionMethodInfo.Invoke(this, null);
+        }
+
+        public TPipelineQueryResult ExecuteWithExpectedAggregableResult<TPipelineQueryResult>()
+        {
+            _pipelineQueryExecutionMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            return FirstQueryExecutor.Accept<TPipelineQueryResult, TPipelineQueryResult>(false, this);
+        }
+
+        public IEnumerable<TPipelineQueryResultData> ExecuteWithExpectedEnumerableResult<TPipelineQueryResultData>()
+        {
+            _pipelineQueryExecutionMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            return FirstQueryExecutor.Accept<TPipelineQueryResultData, IEnumerable<TPipelineQueryResultData>>(true, this);
+        }
+
+        public TPipelineQueryResult VisitStreamingQueryExecutor<TData, TQueryResult, TPipelineQueryResultParam, TPipelineQueryResult>(
+            bool isResultEnumerable,
+            StreamingQueryExecutor<TData, TQueryResult> queryExecutor) =>
+            isResultEnumerable ?
+            (TPipelineQueryResult)VisitStreamingQueryExecutorWithExpectedEnumerableResult<TData, TQueryResult, TPipelineQueryResultParam>(queryExecutor) :
+            VisitStreamingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(queryExecutor);
+
+        public TPipelineQueryResult VisitBufferingQueryExecutor<TData, TQueryResult, TPipelineQueryResultParam, TPipelineQueryResult>(
+            bool isResultEnumerable, 
+            BufferingQueryExecutor<TData, TQueryResult> queryExecutor)
+        {
+            queryExecutor.LoadDataSource(GetDataSource<TData>());
 
             return FirstQueryExecutor.GetPipelineQueryResult<TPipelineQueryResult>(this);
         }
 
-        public void VisitWholeDataSourceReader<TData, TQueryResult>(
-            WholeDataSourceReader2<TData, TQueryResult> queryExecutor)
+        public TPipelineQueryResult 
+            VisitBufferingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
+            BufferingQueryExecutor<TData, TQueryResult> queryExecutor)
         {
             queryExecutor.LoadDataSource(GetDataSource<TData>());
 
-            return;
+            return FirstQueryExecutor.GetPipelineQueryResult<TPipelineQueryResult>(this);
         }
 
-        public void VisitEveryDataInstanceReader<TData, TQueryResult>(
-            EveryDataInstanceReader2<TData, TQueryResult> queryExecutor)
+        public IEnumerable<TPipelineQueryResultData> 
+            VisitBufferingQueryExecutorWithExpectedEnumerableResult<TData, TQueryResult, TPipelineQueryResultData>(
+            BufferingQueryExecutor<TData, TQueryResult> queryExecutor)
         {
-            bool mustGoOn = false;
+            queryExecutor.LoadDataSource(GetDataSource<TData>());
+            
+            return FirstQueryExecutor.GetPipelineQueryResult<IEnumerable<TPipelineQueryResultData>>(this);
+        }
+
+        public TPipelineQueryResult
+            VisitStreamingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
+            StreamingQueryExecutor<TData, TQueryResult> queryExecutor)
+        {
+            queryExecutor.PrepareToQueryStart();
             foreach (TData data in GetDataSource<TData>())
+                if (!queryExecutor.ExecuteOverDataInstance(data)) break;
+
+            return FirstQueryExecutor.GetAggregablePipelineQueryResult<TPipelineQueryResult>(this);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <typeparam name="TQueryResult"></typeparam>
+        /// <typeparam name="TPipelineQueryResultData"></typeparam>
+        /// <param name="queryExecutor"></param>
+        /// <returns></returns>
+        public IEnumerable<TPipelineQueryResultData>
+            VisitStreamingQueryExecutorWithExpectedEnumerableResult<TData, TQueryResult, TPipelineQueryResultData>(
+            StreamingQueryExecutor<TData, TQueryResult> queryExecutor)
+        {
+
+            /* 
+             * Динамическое приведение безопасно: ожидаемый результат конвейера по типу совпадает с результатом
+             * конечного middleware. 
+             */
+            return VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl4(
+                queryExecutor,
+                (dynamic)_endpoint);
+        }
+
+        private IEnumerable<TPipelineQueryResultData>
+            VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl<TFirstQueryData, TFirstQueryResult, TLastQueryData, TPipelineQueryResultData>(
+            StreamingQueryExecutor<TFirstQueryData, TFirstQueryResult> firstQueryExecutor,
+            IQueryPipelineEndpoint<TLastQueryData, IEnumerable<TPipelineQueryResultData>> lastQueryAccumulator)
+        {
+            firstQueryExecutor.PrepareToQueryStart();
+            bool mustGoOn;
+            IEnumerable<TPipelineQueryResultData> emptyPipelineAccumulator = Enumerable.Empty<TPipelineQueryResultData>(),
+                                                  pipelineAccumulator = emptyPipelineAccumulator;
+            lastQueryAccumulator.SubscribeOninnerExecutorEventsOnDataInstanceProcessing(
+                (IEnumerable<TPipelineQueryResultData> outputData) => pipelineAccumulator = outputData);
+
+            foreach (TFirstQueryData data in GetDataSource<TFirstQueryData>())
             {
-                mustGoOn = queryExecutor.ExecuteOverDataInstance(data);
-                if (!mustGoOn) break;
+                mustGoOn= firstQueryExecutor.ExecuteOverDataInstance(data);
+                foreach (TPipelineQueryResultData resultData in pipelineAccumulator)
+                    yield return resultData;
+                if (!mustGoOn) yield break;
+                pipelineAccumulator = emptyPipelineAccumulator;
             }
 
-            return;
+            yield break;
         }
+
+        private IEnumerable<TPipelineQueryResultData>
+            VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl2<TFirstQueryData, TFirstQueryResult, TLastQueryData, TPipelineQueryResultData>(
+            StreamingQueryExecutor<TFirstQueryData, TFirstQueryResult> firstQueryExecutor,
+            IQueryPipelineEndpoint<TLastQueryData, IEnumerable<TPipelineQueryResultData>> lastQueryAccumulator)
+        {
+            firstQueryExecutor.PrepareToQueryStart();
+            bool mustGoOn;
+
+            foreach (TFirstQueryData data in GetDataSource<TFirstQueryData>())
+            {
+                mustGoOn = firstQueryExecutor.ExecuteOverDataInstance(data);
+                foreach (TPipelineQueryResultData resultData 
+                         in FirstQueryExecutor.GetPipelineQueryResult<IEnumerable<TPipelineQueryResultData>>(this))
+                    yield return resultData;
+                if (!mustGoOn) yield break;
+            }
+
+            yield break;
+        }
+
+        private IEnumerable<TPipelineQueryResultData>
+            VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl3<TFirstQueryData, TFirstQueryResult, TLastQueryData, TPipelineQueryResultData>(
+            StreamingQueryExecutor<TFirstQueryData, TFirstQueryResult> firstQueryExecutor,
+            IQueryPipelineEndpoint<TLastQueryData, IEnumerable<TPipelineQueryResultData>> lastQueryAccumulator)
+        {
+            IntPtr mainFiberPtr = ConvertThreadToFiber(System.Threading.Thread.CurrentThread.ManagedThreadId);
+            TFirstQueryData currentData = default(TFirstQueryData);
+            Action executeOverDataInstance = ExecuteOverDataInstance;
+            IntPtr executeOverDataInstanceFiberPtr = CreateFiber(2^32, executeOverDataInstance, 12);
+            bool mustGoOn = false, dataPassed = false;
+            TPipelineQueryResultData pipelineResultData = default(TPipelineQueryResultData);
+            IEnumerable<TPipelineQueryResultData> temp = null;
+            firstQueryExecutor.PrepareToQueryStart();
+
+            foreach (TFirstQueryData data in GetDataSource<TFirstQueryData>())
+            {
+                currentData = data;
+                SwitchToFiber(executeOverDataInstanceFiberPtr);
+
+                while (dataPassed)
+                {
+                    var temp2 = temp;
+                    //yield return pipelineResultData;
+                    //foreach (var temp3 in temp) yield return temp3;
+                    SwitchToFiber(executeOverDataInstanceFiberPtr);
+                }
+
+                if (!mustGoOn) yield break;
+            }
+
+            yield break;
+
+            void ExecuteOverDataInstance()
+            {
+                lastQueryAccumulator.SubscribeOninnerExecutorEventsOnDataInstanceProcessing(
+                    (IEnumerable<TPipelineQueryResultData> outputData) =>
+                    {
+                        dataPassed = true;
+                        temp = lastQueryAccumulator.Accumulator;//.ToList();
+                                                                //pipelineResultData = temp.First();//lastQueryAccumulator.Accumulator.First();
+                        SwitchToFiber(mainFiberPtr);
+                        dataPassed = false;
+                    });
+                while (true)
+                {
+                    mustGoOn = firstQueryExecutor.ExecuteOverDataInstance(currentData);
+                    dataPassed = false;
+                    SwitchToFiber(mainFiberPtr);
+                }
+            }
+        }
+
+        private IEnumerable<TPipelineQueryResultData>
+            VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl4<TFirstQueryData, TFirstQueryResult, TLastQueryData, TPipelineQueryResultData>(
+            StreamingQueryExecutor<TFirstQueryData, TFirstQueryResult> firstQueryExecutor,
+            IQueryPipelineEndpoint<TLastQueryData, IEnumerable<TPipelineQueryResultData>> lastQueryAccumulator)
+        {
+            firstQueryExecutor.PrepareToQueryStart();
+            bool mustGoOn;
+
+            foreach (TFirstQueryData data in GetDataSource<TFirstQueryData>())
+            {
+                mustGoOn = firstQueryExecutor.ExecuteOverDataInstance(data);
+                foreach (TPipelineQueryResultData resultData
+                         in FirstQueryExecutor.GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(this))
+                    yield return resultData;
+                if (!mustGoOn) yield break;
+            }
+
+            yield break;
+        }
+
+        public delegate void LoadPipelineAccumulatorHandler<TQueryPipelineResultData>(
+            ref IEnumerable<TQueryPipelineResultData> pipelineAccumulator,
+            IEnumerable<TQueryPipelineResultData> accumulatorValue);
     }
 }

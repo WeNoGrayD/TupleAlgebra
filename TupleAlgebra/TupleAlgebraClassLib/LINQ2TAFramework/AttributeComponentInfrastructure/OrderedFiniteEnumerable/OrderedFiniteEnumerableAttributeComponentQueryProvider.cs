@@ -37,7 +37,9 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             return null;
         }
 
-        protected override QueryPipelineExecutor2 CreateQueryPipelineExecutor(object dataSource)
+        protected override QueryPipelineExecutor CreateQueryPipelineExecutor(
+            object dataSource,
+            IQueryPipelineMiddleware firstQueryExecutor)
         {
             throw new NotImplementedException();
         }

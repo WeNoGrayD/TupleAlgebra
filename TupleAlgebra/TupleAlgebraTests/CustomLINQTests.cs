@@ -10,6 +10,10 @@ using System.Collections;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using System.Runtime.CompilerServices;
 using System.Reflection;
+using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+[assembly: InternalsVisibleTo("TupleAlgebraClassLib")]
 
 namespace TupleAlgebraTests
 {
@@ -20,11 +24,13 @@ namespace TupleAlgebraTests
         Any,
         Count,
         First,
-        Where,
-        Skip,
+        Select,
         Single,
+        Skip,
+        SkipWhile,
         Take,
-        TakeWhile
+        TakeWhile,
+        Where,
     }
 
     internal enum QueryContent
@@ -33,76 +39,90 @@ namespace TupleAlgebraTests
         GreaterThan5,
         GreaterThan7,
         GreaterThan0,
-        LesserThan10
+        LesserThan10,
+        Pow2,
+        Pow3,
+        PowN2,
+        ToString,
+        IsOdd,
+        IsEven,
+        Mod3Is0,
+        Mod6
     }
 
-    internal class MockQueryable : IQueryable<int>
+    internal class ForumUsersMockQueryable : GenericMockQueryable<ForumUser>
     {
-        private static IEnumerable<int> _dataSource = Enumerable.Range(1, 10);
+        private static IEnumerable<ForumUser> _dataSource = ForumUser.Domain;
+
+        public static IEnumerable<ForumUser> DataSource => _dataSource;
+
+        public ForumUsersMockQueryable()
+        {
+            Expression = Expression.Constant(_dataSource.AsQueryable());
+        }
+
+        public ForumUsersMockQueryable(Expression queryExpression, IQueryProvider provider)
+            : base(queryExpression, provider)
+        { }
+    }
+
+    internal class MockQueryable : GenericMockQueryable<int>
+    {
+        private static IEnumerable<int> _dataSource = Enumerable.Range(1, 1000000);
 
         public static IEnumerable<int> DataSource => _dataSource;
 
-        public Type ElementType => typeof(int);
-
-        private static IQueryProvider _provider = new MockQueryProvider();
-
-        public IQueryProvider Provider => _provider;
-
-        public Expression Expression { get; private set; }
-
         public MockQueryable()
         {
-            Expression = Expression.Constant(_dataSource);
+            Expression = Expression.Constant(_dataSource.AsQueryable());
         }
 
-        public MockQueryable(Expression queryExpression)
+        public MockQueryable(Expression queryExpression, IQueryProvider provider) 
+            : base(queryExpression, provider)
+        { }
+    }
+
+    internal class GenericMockQueryable<T> : IQueryable<T>
+    {
+        public Type ElementType => typeof(T);
+
+        protected IQueryProvider _provider;
+
+        public IQueryProvider Provider { get => _provider; }
+
+        public Expression Expression { get; protected set; }
+
+        public GenericMockQueryable()
+        {
+            Expression = Expression.Constant(null);
+            _provider = new MockQueryProvider<T>();
+        }
+
+        public GenericMockQueryable(Expression queryExpression, IQueryProvider provider)
         {
             Expression = queryExpression;
+            _provider = provider;
         }
 
-        public static LambdaExpression? CreateExpression(QueryKind queryKind, QueryContent queryContent) =>
-            (queryKind, queryContent) switch
-            {
-                //QueryKind.Aggregate => null,
-                (QueryKind.All, QueryContent.GreaterThan0) => (Expression<Predicate<int>>)((int data) => data > 0),
-                (QueryKind.Any, QueryContent.GreaterThan5) => (Expression<Predicate<int>>)((int data) => data > 5),
-                (QueryKind.Any, QueryContent.LesserThan10) => (Expression<Predicate<int>>)((int data) => data < 10),
-                //QueryKind.Count => null,
-                //QueryKind.First => null,
-                (QueryKind.Where, QueryContent.GreaterThan5) => (Expression<Predicate<int>>)((int data) => data > 5),
-                (QueryKind.Where, QueryContent.LesserThan10) => (Expression<Predicate<int>>)((int data) => data < 10),
-                (QueryKind.TakeWhile, QueryContent.LesserThan5) => (Expression<Predicate<int>>)((int data) => data < 5),
-                (QueryKind.TakeWhile, QueryContent.GreaterThan5) => (Expression<Predicate<int>>)((int data) => data > 5),
-                (QueryKind.TakeWhile, QueryContent.LesserThan10) => (Expression<Predicate<int>>)((int data) => data < 10),
-                //QueryKind.Skip => null,
-                //QueryKind.Single => null,
-                //QueryKind.Take => null,
-                _ => throw new ArgumentException()
-            };
-
-        public IEnumerator<int> GetEnumerator() => 
-            (Provider.Execute<IEnumerable<int>>(Expression) as IEnumerable<int>).GetEnumerator();
+        public IEnumerator<T> GetEnumerator() => Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    internal class MockQueryProvider : QueryProvider
+    internal class MockQueryProvider<T> : QueryProvider
     {
-        private static QueryContext _queryContext;
+        private QueryContext _queryContext = new MockQueryContext();
 
         protected override QueryContext QueryContext => _queryContext;
 
         static MockQueryProvider()
         {
-            _queryContext = new MockQueryContext();
+            //_queryContext = new MockQueryContext();
         }
 
         public override IQueryable<TQueryResult> CreateQuery<TQueryResult>(Expression queryExpression)
-            => (IQueryable<TQueryResult>)CreateQueryImpl(queryExpression);
-
-        private IEnumerable<int> CreateQueryImpl(Expression queryExpression)
         {
-            IEnumerable<int> queryable = new DataSourceExtractor<IEnumerable<int>>().Extract(queryExpression);
+            IEnumerable<T> queryable = new DataSourceExtractor<IEnumerable<T>>().Extract(queryExpression);
 
             /*
                Проверка выражения запроса на избыточность (а также корректность). 
@@ -110,107 +130,338 @@ namespace TupleAlgebraTests
                неизбыточное выражение, равное константному выражению источника данных для запроса.
              */
             if (queryExpression != new QueryInspector().Visit(queryExpression))
-                return queryable;
+                return queryable as IQueryable<TQueryResult>;
 
-            return new MockQueryable(queryExpression);
+            return new GenericMockQueryable<TQueryResult>(queryExpression, this);
         }
 
-        protected override QueryPipelineExecutor2 CreateQueryPipelineExecutor(object dataSource)
-            => new MockQueryPipelineExecutor(dataSource);
+        protected override QueryPipelineExecutor CreateQueryPipelineExecutor(
+            object dataSource,
+            IQueryPipelineMiddleware firstQueryExecutor)
+            => new MockQueryPipelineExecutor(dataSource, firstQueryExecutor);
     }
 
     internal class MockQueryContext : QueryContext
     {
-        protected override SingleQueryExecutor<TData, IEnumerable<TData>> BuildWhereQuery<TData>(MethodCallExpression whereExpr)
-        {
-            return base.BuildWhereQuery<TData>(whereExpr);
-        }
     }
 
-    internal class MockQueryPipelineExecutor : QueryPipelineExecutor2
+    internal class MockQueryPipelineExecutor : QueryPipelineExecutor
     {
-        public MockQueryPipelineExecutor(object dataSource) : base(dataSource) { }
+        public MockQueryPipelineExecutor(
+            object dataSource,
+            IQueryPipelineMiddleware firstQueryExecutor) 
+            : base(dataSource, firstQueryExecutor) { }
     }
 
     internal static class MockQueryableHelper
     {
-        public static MockQueryable AsMockQueryable(this IQueryable<int> queryable) => (MockQueryable)queryable;
-
-        public static bool All(this IQueryable<int> source, QueryContent queryContent)
+        public static GenericMockQueryable<T> AsMockQueryable<T>(this IQueryable<T> queryable) => 
+            (GenericMockQueryable<T>)queryable;
+        
+        public static bool All<TData>(
+            this GenericMockQueryable<TData> source, QueryContent queryContent)
         {
-            LambdaExpression predicateExpr = MockQueryable.CreateExpression(QueryKind.All, queryContent);
+            LambdaExpression predicateExpr = MockQueryableHelper.CreateExpression(QueryKind.All, queryContent);
 
-            return All(source, predicateExpr as Expression<Predicate<int>>);
+            return All(source, predicateExpr as Expression<Func<TData, bool>>);
         }
 
-        private static bool All(this IQueryable<int> source, Expression<Predicate<int>> predicateExpr = null)
+        private static bool All<TData>(
+            this IQueryable<TData> source, 
+            Expression<Func<TData, bool>> predicateExpr = null)
         {
             MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
 
             IQueryable<int> queryied = source.Provider.CreateQuery<int>(
-                BuildCoveredExpression(source, queryMethodInfo, predicateExpr));
+                BuildCoveredExpression(
+                    source,
+                    queryMethodInfo,
+                    new Type[] { typeof(TData) },
+                    predicateExpr));
 
             return queryied.Provider.Execute<bool>(queryied.Expression);
         }
 
-        public static bool Any(this IQueryable<int> source, QueryContent queryContent)
+        public static bool Any<TData>(this GenericMockQueryable<TData> source, QueryContent queryContent)
         {
-            LambdaExpression predicateExpr = MockQueryable.CreateExpression(QueryKind.Any, queryContent);
+            LambdaExpression predicateExpr = MockQueryableHelper.CreateExpression(QueryKind.Any, queryContent);
 
-            return Any(source, predicateExpr as Expression<Predicate<int>>);
+            return Any(source, predicateExpr as Expression<Func<TData, bool>>);
         }
 
-        private static bool Any(this IQueryable<int> source, Expression<Predicate<int>> predicateExpr = null)
+        private static bool Any<TData>(
+            this IQueryable<TData> source, 
+            Expression<Func<TData, bool>> predicateExpr = null)
         {
             MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
 
-            IQueryable<int> queryied = source.Provider.CreateQuery<int>(BuildCoveredExpression(
-                source, queryMethodInfo, predicateExpr));
+            IQueryable<int> queryied = source.Provider.CreateQuery<int>(
+                BuildCoveredExpression(
+                    source,
+                    queryMethodInfo,
+                    new Type[] { typeof(TData) },
+                    predicateExpr));
 
             return queryied.Provider.Execute<bool>(queryied.Expression);
         }
 
-        public static IQueryable<int> Where(this IQueryable<int> source, QueryContent queryContent)
+        public static int Count<TData>(this GenericMockQueryable<TData> source, QueryContent queryContent)
         {
-            LambdaExpression predicateExpr = MockQueryable.CreateExpression(QueryKind.Where, queryContent);
+            LambdaExpression predicateExpr = MockQueryableHelper.CreateExpression(QueryKind.First, queryContent);
 
-            return Where(source, predicateExpr as Expression<Predicate<int>>);
+            return Count(source, predicateExpr as Expression<Func<TData, bool>>);
         }
 
-        private static IQueryable<int> Where(this IQueryable<int> source, Expression<Predicate<int>> predicateExpr = null)
-        {
-            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
-
-            return source.Provider.CreateQuery<int>(BuildCoveredExpression(source, queryMethodInfo, predicateExpr));
-        }
-
-        public static IQueryable<int> TakeWhile(this IQueryable<int> source, QueryContent queryContent)
-        {
-            LambdaExpression predicateExpr = MockQueryable.CreateExpression(QueryKind.TakeWhile, queryContent);
-
-            return TakeWhile(source, predicateExpr as Expression<Predicate<int>>);
-        }
-
-        private static IQueryable<int> TakeWhile(this IQueryable<int> source, Expression<Predicate<int>> predicateExpr = null)
+        private static int Count<TData>(
+            this IQueryable<TData> source,
+            Expression<Func<TData, bool>> predicateExpr = null)
         {
             MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
 
-            return source.Provider.CreateQuery<int>(BuildCoveredExpression(source, queryMethodInfo, predicateExpr));
+            IQueryable<int> queryied = source.Provider.CreateQuery<int>(
+                BuildCoveredExpression(
+                    source,
+                    queryMethodInfo,
+                    new Type[] { typeof(TData) },
+                    predicateExpr));
+
+            return queryied.Provider.Execute<int>(queryied.Expression);
         }
 
-        private static Expression BuildCoveredExpression(
-            IQueryable<int> source,
+        public static TData First<TData>(this GenericMockQueryable<TData> source, QueryContent queryContent)
+        {
+            LambdaExpression predicateExpr = MockQueryableHelper.CreateExpression(QueryKind.First, queryContent);
+
+            return First(source, predicateExpr as Expression<Func<TData, bool>>);
+        }
+
+        private static TData First<TData>(
+            this IQueryable<TData> source,
+            Expression<Func<TData, bool>> predicateExpr = null)
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            IQueryable<int> queryied = source.Provider.CreateQuery<int>(
+                BuildCoveredExpression(
+                    source,
+                    queryMethodInfo,
+                    new Type[] { typeof(TData) },
+                    predicateExpr));
+
+            return queryied.Provider.Execute<TData>(queryied.Expression);
+        }
+
+        public static IQueryable<TQueryResultData> Join<TOuterData, TInnerData, TQueryResultData>(
+            this GenericMockQueryable<TOuterData> outerSource, 
+            IEnumerable<TInnerData> innerSource,
+            QueryContent outerKeySelectorContent,
+            QueryContent innerKeySelectorContent,
+            QueryContent resultSelectorContent)
+        {
+            LambdaExpression outerKeySelectorExpr = MockQueryableHelper.CreateExpression(QueryKind.Select, outerKeySelectorContent),
+                             innerKeySelectorExpr = MockQueryableHelper.CreateExpression(QueryKind.Select, innerKeySelectorContent),
+                             resultSelectorExpr = MockQueryableHelper.CreateExpression(QueryKind.Select, resultSelectorContent);
+
+            return Join(
+                outerSource, 
+                innerSource, 
+                (dynamic)outerKeySelectorExpr, 
+                (dynamic)innerKeySelectorExpr,
+                (dynamic)resultSelectorExpr);
+        }
+
+        private static IQueryable<TQueryResultData> Join<TOuterData, TInnerData, TKey, TQueryResultData>(
+            this IQueryable<TOuterData> outerSource,
+            IEnumerable<TInnerData> innerSource,
+            Expression<Func<TOuterData, TKey>> outerKeySelector = null,
+            Expression<Func<TInnerData, TKey>> innerKeySelector = null,
+            Expression<Func<TOuterData, TInnerData, TQueryResultData>> resultSelector = null)
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            return outerSource.Provider.CreateQuery<TQueryResultData>(
+                BuildCoveredExpression(
+                    outerSource,
+                    queryMethodInfo, 
+                    new Type[] { typeof(TOuterData), typeof(TInnerData), typeof(TKey), typeof(TQueryResultData) },
+                    Expression.Constant(innerSource), 
+                    outerKeySelector,
+                    innerKeySelector,
+                    resultSelector));
+        }
+
+        public static IQueryable<TQueryResultData> Select<TData, TQueryResultData>(
+            this GenericMockQueryable<TData> source, 
+            QueryContent queryContent)
+        {
+            LambdaExpression funcExpr = MockQueryableHelper.CreateExpression(QueryKind.Select, queryContent);
+
+            return Select(source, (dynamic)funcExpr);
+        }
+
+        private static IQueryable<TQueryResultData> Select<TData, TQueryResultData>(
+            this IQueryable<TData> source, Expression<Func<TData, TQueryResultData>> selectorExpr = null)
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            return source.Provider.CreateQuery<TQueryResultData>(
+                BuildCoveredExpression(
+                    source,
+                    queryMethodInfo,
+                    new Type[] { typeof(TData), typeof(TQueryResultData) },
+                    selectorExpr)); ;
+        }
+
+        public static IQueryable<TData> Where<TData>(this GenericMockQueryable<TData> source, QueryContent queryContent)
+        {
+            LambdaExpression predicateExpr = MockQueryableHelper.CreateExpression(QueryKind.Where, queryContent);
+
+            return Where(source, predicateExpr as Expression<Func<TData, bool>>);
+        }
+
+        private static IQueryable<TData> Where<TData>(
+            this IQueryable<TData> source,
+            Expression<Func<TData, bool>> predicateExpr = null)
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            return source.Provider.CreateQuery<TData>(
+                BuildCoveredExpression(
+                    source,
+                    queryMethodInfo,
+                    new Type[] { typeof(TData) },
+                    predicateExpr));
+        }
+
+        public static IQueryable<TData> TakeWhile<TData>(
+            this GenericMockQueryable<TData> source, 
+            QueryContent queryContent)
+        {
+            LambdaExpression predicateExpr = MockQueryableHelper.CreateExpression(QueryKind.TakeWhile, queryContent);
+
+            return TakeWhile(source, predicateExpr as Expression<Func<TData, bool>>);
+        }
+
+        private static IQueryable<TData> TakeWhile<TData>(
+            this IQueryable<TData> source, 
+            Expression<Func<TData, bool>> predicateExpr = null)
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            return source.Provider.CreateQuery<TData>(
+                BuildCoveredExpression(
+                    source,
+                    queryMethodInfo,
+                    new Type[] { typeof(TData) },
+                    predicateExpr));
+        }
+
+        public static IQueryable<TData> SkipWhile<TData>(this GenericMockQueryable<TData> source, QueryContent queryContent)
+        {
+            LambdaExpression predicateExpr = MockQueryableHelper.CreateExpression(QueryKind.SkipWhile, queryContent);
+
+            return SkipWhile(source, predicateExpr as Expression<Func<TData, bool>>);
+        }
+
+        private static IQueryable<TData> SkipWhile<TData>(
+            this IQueryable<TData> source, 
+            Expression<Func<TData, bool>> predicateExpr = null)
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            return source.Provider.CreateQuery<TData>(
+                BuildCoveredExpression(
+                    source, 
+                    queryMethodInfo,
+                    new Type[] { typeof(TData) },
+                    predicateExpr));
+        }
+
+        private static Expression BuildCoveredExpression<TData>(
+            IQueryable<TData> source,
             MethodInfo queryMethodInfo,
+            Type[] genericArguments,
             params Expression[] queryMethodParams)
         {
             Expression[] queryMethodParamsBuf = new Expression[queryMethodParams.Length + 1];
-            queryMethodParamsBuf[0] = Expression.Constant(source);
-            queryMethodParams.Select(expr => Expression.Quote(expr)).ToArray().CopyTo(queryMethodParamsBuf, 1);
+            queryMethodParamsBuf[0] = source.Expression;
+            queryMethodParams.Select(param => param switch
+                {
+                    LambdaExpression lambda => Expression.Quote(lambda),
+                    Expression => param
+                }).ToArray().CopyTo(queryMethodParamsBuf, 1);
 
             return Expression.Call(
                 null,
-                queryMethodInfo,
+                queryMethodInfo.MakeGenericMethod(genericArguments),
                 queryMethodParamsBuf);
+        }
+
+        public static LambdaExpression? CreateExpression(QueryKind queryKind, QueryContent queryContent)
+        {
+            LambdaExpression queryBody = queryContent switch
+            {
+                QueryContent.GreaterThan0 => (Expression<Func<int, bool>>)((int data) => data > 0),
+                QueryContent.LesserThan5 => (Expression<Func<int, bool>>)((int data) => data < 5),
+                QueryContent.GreaterThan5 => (Expression<Func<int, bool>>)((int data) => data > 5),
+                QueryContent.GreaterThan7 => (Expression<Func<int, bool>>)((int data) => data > 7),
+                QueryContent.LesserThan10 => (Expression<Func<int, bool>>)((int data) => data < 10),
+                QueryContent.IsOdd => (Expression<Func<int, bool>>)((int data) => (data & 1) == 1),
+                QueryContent.IsEven => (Expression<Func<int, bool>>)((int data) => (data & 1) == 0),
+                QueryContent.ToString => (Expression<Func<int, string>>)((int data) => $"The number is {data}."),
+                QueryContent.Pow2 => (Expression<Func<int, int>>)((int data) => data ^ 2),
+                QueryContent.Pow3 => (Expression<Func<int, int>>)((int data) => data ^ 3),
+                QueryContent.PowN2 => (Expression<Func<int, int>>)((int data) => data ^ -2),
+                QueryContent.Mod3Is0 => (Expression<Func<int, bool>>)((int data) => data % 3 == 0),
+                QueryContent.Mod6 => (Expression<Func<int, int, int>>)
+                    ((int outerData, int innerData) => outerData == innerData ? outerData : 0),
+            };
+
+            return (queryKind, queryContent) switch
+            {
+                //QueryKind.Aggregate => null,
+                (QueryKind.All, QueryContent.GreaterThan0) => queryBody,
+                (QueryKind.All, _) => throw new ArgumentException(),
+                (QueryKind.Any, QueryContent.GreaterThan5) => queryBody,
+                (QueryKind.Any, QueryContent.LesserThan10) => queryBody,
+                (QueryKind.Any, _) => throw new ArgumentException(),
+                (QueryKind.Count, QueryContent.LesserThan5) => queryBody,
+                (QueryKind.Count, QueryContent.GreaterThan5) => queryBody,
+                (QueryKind.Count, QueryContent.GreaterThan7) => queryBody,
+                (QueryKind.Count, QueryContent.LesserThan10) => queryBody,
+                (QueryKind.Count, _) => throw new ArgumentException(),
+                (QueryKind.First, QueryContent.LesserThan5) => queryBody,
+                (QueryKind.First, QueryContent.GreaterThan5) => queryBody,
+                (QueryKind.First, QueryContent.GreaterThan7) => queryBody,
+                (QueryKind.First, QueryContent.LesserThan10) => queryBody,
+                (QueryKind.First, _) => throw new ArgumentException(),
+                //QueryKind.Count => null,
+                //QueryKind.First => null,
+                (QueryKind.Select, QueryContent.IsOdd) => queryBody,
+                (QueryKind.Select, QueryContent.IsEven) => queryBody,
+                (QueryKind.Select, QueryContent.ToString) => queryBody,
+                (QueryKind.Select, QueryContent.Pow2) => queryBody,
+                (QueryKind.Select, QueryContent.Pow3) => queryBody,
+                (QueryKind.Select, QueryContent.PowN2) => queryBody,
+                (QueryKind.Select, QueryContent.Mod3Is0) => queryBody,
+                (QueryKind.Select, QueryContent.Mod6) => queryBody,
+                (QueryKind.Select, _) => throw new ArgumentException(),
+                (QueryKind.SkipWhile, QueryContent.LesserThan5) => queryBody,
+                (QueryKind.SkipWhile, QueryContent.GreaterThan5) => queryBody,
+                (QueryKind.SkipWhile, QueryContent.LesserThan10) => queryBody,
+                (QueryKind.SkipWhile, _) => throw new ArgumentException(),
+                (QueryKind.TakeWhile, QueryContent.LesserThan5) => queryBody,
+                (QueryKind.TakeWhile, QueryContent.GreaterThan5) => queryBody,
+                (QueryKind.TakeWhile, QueryContent.LesserThan10) => queryBody,
+                (QueryKind.TakeWhile, _) => throw new ArgumentException(),
+                (QueryKind.Where, QueryContent.GreaterThan5) => queryBody,
+                (QueryKind.Where, QueryContent.LesserThan10) => queryBody,
+                (QueryKind.Where, _) => throw new ArgumentException(),
+                //QueryKind.Skip => null,
+                //QueryKind.Single => null,
+                //QueryKind.Take => null,
+                _ => throw new ArgumentException()
+            };
         }
     }
 
@@ -242,25 +493,189 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
-        public void WhereQuery()
+        public void CountByFilterQuery()
         {
             MockQueryable source = new MockQueryable();
-            MockQueryable query = source.Where(QueryContent.GreaterThan5).AsMockQueryable();
+            int query = source.Count(QueryContent.GreaterThan5);
+        
+            int countOfGreaterThan5Predefined = MockQueryable.DataSource.Count(data => data > 5),
+                countOfGreaterThan5 = query;
 
-            List<int> whereGreaterThan5Predefined = MockQueryable.DataSource.Where(data => data > 5).ToList(),
-                      whereGreaterThan5 = new List<int>();
+            Assert.IsTrue(countOfGreaterThan5 == countOfGreaterThan5Predefined);
+        }
+
+        [TestMethod]
+        public void FirstQuery()
+        {
+            MockQueryable source = new MockQueryable();
+            int query = source.First(QueryContent.GreaterThan7);
+
+           int firstGreaterThan7Predefined = MockQueryable.DataSource.First(data => data > 7),
+               firstGreaterThan7 = query;
+
+            Assert.IsTrue(firstGreaterThan7Predefined == firstGreaterThan7);
+        }
+
+        [TestMethod]
+        public void GroupJoinQuery()
+        {
+            ForumUsersMockQueryable source = new ForumUsersMockQueryable();
+            var joinedForumUsers = from fuVisited in source
+                                   join fuVisitor in source
+                                   on true equals true
+                                   into visitors
+                                   select new { Visited = fuVisited.Nickname, Visitors = visitors };
+
+            var joinedForumUsersPredefined = from fuVisited in ForumUsersMockQueryable.DataSource
+                                             join fuVisitor in ForumUsersMockQueryable.DataSource
+                                             on true equals true
+                                             into visitors
+                                             select new { Visited = fuVisited.Nickname, Visitors = visitors };
+            foreach ((var joinedForumUserPredefinedData, var joinedForumUserData) 
+                     in joinedForumUsersPredefined.Zip(joinedForumUsers))
+            {
+                Assert.IsTrue(joinedForumUserPredefinedData.Visited == joinedForumUserData.Visited);
+                Assert.IsTrue(Enumerable.SequenceEqual(joinedForumUserPredefinedData.Visitors, joinedForumUserData.Visitors));
+            }
+        }
+
+        [TestMethod]
+        public void JoinQuery()
+        {
+            ForumUsersMockQueryable source = new ForumUsersMockQueryable();
+            var joinedForumUsers = from fuVisited in source
+                                   join fuVisitor in source
+                                   on true equals true
+                                   select new { Visited = fuVisited.Nickname, Visitor = fuVisitor.Nickname };
+            var joinedForumUsers2 = joinedForumUsers.ToList();
+
+            var joinedForumUsersPredefined = from fuVisited in ForumUsersMockQueryable.DataSource
+                                              join fuVisitor in ForumUsersMockQueryable.DataSource
+                                              on true equals true
+                                              select new { Visited = fuVisited.Nickname, Visitor = fuVisitor.Nickname };
+
+            Assert.IsTrue(Enumerable.SequenceEqual(joinedForumUsersPredefined, joinedForumUsers));
+        }
+
+        [TestMethod]
+        public void JoinWhereQuery()
+        {
+            ForumUsersMockQueryable source = new ForumUsersMockQueryable();
+            var query = from visitingInfo in (
+                                       from fuVisited in source
+                                       join fuVisitor in source
+                                       on true equals true
+                                       select new { 
+                                           Visited = fuVisited.Nickname, 
+                                           Visitor = fuVisitor })
+                                   where visitingInfo.Visitor.LikeCount > 99
+                                   select visitingInfo;
+
+            var joinedForumUsersPredefined = from visitingInfo in (
+                                                from fuVisited in ForumUsersMockQueryable.DataSource
+                                                join fuVisitor in ForumUsersMockQueryable.DataSource
+                                                on true equals true
+                                                select new { Visited = fuVisited.Nickname, Visitor = fuVisitor })
+                                             where visitingInfo.Visitor.LikeCount > 99
+                                             select visitingInfo;
+            var joinedForumUsers = query.ToList();
+
+            Assert.IsTrue(Enumerable.SequenceEqual(joinedForumUsersPredefined, joinedForumUsers));
+        }
+
+        [TestMethod]
+        public void JoinAnyQuery()
+        {
+            ForumUsersMockQueryable source = new ForumUsersMockQueryable();
+            var fromJoinedForumUsersAnyHas100Likes = (
+                                       from fuVisited in source
+                                       join fuVisitor in source
+                                       on true equals true
+                                       select new
+                                       {
+                                           Visited = fuVisited.Nickname,
+                                           Visitor = fuVisitor
+                                       }
+                                    )
+                                    .Any(visitingInfo => visitingInfo.Visitor.LikeCount > 99);
+
+            var fromJoinedForumUsersAnyHas100LikesPredefined = (
+                                                from fuVisited in ForumUsersMockQueryable.DataSource
+                                                join fuVisitor in ForumUsersMockQueryable.DataSource
+                                                on true equals true
+                                                select new { Visited = fuVisited.Nickname, Visitor = fuVisitor }
+                                             )
+                                             .Any(visitingInfo => visitingInfo.Visitor.LikeCount > 99);
+
+            Assert.IsTrue(fromJoinedForumUsersAnyHas100LikesPredefined == fromJoinedForumUsersAnyHas100Likes);
+        }
+
+
+        [TestMethod]
+        public void TakeWhileJoinQuery()
+        {
+            GenericMockQueryable<int> source = new MockQueryable().TakeWhile(QueryContent.LesserThan10).AsMockQueryable();
+            IQueryable<int> query = source
+                .Join<int, int, int>(
+                    source, 
+                    QueryContent.IsEven, 
+                    QueryContent.Mod3Is0, 
+                    QueryContent.Mod6);
+
+            List<int> joinIsOddOnMod3Is0ToMod6Predefined = MockQueryable.DataSource
+                .TakeWhile(data => data < 10)
+                .Join(
+                    MockQueryable.DataSource.TakeWhile(data => data < 10), 
+                    outerData => (outerData & 1) == 0, 
+                    innerData => innerData % 3 == 0, 
+                    (outerData, innerData) => outerData == innerData ? outerData : 0).ToList(),
+                     joinIsOddOnMod3Is0ToMod6 = new List<int>();
 
             foreach (int data in query)
-                whereGreaterThan5.Add(data);
+                joinIsOddOnMod3Is0ToMod6.Add(data);
 
-            Assert.IsTrue(Enumerable.SequenceEqual(whereGreaterThan5, whereGreaterThan5Predefined));
+            Assert.IsTrue(Enumerable.SequenceEqual(joinIsOddOnMod3Is0ToMod6Predefined, joinIsOddOnMod3Is0ToMod6));
+        }
+
+        [TestMethod]
+        public void SelectQuery()
+        {
+            MockQueryable source = new MockQueryable();
+            IQueryable query = source
+                .Select<int, bool>(QueryContent.IsOdd);
+
+            List<bool> selectIsOddPredefined =
+                MockQueryable.DataSource.Select(data => (data & 1) == 1).ToList(),
+                      selectIsOdd = new List<bool>();
+
+            foreach (bool data in query)
+                selectIsOdd.Add(data);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(selectIsOddPredefined, selectIsOdd));
+        }
+
+        [TestMethod]
+        public void SkipWhileQuery()
+        {
+            MockQueryable source = new MockQueryable();
+            GenericMockQueryable<int> query = source
+                .SkipWhile(QueryContent.LesserThan5).AsMockQueryable();
+
+            List<int> skippedWhileLesserThan5Predefined =
+                MockQueryable.DataSource.SkipWhile(data => data < 5).ToList(),
+                      skippedWhileLesserThan5 = new List<int>();
+
+            foreach (int data in query)
+                skippedWhileLesserThan5.Add(data);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(skippedWhileLesserThan5Predefined, skippedWhileLesserThan5));
         }
 
         [TestMethod]
         public void TakeWhileQuery()
         {
             MockQueryable source = new MockQueryable();
-            MockQueryable query = source
+            GenericMockQueryable<int> query = source
                 .TakeWhile(QueryContent.LesserThan5).AsMockQueryable();
 
             List<int> takenWhileLesserThan5Predefined =
@@ -274,10 +689,81 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
+        public void WhereQuery()
+        {
+            MockQueryable source = new MockQueryable();
+            GenericMockQueryable<int> query = source.Where(QueryContent.GreaterThan5).AsMockQueryable();
+
+            List<int> whereGreaterThan5Predefined = MockQueryable.DataSource.Where(data => data > 5).ToList(),
+                      whereGreaterThan5 = new List<int>();
+
+            foreach (int data in query)
+                whereGreaterThan5.Add(data);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(whereGreaterThan5, whereGreaterThan5Predefined));
+        }
+
+        [TestMethod]
+        public void WhereSelectQuery()
+        {
+            MockQueryable source = new MockQueryable();
+            IQueryable query = source
+                .Where(QueryContent.LesserThan10).AsMockQueryable()
+                .Select<int, bool>(QueryContent.IsOdd);
+
+            List<bool> whereLesserThan10SelectIsOddPredefined =
+                MockQueryable.DataSource.Where(data => data < 10).Select(data => (data & 1) == 1).ToList(),
+                      whereLesserThan10SelectIsOdd = new List<bool>();
+
+            foreach (bool data in query)
+                whereLesserThan10SelectIsOdd.Add(data);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(whereLesserThan10SelectIsOddPredefined, whereLesserThan10SelectIsOdd));
+        }
+
+        [TestMethod]
+        public void WhereSelectQuery2()
+        {
+            MockQueryable source = new MockQueryable();
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            List<bool> whereLesserThan10SelectIsOddPredefined =
+                (from data in MockQueryable.DataSource
+                 where data < 10
+                 let data2 = data ^ 3
+                 select data % 1 == 1 || data2 % 3 == 0).ToList(),
+                      whereLesserThan10SelectIsOdd;
+
+            sw.Stop();
+            (long ms, long ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+
+            whereLesserThan10SelectIsOdd =
+                (from data in source
+                 where data < 10
+                 let data2 = data ^ 3
+                 select data % 1 == 1 || data2 % 3 == 0).ToList();
+
+            Assert.IsTrue(Enumerable.SequenceEqual(whereLesserThan10SelectIsOddPredefined, whereLesserThan10SelectIsOdd));
+        }
+
+        [TestMethod]
+        public void WhereSelectQuery3()
+        {
+            List<bool> whereLesserThan10SelectIsOddPredefined =
+                (from data in MockQueryable.DataSource
+                 where data < 10
+                 let data2 = data ^ 3
+                 select data % 1 == 1 || data2 % 3 == 0).ToList(),
+                      whereLesserThan10SelectIsOdd;
+        }
+
+        [TestMethod]
         public void WhereWhereQuery()
         {
             MockQueryable source = new MockQueryable();
-            MockQueryable query = source
+            GenericMockQueryable<int> query = source
                 .Where(QueryContent.GreaterThan5).AsMockQueryable()
                 .Where(QueryContent.LesserThan10).AsMockQueryable();
 
@@ -292,10 +778,17 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
+        public void WhereWhereQuery2()
+        {
+            List<int> whereGreaterThan5AndLesserThan10Predefined =
+                MockQueryable.DataSource.Where(data => data > 5).Where(data => data < 10).ToList();
+        }
+
+        [TestMethod]
         public void WhereTakeWhileQuery()
         {
             MockQueryable source = new MockQueryable();
-            MockQueryable query = source
+            GenericMockQueryable<int> query = source
                 .Where(QueryContent.GreaterThan5).AsMockQueryable()
                 .TakeWhile(QueryContent.LesserThan10).AsMockQueryable();
 
@@ -314,7 +807,7 @@ namespace TupleAlgebraTests
         public void TakeWhileWhereQuery()
         {
             MockQueryable source = new MockQueryable();
-            MockQueryable query = source
+            GenericMockQueryable<int> query = source
                 .TakeWhile(QueryContent.LesserThan5).AsMockQueryable()
                 .Where(QueryContent.LesserThan10).AsMockQueryable();
 
@@ -352,5 +845,46 @@ namespace TupleAlgebraTests
 
             Assert.IsTrue(anyGreaterThan5AlsoLesserThan10Predefined == anyGreaterThan5AlsoLesserThan10);
         }
+
+        [TestMethod]
+        public void ZZZTest()
+        {
+            IEnumerable<int> intsMethod = Ints(), intsOneShot = new OneShotEnumerable<int>(Ints());
+
+            /*
+            foreach (int i in intsMethod)
+            {
+                Console.WriteLine(i);
+            }
+
+            foreach (int i in intsMethod)
+            {
+                Console.WriteLine(i);
+            }
+
+            foreach (int i in intsOneShot)
+            {
+                Console.WriteLine(i);
+            }
+
+            foreach (int i in intsOneShot)
+            {
+                Console.WriteLine(i);
+            }
+
+            foreach (int i in intsOneShot)
+            {
+                Console.WriteLine(i);
+            }
+            */
+        }
+
+        private IEnumerable<int> Ints()
+        {
+            yield return 1;
+            yield return 2;
+            yield return 3;
+        }
+
     }
 }

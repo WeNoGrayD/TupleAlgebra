@@ -86,10 +86,33 @@ namespace TupleAlgebraTests.DataModels
                 new ForumUser(5, "NewRevan", 100, 55, 5, 2)
             };
 
-            Domain[2].LatestProfileVisitors.AddRange(new[] { Domain[4], Domain[1] });
-            Domain[3].LatestProfileVisitors.AddRange(new[] { Domain[1], Domain[0] });
-            Domain[1].LatestComments.Add(new DateTime(2022, 4, 3), Comments[new DateTime(2022, 4, 3)]);
-            Domain[4].LatestComments.Add(new DateTime(2021, 7, 16), Comments[new DateTime(2021, 7, 16)]);
+            Domain.Find(fu => fu.Nickname == "WeNoGrayD").LatestProfileVisitors.AddRange(
+                new[] { Domain.Find(fu => fu.Nickname == "NewRevan") });
+            Domain.Find(fu => fu.Nickname == "OwlFromAnimatedFilm").LatestProfileVisitors.AddRange(
+                new[] {
+                    Domain.Find(fu => fu.Nickname == "Timemechanic"), 
+                    Domain.Find(fu => fu.Nickname == "NewRevan"),
+                    Domain.Find(fu => fu.Nickname == "PolkovnikNaBelomKone")});
+            Domain.Find(fu => fu.Nickname == "Timemechanic").LatestProfileVisitors.AddRange(
+                new[] {
+                    Domain.Find(fu => fu.Nickname == "NewRevan"),
+                    Domain.Find(fu => fu.Nickname == "OwlFromAnimatedFilm") });
+            Domain.Find(fu => fu.Nickname == "PolkovnikNaBelomKone").LatestProfileVisitors.AddRange(
+                new[] {
+                    Domain.Find(fu => fu.Nickname == "OwlFromAnimatedFilm"),
+                    Domain.Find(fu => fu.Nickname == "NewRevan"),
+                    Domain.Find(fu => fu.Nickname == "WeNoGrayD") });
+            Domain.Find(fu => fu.Nickname == "NewRevan").LatestProfileVisitors.AddRange(
+                new[] {
+                    Domain.Find(fu => fu.Nickname == "WeNoGrayD"),
+                    Domain.Find(fu => fu.Nickname == "OwlFromAnimatedFilm") });
+
+            Domain.Find(fu => fu.Nickname == "OwlFromAnimatedFilm").LatestComments.Add(
+                new DateTime(2022, 4, 3), 
+                Comments[new DateTime(2022, 4, 3)]);
+            Domain.Find(fu => fu.Nickname == "NewRevan").LatestComments.Add(
+                new DateTime(2021, 7, 16), 
+                Comments[new DateTime(2021, 7, 16)]);
         }
 
         public static AttributeDomain<ForumUser> GetDomain()

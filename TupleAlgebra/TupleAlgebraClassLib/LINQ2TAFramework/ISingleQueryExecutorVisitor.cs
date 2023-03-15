@@ -8,19 +8,37 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 {
     public interface ISingleQueryExecutorVisitor
     {
-        void VisitWholeDataSourceReader<TData, TQueryResult>(
-            WholeDataSourceReader<TData, TQueryResult> reader);
+        IQueryPipelineMiddleware FirstQueryExecutor { get; set; }
 
-        void VisitEveryDataInstanceReader<TData, TQueryResult>(
-            EveryDataInstanceReader<TData, TQueryResult> reader);
-    }
+        TPipelineQueryResult ExecuteWithExpectedAggregableResult<TPipelineQueryResult>();
 
-    public interface ISingleQueryExecutorVisitor<TData>
-    {
-        void VisitWholeDataSourceReader<TQueryResult>(
-            WholeDataSourceReader<TData, TQueryResult> reader);
+        IEnumerable<TPipelineQueryResultData> ExecuteWithExpectedEnumerableResult<TPipelineQueryResultData>();
 
-        void VisitEveryDataInstanceReader<TQueryResult>(
-            EveryDataInstanceReader<TData, TQueryResult> reader);
+        void SetDataSource<TData>(IEnumerable<TData> dataSource);
+
+        TPipelineQueryResult ContinueQueryExecuting<TQueryResultData, TPipelineQueryResult>(
+            IQueryPipelineMiddleware nextMiddleware,
+            IEnumerable<TQueryResultData> dataSource);
+
+        TPipelineQueryResult VisitStreamingQueryExecutor<TData, TQueryResult, TPipelineQueryResultParam, TPipelineQueryResult>(
+            bool iResultEnumerable, StreamingQueryExecutor<TData, TQueryResult> queryExecutor);
+
+        TPipelineQueryResult VisitBufferingQueryExecutor<TData, TQueryResult, TPipelineQueryResultParam, TPipelineQueryResult>(
+            bool iResultEnumerable, BufferingQueryExecutor<TData, TQueryResult> queryExecutor);
+
+        TPipelineQueryResult VisitBufferingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
+            BufferingQueryExecutor<TData, TQueryResult> queryExecutor);
+
+        IEnumerable<TPipelineQueryResultData>
+            VisitBufferingQueryExecutorWithExpectedEnumerableResult<TData, TQueryResult, TPipelineQueryResultData>(
+            BufferingQueryExecutor<TData, TQueryResult> queryExecutor);
+
+        TPipelineQueryResult
+            VisitStreamingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
+            StreamingQueryExecutor<TData, TQueryResult> queryExecutor);
+
+        IEnumerable<TPipelineQueryResultData>
+            VisitStreamingQueryExecutorWithExpectedEnumerableResult<TData, TQueryResult, TPipelineQueryResultData>(
+            StreamingQueryExecutor<TData, TQueryResult> queryExecutor);
     }
 }

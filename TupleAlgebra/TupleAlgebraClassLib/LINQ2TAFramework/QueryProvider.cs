@@ -47,129 +47,39 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
             if (methodCallChain.Count == 0) return (TQueryResult)queryDataSource;
 
-            return ExecuteExact2<TQueryResult>(queryDataSource, methodCallChain);
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            Type acDataType = queryDataSource.GetType().GetGenericArguments().Single(),
-                 acType = typeof(AttributeComponent<>).MakeGenericType(acDataType);
-
-            MethodInfo execute = GetType()
-                .GetMethod(nameof(QueryProvider.ExecuteExact),
-                           BindingFlags.Instance | BindingFlags.NonPublic)
-                //new Type[] { acType, typeof(List<Expression>) })
-                .MakeGenericMethod(acDataType, typeof(TQueryResult));
-            var d = (TQueryResult)execute.Invoke(this, new object[] { queryDataSource, methodCallChain, default(TQueryResult) });// Execute(queryDataSource, methodCallChain);
-
-            sw.Stop();
-            (long ms, long ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
-            return d;
-        }
-        protected TQueryResult ExecuteExact2<TQueryResult>(
-            object queryDataSource,
-            List<Expression> methodCallChain)
-        {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            //var d = ExecuteExact((dynamic)queryDataSource, methodCallChain, default(TQueryResult));
-            QueryPipelineExecutor2 queryPipelineExecutor = CreateQueryPipelineExecutor(queryDataSource);
-
+            IQueryPipelineMiddleware firstQueryExecutor = null;
+            QueryContext.ResetFirstQueryExecutor();
             foreach (Expression queryMethod in methodCallChain)
-                queryPipelineExecutor.FirstQueryExecutor =
-                    QueryContext.BuildSingleQueryExecutor(queryMethod as MethodCallExpression);
+                firstQueryExecutor = QueryContext.BuildSingleQueryExecutor(queryMethod as MethodCallExpression);
 
-            TQueryResult queryResult = queryPipelineExecutor.Execute<TQueryResult>();
+            bool isResultEnumerable = typeof(TQueryResult).GetInterface(nameof(IEnumerable)) is not null;
 
-            sw.Stop();
-            (long ms, long ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            QueryPipelineExecutor queryPipelineExecutor = CreateQueryPipelineExecutor(
+                queryDataSource,
+                firstQueryExecutor);
+
+            TQueryResult queryResult = isResultEnumerable ?
+                ExecuteWithExpectedEnumerableResult() :
+                queryPipelineExecutor.ExecuteWithExpectedAggregableResult<TQueryResult>();
 
             return queryResult;
+
+            TQueryResult ExecuteWithExpectedEnumerableResult()
+            {
+                Type queryResultDataType = typeof(TQueryResult).GetGenericArguments().Single();
+
+                MethodInfo executionMethodInfo = queryPipelineExecutor
+                    .GetType()
+                    .GetMethod(nameof(QueryPipelineExecutor.ExecuteWithExpectedEnumerableResult))
+                    .MakeGenericMethod(queryResultDataType);
+
+                return (TQueryResult)executionMethodInfo.Invoke(queryPipelineExecutor, null);
+            }
         }
 
-        protected TQueryResult ExecuteExact<TData, TQueryResult>(
-            IQueryable<TData> queryDataSource,
-            List<Expression> methodCallChain,
-            TQueryResult tq)
-        {
-
-            QueryPipelineExecutor2 queryPipelineExecutor = CreateQueryPipelineExecutor(queryDataSource);
-
-            foreach (Expression queryMethod in methodCallChain)
-                queryPipelineExecutor.FirstQueryExecutor =
-                    QueryContext.BuildSingleQueryExecutor(queryMethod as MethodCallExpression);
-
-            return queryPipelineExecutor.Execute<TQueryResult>();
-
-            /*
-            bool isAttributeComponent = typeof(TQueryResult).IsGenericType &&
-                (typeof(TQueryResult) == typeof(AttributeComponent<TData>) ||
-                 typeof(TQueryResult).IsSubclassOf(typeof(AttributeComponent<TData>)));
-            */
-
-            /*
-            QueryPipelineExecutor queryPipelineExecutor =
-                AttributeComponentQueryPipelineExecutor2.Construct<TData>(
-                    isAttributeComponent ?
-                        typeof(AttributeComponent<TData>)//typeof(NonFictionalAttributeComponent<>).MakeGenericType(acDataType)
-                        : typeof(TQueryResult),
-                    queryDataSource,
-                    isAttributeComponent);
-            */
-            /*
-            foreach (Expression queryMethod in methodCallChain)
-                queryPipelineExecutor.AddSingleQueryExecutor(
-                    QueryContext.BuildSingleQueryExecutor2(queryMethod as MethodCallExpression));
-            */
-
-            /*
-            Type queryProviderType = this.GetType(),
-                 acDataType = typeof(TQueryResult).GetGenericArguments().Single(),
-                 acType = typeof(AttributeComponent<>)
-                    .MakeGenericType(acDataType);
-            bool isAttributeComponent = typeof(TQueryResult).IsGenericType &&
-                (typeof(TQueryResult) == acType || typeof(TQueryResult).IsSubclassOf(acType));
-            string constructFactoryArgsMethodName =
-                nameof(AttributeComponentQueryProvider.ConstructFactoryArgs),
-                   factoryMethodName = nameof(QueryableAttributeComponent.Reproduce);
-
-            Func<IEnumerable<TData>, IEnumerable<TData>, IQueryable> nonFictionalFactoryFunc =
-                (dataSource, resultData) =>
-                {
-                    Type nfacType =
-                        typeof(NonFictionalAttributeComponent<>).MakeGenericType(acDataType);
-                    object factoryArgs =
-                        queryProviderType.GetMethod(constructFactoryArgsMethodName, BindingFlags.NonPublic | BindingFlags.Instance)
-                                         .MakeGenericMethod(acDataType)
-                                         .Invoke(this, new object[] { dataSource, resultData, this, null });
-
-                    IQueryable q = typeof(QueryableAttributeComponent)
-                        .GetMethod(factoryMethodName)
-                        .MakeGenericMethod(acDataType, acDataType)
-                        .Invoke(dataSource, new object[] { dataSource, factoryArgs }) as IQueryable;
-
-                    return q;
-                };
-
-            AttributeComponentQueryPipelineExecutor<TData> queryPipelineExecutor =
-                new AttributeComponentQueryPipelineExecutor<TData>(
-                    isAttributeComponent ?
-                        typeof(AttributeComponent<TData>)//typeof(NonFictionalAttributeComponent<>).MakeGenericType(acDataType)
-                        : typeof(TQueryResult),
-                    queryDataSource,
-                    isAttributeComponent);
-            queryPipelineExecutor.ProduceNonFictionalAttributeComponentEvent +=
-                new AttributeComponentQueryPipelineExecutor<TData>
-                    .ProduceNonFictionalAttributeComponent(nonFictionalFactoryFunc);
-
-            foreach (Expression queryMethod in methodCallChain)
-                queryPipelineExecutor.AddSingleQueryExecutor(
-                    QueryContext.BuildSingleQueryExecutor<TData>(queryMethod as MethodCallExpression));
-
-            return queryPipelineExecutor.ExecutePipeline<TQueryResult>();
-            */
-        }
-
-        protected abstract QueryPipelineExecutor2 CreateQueryPipelineExecutor(object dataSource);
+        protected abstract QueryPipelineExecutor CreateQueryPipelineExecutor(
+            object dataSource, 
+            IQueryPipelineMiddleware firstQueryExecutor);
 
         public object ExecuteLocalQuery(
             IQueryable dataSource,
@@ -208,7 +118,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
             protected override Expression VisitMethodCall(MethodCallExpression node)
             {
-                MethodCallChain.Add(node);
+                MethodCallChain.Insert(0, node);
 
                 return Visit(node.Arguments[0]);
             }
@@ -251,7 +161,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                     case nameof(QueryableAttributeComponent.Select):
                         {
                             CheckSelectQueryOnAcceptability(node);
-                            return base.Visit(node.Arguments[0]);
+                            return base.VisitMethodCall(node);
                         }
                     default:
                         {

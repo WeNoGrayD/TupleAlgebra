@@ -6,32 +6,9 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.DefaultQueryExecutors
 {
-    /*
-    public class WhereQueryExecutor<TData> : WholeDataSourceReader<TData, IEnumerable<TData>>
+    public class WhereQueryBufferingExecutor<TData> : BufferingQueryExecutorWithEnumerableResult<TData, TData>
     {
-        public WhereQueryExecutor(Func<TData, bool> predicate)
-            : base(predicate)
-        { }
-
-        public override IEnumerable<TData> Execute()
-        {
-            return _dataSource;
-        }
-    }*/
-
-    /*
-    public class WhereQueryExecutor<TData> : EveryDataInstanceReader2WithEnumerableResult<TData, TData>
-    {
-        public WhereQueryExecutor(Predicate<TData> dataPassingCondition)
-            : base(dataPassingCondition, (TData data) => data)
-        { }
-
-        protected override (bool MustGoOn, bool DidDataPass) ConsumeData(TData data) => (true, DataPassingCondition(data));
-    }
-    */
-    public class WhereQueryExecutor<TData> : WholeDataSourceReader2WithEnumerableResult<TData, TData>
-    {
-        public WhereQueryExecutor(Predicate<TData> dataPassingCondition)
+        public WhereQueryBufferingExecutor(Func<TData, bool> dataPassingCondition)
             : base(dataPassingCondition)
         { }
 
@@ -41,5 +18,17 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
                 if (DataPassingCondition(data)) 
                     yield return data;
         }
+    }
+
+    public class WhereStreamingQueryExecutor<TData> : StreamingQueryExecutorWithEnumerableResult<TData, TData>
+    {
+        public WhereStreamingQueryExecutor(Func<TData, bool> dataPassingCondition)
+            : base(dataPassingCondition, (TData data, bool didDataPass) => data)
+        {
+            InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
+        }
+
+        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data) =>
+            (DataPassingCondition(data), true);
     }
 }

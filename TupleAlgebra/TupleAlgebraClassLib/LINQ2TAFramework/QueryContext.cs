@@ -6,337 +6,144 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.DefaultQueryExecutors;
+using System.Collections;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework
 {
     public abstract class QueryContext
     {
-        IQueryPipelineExecutorAcceptor LastQueryExecutor;
+        private IQueryPipelineMiddleware _firstQueryExecutor;
 
-        IQueryPipelineMiddleware FirstQueryExecutor;
+        public void ResetFirstQueryExecutor() => _firstQueryExecutor = null;
 
-        IQueryPipelineMiddleware _lastQueryExecutor;
-
-        IQueryPipelineMiddleware LastQueryExecutor2
-        {
-            get => _lastQueryExecutor;
-            set
+        public IQueryPipelineMiddleware BuildSingleQueryExecutor(MethodCallExpression methodExpr) =>
+            (methodExpr.Arguments.Count, methodExpr.Arguments) switch
             {
-                if (_lastQueryExecutor is null)
-                    FirstQueryExecutor = value;
-                _lastQueryExecutor = value;
-            }
+                (2, [_, UnaryExpression param1Expr]) => RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
+                    (dynamic)param1Expr.Operand, methodExpr),
+                (5, [_, ConstantExpression param1Expr, UnaryExpression param2Expr, UnaryExpression param3Expr, UnaryExpression param4Expr]) => 
+                    RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
+                        param1Expr, (dynamic)param2Expr.Operand, (dynamic)param3Expr.Operand, (dynamic)param4Expr.Operand, methodExpr)
+            };
+
+        /// <summary>
+        /// Распознавание стандартного запроса с одним параметром.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <typeparam name="TQueryResultData"></typeparam>
+        /// <param name="lambdaFunc"></param>
+        /// <param name="methodExpr"></param>
+        /// <returns></returns>
+        private IQueryPipelineMiddleware RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor<TData, TQueryResultData>(
+            Expression<Func<TData, TQueryResultData>> lambdaFunc,
+            MethodCallExpression methodExpr)
+        {
+            string queryMethodName = methodExpr.Method.Name;
+            MethodInfo queryBuildingMethod = typeof(QueryContext)
+                .GetMethod("Build" + queryMethodName + "Query", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            queryBuildingMethod = queryBuildingMethod.GetGenericArguments().Length switch
+            {
+                1 => queryBuildingMethod.MakeGenericMethod(typeof(TData)),
+                2 => queryBuildingMethod.MakeGenericMethod(typeof(TData), typeof(TQueryResultData)),
+                _ => throw new Exception()
+            };
+
+            return BuildSingleQueryExecutorImpl(queryBuildingMethod, lambdaFunc.Compile());
         }
 
-        public IQueryPipelineMiddleware BuildSingleQueryExecutor(
-            MethodCallExpression node)
+        /// <summary>
+        /// Распознавание запросов соединений - внутренних и групповых.
+        /// </summary>
+        /// <typeparam name="TOuterData"></typeparam>
+        /// <typeparam name="TInnerData"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TResultData"></typeparam>
+        /// <param name="innerEnumerable"></param>
+        /// <param name="outerKeySelector"></param>
+        /// <param name="innerKeySelector"></param>
+        /// <param name="resultSelector"></param>
+        /// <param name="methodExpr"></param>
+        /// <returns></returns>
+        private IQueryPipelineMiddleware 
+            RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor<TOuterData, TInnerData, TKey, TProjection, TResultData>(
+            ConstantExpression innerEnumerableExpr,
+            Expression<Func<TOuterData, TKey>> outerKeySelectorExpr,
+            Expression<Func<TInnerData, TKey>> innerKeySelectorExpr,
+            Expression<Func<TOuterData, TProjection, TResultData>> resultSelectorExpr,
+            MethodCallExpression methodExpr)
         {
-            Type queryContextType = this.GetType(),
-                 queryResultType = node.Arguments[0].Type.GetInterfaces()
-                 .Where(type => type.Name == "IQueryable`1").Single();
-            MethodInfo queryMethod;
-            string queryMethodName = node.Method.Name;
-
-            queryMethod = queryContextType
+            string queryMethodName = methodExpr.Method.Name;
+            MethodInfo queryBuildingMethod = typeof(QueryContext)
                 .GetMethod("Build" + queryMethodName + "Query", BindingFlags.NonPublic | BindingFlags.Instance)
-                .MakeGenericMethod(queryResultType.GenericTypeArguments[0]);
+                .MakeGenericMethod(typeof(TOuterData), typeof(TInnerData), typeof(TKey), typeof(TResultData));
 
-            IQueryPipelineAcceptor iqpa = queryMethod.Invoke(this, new object[] { node }) as IQueryPipelineAcceptor;
+            return BuildSingleQueryExecutorImpl(
+                queryBuildingMethod,
+                innerEnumerableExpr.Value, 
+                outerKeySelectorExpr.Compile(), 
+                innerKeySelectorExpr.Compile(), 
+                resultSelectorExpr.Compile());
+        }
+
+        private IQueryPipelineMiddleware BuildSingleQueryExecutorImpl(
+            MethodInfo queryBuildingMethod, params object[] queryBuildingMethodParams)
+        {
+            IQueryPipelineAcceptor iqpa = 
+                queryBuildingMethod.Invoke(this, queryBuildingMethodParams) as IQueryPipelineAcceptor;
             IQueryPipelineMiddleware iqpm = SingleQueryExecutorWithAccumulationFactory.Create((dynamic)iqpa);
-            FirstQueryExecutor = FirstQueryExecutor is null ? iqpm : FirstQueryExecutor.ContinueWith(iqpm);
 
-            return iqpm;
+            _firstQueryExecutor = _firstQueryExecutor is null ? iqpm : _firstQueryExecutor.ContinueWith((dynamic)iqpm);
 
-            /*
-            switch (queryMethodName)
-            {
-                case nameof(Queryable.Any):
-                    { break; }
-                case nameof(Queryable.All):
-                    { break; }
-                case nameof(Queryable.Select):
-                    { break; }
-                case nameof(Queryable.SelectMany):
-                    { break; }
-                case nameof(Queryable.Where):
-                    {
-                        queryMethod = queryContextType
-                            .GetMethod(queryMethodName + "Query")
-                            .MakeGenericMethod(queryResultType.GenericTypeArguments[0]);
-
-                        IQueryPipelineAcceptor iqpa = queryMethod.Invoke(this, new object[] { node }) as IQueryPipelineAcceptor;
-                        IQueryPipelineMiddleware iqpm = SingleQueryExecutorWithAccumulationFactory.Create((dynamic)iqpa);
-                        FirstQueryExecutor = FirstQueryExecutor is null ? iqpm
-
-                            : FirstQueryExecutor.ContinueWith(iqpm);
-
-                        return iqpm;
-                    }
-                case nameof(Queryable.First):
-                    { break; }
-                case nameof(Queryable.FirstOrDefault):
-                    { break; }
-                case nameof(Queryable.Single): { break; }
-                case nameof(Queryable.SingleOrDefault):
-                    { break; }
-            }
-
-            return null;
-            */
+            return _firstQueryExecutor;
         }
 
         protected virtual SingleQueryExecutor<TData, bool> BuildAllQuery<TData>(
-            MethodCallExpression allExpr)
-        {
-            Expression predicateExpr = GetPredicateExpression<TData>(allExpr);
-            Predicate<TData> predicate = GetPredicate<TData>(predicateExpr);
-
-            return new AllQueryExecutor<TData>(predicate);
-        }
+            Func<TData, bool> predicate) => new AllStreamingQueryExecutor<TData>(predicate);
 
         protected virtual SingleQueryExecutor<TData, bool> BuildAnyQuery<TData>(
-            MethodCallExpression anyExpr)
-        {
-            Expression predicateExpr = GetPredicateExpression<TData>(anyExpr);
-            Predicate<TData> predicate = GetPredicate<TData>(predicateExpr);
+            Func<TData, bool> predicate) => new AnyStreamingQueryExecutor<TData>(predicate);
 
-            return new AnyQueryExecutor<TData>(predicate);
-        }
+        protected virtual SingleQueryExecutor<TData, int> BuildCountQuery<TData>(
+            Func<TData, bool> predicate) => new CountByFilterBufferingQueryExecutor<TData>(predicate);
+
+        protected virtual SingleQueryExecutor<TData, TData> BuildFirstQuery<TData>(
+            Func<TData, bool> predicate) => new FirstStreamingQueryExecutor<TData>(predicate);
+
+        protected virtual SingleQueryExecutor<TOuterData, IEnumerable<TQueryResultData>>
+            BuildGroupJoinQuery<TOuterData, TInnerData, TKey, TQueryResultData>(
+                IEnumerable<TInnerData> innerEnumerable,
+                Func<TOuterData, TKey> outerKeySelector,
+                Func<TInnerData, TKey> innerKeySelector,
+                Func<TOuterData, IEnumerable<TInnerData>, TQueryResultData> resultSelector) =>
+            new GroupJoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>(
+                innerEnumerable,
+                outerKeySelector,
+                innerKeySelector,
+                resultSelector);
+
+        protected virtual SingleQueryExecutor<TOuterData, IEnumerable<TQueryResultData>> 
+            BuildJoinQuery<TOuterData, TInnerData, TKey, TQueryResultData>(
+                IEnumerable<TInnerData> innerEnumerable,
+                Func<TOuterData, TKey> outerKeySelector,
+                Func<TInnerData, TKey> innerKeySelector,
+                Func<TOuterData, TInnerData, TQueryResultData> resultSelector) =>
+            new JoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>(
+                innerEnumerable, 
+                outerKeySelector, 
+                innerKeySelector,
+                resultSelector);
 
         protected virtual SingleQueryExecutor<TData, IEnumerable<TQueryResultData>> BuildSelectQuery<TData, TQueryResultData>(
-            MethodCallExpression whereExpr)
-        {
-            Expression predicateExpr = GetFuncExpression<TData, TQueryResultData>(whereExpr);
-            Func<TData, TQueryResultData> predicate = GetFunc<TData, TQueryResultData>(predicateExpr);
-
-            return new SelectQueryExecutor<TData, TQueryResultData>(predicate);
-        }
+            Func<TData, TQueryResultData> func) => new SelectStreamingQueryExecutor<TData, TQueryResultData>(func);
 
         protected virtual SingleQueryExecutor<TData, IEnumerable<TData>> BuildWhereQuery<TData>(
-            MethodCallExpression whereExpr)
-        {
-            Expression predicateExpr = GetPredicateExpression<TData>(whereExpr);
-            Predicate<TData> predicate = GetPredicate<TData>(predicateExpr);
-
-            return new WhereQueryExecutor<TData>(predicate);
-        }
+            Func<TData, bool> predicate) => new WhereStreamingQueryExecutor<TData>(predicate);
 
         protected virtual SingleQueryExecutor<TData, IEnumerable<TData>> BuildTakeWhileQuery<TData>(
-            MethodCallExpression takeWhileExpr)
-        {
-            Expression predicateExpr = GetPredicateExpression<TData>(takeWhileExpr);
-            Predicate<TData> predicate = GetPredicate<TData>(predicateExpr);
+            Func<TData, bool> predicate) => new TakeWhileStreamingQueryExecutor<TData>(predicate);
 
-            return new TakeWhileQueryExecutor<TData>(predicate);
-        }
-
-        protected Expression GetPredicateExpression<TData>(MethodCallExpression methodExpr) => 
-            (methodExpr.Arguments[1] as UnaryExpression).Operand switch
-            {
-                Expression<Predicate<TData>> lambdaPredicate => lambdaPredicate,
-                MethodCallExpression methodPredicate when methodPredicate.Method.ReturnType == typeof(bool) => methodPredicate,
-                var unknown => 
-                    throw new ArgumentException($"Для запроса предоставлено неверное выражение предиката: {unknown.GetType()}.")
-            };
-
-        protected Expression GetPredicateExpression<TData>(MethodCallExpression methodExpr) =>
-            (methodExpr.Arguments[1] as UnaryExpression).Operand switch
-            {
-                Expression<Predicate<TData>> lambdaPredicate => lambdaPredicate,
-                MethodCallExpression methodPredicate when methodPredicate.Method.ReturnType == typeof(bool) => methodPredicate,
-                var unknown =>
-                    throw new ArgumentException($"Для запроса предоставлено неверное выражение предиката: {unknown.GetType()}.")
-            };
-
-        protected virtual Predicate<TData> GetPredicate<TData>(Expression predicateExpr) =>
-            predicateExpr switch
-            {
-                Expression<Predicate<TData>> lambdaPredicate => lambdaPredicate.Compile(),
-                MethodCallExpression methodPredicate when methodPredicate.Method.ReturnType == typeof(bool) => 
-                    (TData data) => (bool)methodPredicate.Method.Invoke(methodPredicate.Object, new object[] { data }),
-                var unknown =>
-                    throw new ArgumentException($"Для запроса предоставлено неверное выражение предиката: {unknown.GetType()}.")
-            };
-
-        protected Expression GetFuncExpression<TData, TQueryResultData>(MethodCallExpression methodExpr) =>
-            (methodExpr.Arguments[1] as UnaryExpression).Operand switch
-            {
-                Expression<Func<TData, TQueryResultData>> lambdaPredicate => lambdaPredicate,
-                MethodCallExpression methodPredicate when methodPredicate.Method.ReturnType == typeof(TQueryResultData) => methodPredicate,
-                var unknown =>
-                    throw new ArgumentException($"Для запроса предоставлено неверное выражение предиката: {unknown.GetType()}.")
-            };
-
-        protected virtual Func<TData, TQueryResultData> GetFunc<TData, TQueryResultData>(Expression predicateExpr) =>
-            predicateExpr switch
-            {
-                Expression<Func<TData, TQueryResultData>> lambdaPredicate => lambdaPredicate.Compile(),
-                MethodCallExpression methodPredicate when methodPredicate.Method.ReturnType == typeof(TQueryResultData) =>
-                    (TData data) => (TQueryResultData)methodPredicate.Method.Invoke(methodPredicate.Object, new object[] { data }),
-                var unknown =>
-                    throw new ArgumentException($"Для запроса предоставлено неверное выражение предиката: {unknown.GetType()}.")
-            };
-
-        /*
-        public IQueryPipelineExecutorAcceptor BuildSingleQueryExecutor2(
-            MethodCallExpression node)
-        {
-            Type queryContextType = typeof(AttributeComponentQueryContext),
-                 queryResultType = node.Type;
-            MethodInfo queryMethod;
-            string queryMethodName = node.Method.Name;
-
-            switch (queryMethodName)
-            {
-                case nameof(Queryable.Any):
-                    { break; }
-                case nameof(Queryable.All):
-                    { break; }
-                case nameof(Queryable.Select):
-                    { break; }
-                case nameof(Queryable.SelectMany):
-                    { break; }
-                case nameof(Queryable.Where):
-                    {
-                        queryMethod = queryContextType
-                            .GetMethod(queryMethodName + "Query")
-                            .MakeGenericMethod(queryResultType.GenericTypeArguments[0]);
-
-                        IQueryPipelineExecutorAcceptor currentQueryExecutor =
-                            queryMethod.Invoke(this, new object[] { node }) as IQueryPipelineExecutorAcceptor;
-                        //LastQueryExecutor2 = LastQueryExecutor2 is null ?
-                        //    currentQueryExecutor : ContinueLastQueryExecutor((dynamic)LastQueryExecutor2, currentQueryExecutor);
-
-                        //FirstQueryExecutor = FirstQueryExecutor is null ?
-                        //    SingleQueryExecutorWithAccumulationFactory.Create((dynamic)currentQueryExecutor)
-                        //    : FirstQueryExecutor.ContinueWith(currentQueryExecutor);
-
-                        return queryMethod.Invoke(this, new object[] { node }) as IQueryPipelineExecutorAcceptor;
-                    }
-                case nameof(Queryable.First):
-                    { break; }
-                case nameof(Queryable.FirstOrDefault):
-                    { break; }
-                case nameof(Queryable.Single): { break; }
-                case nameof(Queryable.SingleOrDefault):
-                    { break; }
-            }
-
-            return null;
-        }
-
-        public IQueryPipelineExecutorAcceptor<TData> BuildSingleQueryExecutor<TData>(
-            MethodCallExpression node)
-        {
-            Type queryContextType = typeof(AttributeComponentQueryContext),
-                 queryResultType = node.Type;
-            MethodInfo queryMethod;
-            string queryMethodName = node.Method.Name;
-
-            switch (queryMethodName)
-            {
-                case nameof(Queryable.Any):
-                    { break; }
-                case nameof(Queryable.All):
-                    { break; }
-                case nameof(Queryable.Select):
-                    { break; }
-                case nameof(Queryable.SelectMany):
-                    { break; }
-                case nameof(Queryable.Where):
-                    {
-                        queryMethod = queryContextType
-                            .GetMethod(queryMethodName + "Query")
-                            .MakeGenericMethod(queryResultType.GenericTypeArguments[0]);
-                        return queryMethod.Invoke(this, new object[] { node }) as IQueryPipelineExecutorAcceptor<TData>;
-                    }
-                case nameof(Queryable.First):
-                    { break; }
-                case nameof(Queryable.FirstOrDefault):
-                    { break; }
-                case nameof(Queryable.Single):
-                    { break; }
-                case nameof(Queryable.SingleOrDefault):
-                    { break; }
-            }
-
-            return null;
-        }
-
-        public virtual ISingleQueryExecutor<TData, IEnumerable<TData>> WhereQuery<TData>(
-            MethodCallExpression whereExpr)
-        {
-            var a = (whereExpr.Arguments[1] as UnaryExpression).Operand;
-
-            Type t1 = typeof(TData),
-                 t2 = a.GetType();
-
-            Expression<Func<TData, bool>> whereQueryBody =
-                (whereExpr.Arguments[1] as UnaryExpression).Operand as LambdaExpression
-                as Expression<Func<TData, bool>>;
-
-            return null;//new WhereQueryExecutor<TData>(whereQueryBody.Compile());
-        }
-        */
-
-
-        /*
-        public SingleQueryExecutor<TData, IEnumerable<TQueryResultData>> 
-            ContinueLastQueryExecutor<TData, TQueryResultData, TNextQueryResult>(
-            SingleQueryExecutor<TData, IEnumerable<TQueryResultData>> currentExecutor,
-            SingleQueryExecutor<TQueryResultData, TNextQueryResult> nextExecutor,
-            bool updateFirstQueryExecutor = true)
-        {
-            SingleQueryExecutor<TData, IEnumerable<TQueryResultData>> continuedExecutor = 
-                currentExecutor.ContinueWith(nextExecutor);
-            /*
-            if (LastQueryExecutor2.GetType().GetGenericTypeDefinition() == typeof(SingleQueryExecutorWithContinuation<,,,>))
-            {
-                UpdateLastQueryExecutorWithContinuation((dynamic)LastQueryExecutor2, currentExecutor);
-            }
-            */
-        /* 
-         * Если метод вызывается с двумя обязательными параметрами, то это означает, что первый исполнитель запроса
-         * ещё не был ни разу продолжен. Если цепочка запросов состоит более чем из одного запроса, то первый исполнитель
-         * должен указывать на обёртку пёрвого исполнителя с продолжением, т.е. на экземпляр класса 
-         * SingleQueryExecutorWithContinuation.
-         */
-        /*
-        if (updateFirstQueryExecutor) FirstQueryExecutor = continuedExecutor;
-
-        return continuedExecutor;
-    }
-    */
-
-        /*
-        public SingleQueryExecutor<TQueryResultData, TNextQueryResult>
-            ContinueLastQueryExecutor<TInnerQueryExecutor, TData, TQueryResultData, TNextQueryResult>(
-            SingleQueryExecutorWithContinuation<TInnerQueryExecutor, TData, TQueryResultData, TNextQueryResult> lastQueryExecutor,
-            ISingleQueryExecutorVisitor2 nextExecutor)
-            where TInnerQueryExecutor : SingleQueryExecutor<TData, IEnumerable<TQueryResultData>>
-        {
-            SingleQueryExecutor<TQueryResultData, TNextQueryResult> continuedExecutor =
-                ContinueLastQueryExecutor(lastQueryExecutor.NextExecutor, (dynamic)nextExecutor, updateFirstQueryExecutor: false);
-            lastQueryExecutor.UpdateNextQueryExecutor(continuedExecutor);
-
-            return continuedExecutor;
-        }
-        */
-
-        /// <summary>
-        /// Обновление у последнего исполнителя запроса ссылки на следующий исполнитель запроса. 
-        /// </summary>
-        /// <typeparam name="TInnerQueryExecutor"></typeparam>
-        /// <typeparam name="TData"></typeparam>
-        /// <typeparam name="TQueryResultData"></typeparam>
-        /// <typeparam name="TNextQueryResult"></typeparam>
-        /// <param name="lastQueryExecutor"></param>
-        /// <param name="nextExecutor"></param>
-        /*
-        public void UpdateLastQueryExecutorWithContinuation<TInnerQueryExecutor, TData, TQueryResultData, TNextQueryResult>(
-            SingleQueryExecutorWithContinuation<TInnerQueryExecutor, TData, TQueryResultData, TNextQueryResult> lastQueryExecutor,
-            SingleQueryExecutor<TQueryResultData, TNextQueryResult> nextExecutor)
-            where TInnerQueryExecutor : SingleQueryExecutor<TData, IEnumerable<TQueryResultData>>
-            => lastQueryExecutor.UpdateNextQueryExecutor(nextExecutor);*/
+        protected virtual SingleQueryExecutor<TData, IEnumerable<TData>> BuildSkipWhileQuery<TData>(
+            Func<TData, bool> predicate) => new SkipWhileStreamingQueryExecutor<TData>(predicate);
     }
 }
