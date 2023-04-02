@@ -8,7 +8,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 {
     public interface ISingleQueryExecutorVisitor
     {
-        IQueryPipelineMiddleware FirstQueryExecutor { get; set; }
+        IQueryPipelineMiddleware FirstPipelineMiddleware { get; set; }
 
         TPipelineQueryResult ExecuteWithExpectedAggregableResult<TPipelineQueryResult>();
 

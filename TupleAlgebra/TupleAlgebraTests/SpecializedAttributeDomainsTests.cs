@@ -35,12 +35,12 @@ namespace TupleAlgebraTests
         [TestMethod]
         public void DictionaryBasedOrderedFiniteEnumerableAttributeComponentTest()
         {
-            DictionaryBasedOrderedFiniteEnumerableAttributeDomain<string, string> fuserCommentsByNicknameDomain
-                = new DictionaryBasedOrderedFiniteEnumerableAttributeDomain<string, string>(ForumUser.GetLatestCommentByNicknameDomain());
+            DictionaryBasedOrderedFiniteEnumerableAttributeDomain<string, string> fuserCommentsByNicknameDomain = 
+                new DictionaryBasedOrderedFiniteEnumerableAttributeDomain<string, string>(ForumDatabase.GetLatestCommentByNicknameDomain());
             HashSet<KeyValuePair<string, string>> fuserCommentsByNicknameDomainValues = 
                 new HashSet<KeyValuePair<string, string>>(fuserCommentsByNicknameDomain);
 
-            foreach (KeyValuePair<string, string> fuserData in ForumUser.GetLatestCommentByNicknameDomain())
+            foreach (KeyValuePair<string, string> fuserData in ForumDatabase.GetLatestCommentByNicknameDomain())
                 Assert.IsTrue(fuserCommentsByNicknameDomain.Contains(fuserData));
 
             /*
@@ -66,7 +66,7 @@ namespace TupleAlgebraTests
                 .Where(p => p.Nickname[0] == 'W').Any(p => p.GainedAchievments.Contains(4));
                 */
             Expression <Func<bool>> expr = 
-                () => ForumUser.Domain.Where(p => p.LikeCount > 0).Where(p => p.LatestProfileVisitors.Count > 0)
+                () => ForumDatabase.Domain.Where(p => p.LikeCount > 0).Where(p => p.LatestProfileVisitors.Count > 0)
                 .Where(p => p.Nickname[0] == 'W').Any(p => p.GainedAchievments.Contains(4));
                 
             //NonFictionalAttributeComponent<int>.NonFictionalAttributeComponentQueryProvider.Test(expr);

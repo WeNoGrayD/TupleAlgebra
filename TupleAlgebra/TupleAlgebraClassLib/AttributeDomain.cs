@@ -69,14 +69,7 @@ namespace TupleAlgebraClassLib
 
         #endregion
 
-        public virtual AttributeComponent<TQueryResult> Select<TQueryResult>(
-            Expression<Func<TData, TQueryResult>> selector,
-            AttributeDomain<TQueryResult> queryResultDomain)
-        {
-            return Universum.Select(selector, queryResultDomain);
-        }
-
-        #region IEnumerable<TData> implemented methods
+        #region IEnumerable implemented methods
 
         /// <summary>
         /// Обобщённое получение перечислителя домена.

@@ -10,6 +10,7 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework
 {
+    /*
     public static class QueryableAttributeComponent
     {
         public static AttributeComponent<TQueryResult> Select<TData, TQueryResult>(
@@ -51,7 +52,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
             return sourceDomain.Provider.CreateQuery<TQueryResult>(queryExpression)
                 as AttributeComponent<TQueryResult>;
-                */
+                *//*
             return QueryableAttributeComponent.Select(sourceDomain.Universum, selector);
         }
 
@@ -72,4 +73,5 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                 as AttributeComponent<TQueryResult>;
         }
     }
+    */
 }

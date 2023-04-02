@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework
 {
-
     public interface IQueryPipelineAcceptor
     {
         TPipelineQueryResult Accept<TPipelineQueryResultParam, TPipelineQueryResult>(
@@ -15,9 +14,15 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
     public interface IQueryPipelineMiddleware : IQueryPipelineAcceptor
     {
+        bool MustGoOn { get; }
+
         IQueryPipelineMiddleware ContinueWith(IQueryPipelineMiddleware continuingExecutor) => default(IQueryPipelineMiddleware);
 
         IQueryPipelineEndpoint GetPipelineEndpoint();
+
+        void PrepareToAggregableResult<TPipelineQueryResult>(ISingleQueryExecutorVisitor pipelineQueryExecutor) { }
+
+        void PrepareToEnumerableResult<TPipelineQueryResultData>(ISingleQueryExecutorVisitor pipelineQueryExecutor) { }
 
         TPipelineQueryResult GetPipelineQueryResult<TPipelineQueryResult>(ISingleQueryExecutorVisitor pipelineQueryExecutor);
 
@@ -36,15 +41,22 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                 IQueryPipelineMiddleware<TContinuingQueryData, TContinuingQueryResult> continuingExecutor);
         void SubscribeOninnerExecutorEventsOnDataInstanceProcessing(
             Action<TQueryResult> queryResultPassingHandler);
-
-        //void SubscribeOninnerExecutorEventsOnDataInstanceProcessing<TQueryResultData>(
-        //QueryPipelineExecutor.LoadPipelineAccumulatorHandler<TQueryResultData> queryResultPassingHandler);
-
     }
 
     public interface IQueryPipelineEndpoint : IQueryPipelineMiddleware
     {
         void InitializeAsQueryPipelineEndpoint();
+    }
+
+    public interface IStreamingQueryPipelineMiddleware
+    {
+        TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(
+            ISingleQueryExecutorVisitor pipeline,
+            ref bool mustGoOn);
+
+        (IEnumerable<TPipelineQueryResultData> QueryResult, bool MustGoOn) 
+            GetEnumerablePipelineQueryResult2<TPipelineQueryResultData>(
+            ISingleQueryExecutorVisitor pipeline);
     }
 
     public interface IQueryPipelineEndpoint<TData, TQueryResult>

@@ -22,7 +22,6 @@ namespace TupleAlgebraClassLib
     public abstract class AttributeComponent<TData>
         : IEnumerable<TData>, 
           IQueryable<TData>, 
-          //IReproducingQueryable,
           IReproducingQueryable<TData>
     {
         public virtual Expression Expression { get; protected set; }
@@ -130,7 +129,7 @@ namespace TupleAlgebraClassLib
 
         public IEnumerator<TData> GetEnumerator()
         {
-            return Provider.Execute<AttributeComponent<TData>>(Expression).GetEnumeratorImpl();
+            return (Provider.Execute<IEnumerable<TData>>(Expression) as AttributeComponent<TData>).GetEnumeratorImpl();
         }
 
         public abstract IEnumerator<TData> GetEnumeratorImpl();

@@ -16,7 +16,7 @@ namespace TupleAlgebraTests
     [TestClass]
     public class AlgebraicTupleTests
     {
-        protected List<ForumUser> _forumUsers = ForumUser.Domain;
+        protected List<ForumUser> _forumUsers = ForumDatabase.Domain;
 
         [TestMethod]
         public void TestMethod1()

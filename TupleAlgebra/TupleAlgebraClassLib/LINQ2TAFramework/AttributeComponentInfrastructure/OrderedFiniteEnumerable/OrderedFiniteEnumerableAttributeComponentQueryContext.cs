@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableAttributeComponentQueryContext
+    public class OrderedFiniteEnumerableAttributeComponentQueryContext : QueryContext
     {
     }
 }

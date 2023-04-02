@@ -33,12 +33,12 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
         private IQueryPipelineEndpoint _endpoint;
 
-        public IQueryPipelineMiddleware FirstQueryExecutor { get; set; }
+        public IQueryPipelineMiddleware FirstPipelineMiddleware { get; set; }
 
         protected QueryPipelineExecutor(object dataSource, IQueryPipelineMiddleware firstQueryExecutor)
         {
             _dataSource = dataSource;
-            FirstQueryExecutor = firstQueryExecutor;
+            FirstPipelineMiddleware = firstQueryExecutor;
             _endpoint = firstQueryExecutor.GetPipelineEndpoint();
 
             _endpoint.InitializeAsQueryPipelineEndpoint();
@@ -62,7 +62,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         {
             // Установка текущего источника данных в конвейере значением результата выполненного запроса.
             SetDataSource(dataSource);
-            FirstQueryExecutor = nextMiddleware;
+            FirstPipelineMiddleware = nextMiddleware;
             return (TPipelineQueryResult)_pipelineQueryExecutionMethodInfo.Invoke(this, null);
         }
 
@@ -70,14 +70,14 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         {
             _pipelineQueryExecutionMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
 
-            return FirstQueryExecutor.Accept<TPipelineQueryResult, TPipelineQueryResult>(false, this);
+            return FirstPipelineMiddleware.Accept<TPipelineQueryResult, TPipelineQueryResult>(false, this);
         }
 
         public IEnumerable<TPipelineQueryResultData> ExecuteWithExpectedEnumerableResult<TPipelineQueryResultData>()
         {
             _pipelineQueryExecutionMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
 
-            return FirstQueryExecutor.Accept<TPipelineQueryResultData, IEnumerable<TPipelineQueryResultData>>(true, this);
+            return FirstPipelineMiddleware.Accept<TPipelineQueryResultData, IEnumerable<TPipelineQueryResultData>>(true, this);
         }
 
         public TPipelineQueryResult VisitStreamingQueryExecutor<TData, TQueryResult, TPipelineQueryResultParam, TPipelineQueryResult>(
@@ -93,7 +93,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         {
             queryExecutor.LoadDataSource(GetDataSource<TData>());
 
-            return FirstQueryExecutor.GetPipelineQueryResult<TPipelineQueryResult>(this);
+            return FirstPipelineMiddleware.GetPipelineQueryResult<TPipelineQueryResult>(this);
         }
 
         public TPipelineQueryResult 
@@ -102,7 +102,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         {
             queryExecutor.LoadDataSource(GetDataSource<TData>());
 
-            return FirstQueryExecutor.GetPipelineQueryResult<TPipelineQueryResult>(this);
+            return FirstPipelineMiddleware.GetPipelineQueryResult<TPipelineQueryResult>(this);
         }
 
         public IEnumerable<TPipelineQueryResultData> 
@@ -111,18 +111,19 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         {
             queryExecutor.LoadDataSource(GetDataSource<TData>());
             
-            return FirstQueryExecutor.GetPipelineQueryResult<IEnumerable<TPipelineQueryResultData>>(this);
+            return FirstPipelineMiddleware.GetPipelineQueryResult<IEnumerable<TPipelineQueryResultData>>(this);
         }
 
         public TPipelineQueryResult
             VisitStreamingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
             StreamingQueryExecutor<TData, TQueryResult> queryExecutor)
         {
+            FirstPipelineMiddleware.PrepareToAggregableResult<TPipelineQueryResult>(this);
             queryExecutor.PrepareToQueryStart();
             foreach (TData data in GetDataSource<TData>())
                 if (!queryExecutor.ExecuteOverDataInstance(data)) break;
 
-            return FirstQueryExecutor.GetAggregablePipelineQueryResult<TPipelineQueryResult>(this);
+            return FirstPipelineMiddleware.GetAggregablePipelineQueryResult<TPipelineQueryResult>(this);
         }
 
         /// <summary>
@@ -137,14 +138,18 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             VisitStreamingQueryExecutorWithExpectedEnumerableResult<TData, TQueryResult, TPipelineQueryResultData>(
             StreamingQueryExecutor<TData, TQueryResult> queryExecutor)
         {
+            FirstPipelineMiddleware.PrepareToEnumerableResult<TPipelineQueryResultData>(this);
 
             /* 
              * Динамическое приведение безопасно: ожидаемый результат конвейера по типу совпадает с результатом
              * конечного middleware. 
              */
-            return VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl4(
-                queryExecutor,
-                (dynamic)_endpoint);
+            //return VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl4(
+            //    queryExecutor,
+            //    (dynamic)_endpoint);
+
+            return VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl6<TData, TQueryResult, TPipelineQueryResultData>(
+                queryExecutor);
         }
 
         private IEnumerable<TPipelineQueryResultData>
@@ -183,7 +188,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             {
                 mustGoOn = firstQueryExecutor.ExecuteOverDataInstance(data);
                 foreach (TPipelineQueryResultData resultData 
-                         in FirstQueryExecutor.GetPipelineQueryResult<IEnumerable<TPipelineQueryResultData>>(this))
+                         in FirstPipelineMiddleware.GetPipelineQueryResult<IEnumerable<TPipelineQueryResultData>>(this))
                     yield return resultData;
                 if (!mustGoOn) yield break;
             }
@@ -255,9 +260,56 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             {
                 mustGoOn = firstQueryExecutor.ExecuteOverDataInstance(data);
                 foreach (TPipelineQueryResultData resultData
-                         in FirstQueryExecutor.GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(this))
+                         in FirstPipelineMiddleware.GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(this))
                     yield return resultData;
                 if (!mustGoOn) yield break;
+            }
+
+            yield break;
+        }
+
+        private IEnumerable<TPipelineQueryResultData>
+            VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl5<TFirstQueryData, TFirstQueryResult, TPipelineQueryResultData>(
+            StreamingQueryExecutor<TFirstQueryData, TFirstQueryResult> firstQueryExecutor)
+        {
+            firstQueryExecutor.PrepareToQueryStart();
+            IQueryPipelineMiddleware firstPipelineMiddleware = FirstPipelineMiddleware;
+            bool mustGoOn;
+
+            foreach (TFirstQueryData data in GetDataSource<TFirstQueryData>())
+            {
+                mustGoOn = firstQueryExecutor.ExecuteOverDataInstance(data);
+                foreach (TPipelineQueryResultData resultData
+                         in firstPipelineMiddleware.GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(this))
+                    yield return resultData;
+                if (!mustGoOn) yield break;
+            }
+
+            yield break;
+        }
+
+        private IEnumerable<TPipelineQueryResultData>
+            VisitStreamingQueryExecutorWithExpectedEnumerableResultImpl6<TFirstQueryData, TFirstQueryResult, TPipelineQueryResultData>(
+            StreamingQueryExecutor<TFirstQueryData, TFirstQueryResult> firstQueryExecutor)
+        {
+            firstQueryExecutor.PrepareToQueryStart();
+            //IStreamingQueryPipelineMiddleware firstPipelineMiddleware = FirstPipelineMiddleware as IStreamingQueryPipelineMiddleware;
+            IEnumerable<TPipelineQueryResultData> queryResult;
+            //bool mustGoOn, mustGoOnFromNextLayers;
+            bool mustGoOn;
+
+            foreach (TFirstQueryData data in GetDataSource<TFirstQueryData>())
+            {
+                mustGoOn = firstQueryExecutor.ExecuteOverDataInstance(data);
+                //(queryResult, mustGoOnFromNextLayers) = firstPipelineMiddleware.GetEnumerablePipelineQueryResult2<TPipelineQueryResultData>(this);
+                queryResult = FirstPipelineMiddleware.GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(this);
+                foreach (TPipelineQueryResultData resultData in queryResult)
+                {
+                    yield return resultData;
+                    //if (!(mustGoOn & mustGoOnFromNextLayers)) yield break;
+                    if (!(mustGoOn &= FirstPipelineMiddleware.MustGoOn)) yield break;
+                }
+                if (!(mustGoOn & FirstPipelineMiddleware.MustGoOn)) yield break;
             }
 
             yield break;

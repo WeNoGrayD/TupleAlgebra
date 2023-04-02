@@ -8,17 +8,29 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
 {
     public class SkipWhileStreamingQueryExecutor<TData> : StreamingQueryExecutorWithEnumerableResult<TData, TData>
     {
+        private bool _skippedHead = false;
+
         public SkipWhileStreamingQueryExecutor(Func<TData, bool> dataPassingCondition)
             : base(dataPassingCondition, (TData data, bool didDataPass) => data)
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithNegativeCovering);
         }
 
+        public override bool ExecuteOverDataInstanceHandlerWithNegativeCovering(TData data)
+        {
+            if (_skippedHead || !DataPassingCondition(data))
+            {
+                _skippedHead = true;
+                ModifyIntermediateQueryResult(data, false);
+                OnDataNotPassed(IntermediateQueryResult);
+            }
+
+            return true;
+        }
+
         protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
         {
-            bool didDataPass = DataPassingCondition(data);
-
-            return (didDataPass, true);
+            throw new NotImplementedException();
         }
     }
 }

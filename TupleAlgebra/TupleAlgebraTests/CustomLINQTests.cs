@@ -25,6 +25,7 @@ namespace TupleAlgebraTests
         Count,
         First,
         Select,
+        SelectMany,
         Single,
         Skip,
         SkipWhile,
@@ -35,11 +36,13 @@ namespace TupleAlgebraTests
 
     internal enum QueryContent
     {
-        LesserThan5,
+        GreaterThan0,
         GreaterThan5,
         GreaterThan7,
-        GreaterThan0,
+        GreaterThanX,
+        LesserThan5,
         LesserThan10,
+        LesserThanX,
         Pow2,
         Pow3,
         PowN2,
@@ -47,12 +50,13 @@ namespace TupleAlgebraTests
         IsOdd,
         IsEven,
         Mod3Is0,
-        Mod6
+        Mod6,
+        OneToManyForumUsers
     }
 
     internal class ForumUsersMockQueryable : GenericMockQueryable<ForumUser>
     {
-        private static IEnumerable<ForumUser> _dataSource = ForumUser.Domain;
+        private static IEnumerable<ForumUser> _dataSource = ForumDatabase.Domain;
 
         public static IEnumerable<ForumUser> DataSource => _dataSource;
 
@@ -312,6 +316,35 @@ namespace TupleAlgebraTests
                     selectorExpr)); ;
         }
 
+        public static IQueryable<TQueryResultData> SelectMany<TData, TQueryResultData>(
+            this GenericMockQueryable<TData> source,
+            QueryContent innerEnumerableSelectorContent,
+            QueryContent resultSelectorContent)
+        {
+            LambdaExpression innerEnumerableSelectorExpr = 
+                MockQueryableHelper.CreateExpression(QueryKind.SelectMany, innerEnumerableSelectorContent),
+                             resultSelectorExpr = 
+                MockQueryableHelper.CreateExpression(QueryKind.Select, resultSelectorContent);
+
+            return SelectMany(source, (dynamic)innerEnumerableSelectorExpr, (dynamic) resultSelectorExpr);
+        }
+
+        private static IQueryable<TQueryResultData> SelectMany<TOuterData, TInnerData, TQueryResultData>(
+            this IQueryable<TOuterData> source, 
+            Expression<Func<TOuterData, IEnumerable<TInnerData>>> innerEnumerableSelectorExpr = null,
+            Expression<Func<TOuterData, TInnerData, TQueryResultData>> resultSelectorExpr = null)
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            return source.Provider.CreateQuery<TQueryResultData>(
+                BuildCoveredExpression(
+                    source,
+                    queryMethodInfo,
+                    new Type[] { typeof(TOuterData), typeof(TInnerData), typeof(TQueryResultData) },
+                    innerEnumerableSelectorExpr,
+                    resultSelectorExpr));
+        }
+
         public static IQueryable<TData> Where<TData>(this GenericMockQueryable<TData> source, QueryContent queryContent)
         {
             LambdaExpression predicateExpr = MockQueryableHelper.CreateExpression(QueryKind.Where, queryContent);
@@ -389,7 +422,8 @@ namespace TupleAlgebraTests
                 {
                     LambdaExpression lambda => Expression.Quote(lambda),
                     Expression => param
-                }).ToArray().CopyTo(queryMethodParamsBuf, 1);
+                })
+                .ToArray().CopyTo(queryMethodParamsBuf, 1);
 
             return Expression.Call(
                 null,
@@ -402,10 +436,14 @@ namespace TupleAlgebraTests
             LambdaExpression queryBody = queryContent switch
             {
                 QueryContent.GreaterThan0 => (Expression<Func<int, bool>>)((int data) => data > 0),
-                QueryContent.LesserThan5 => (Expression<Func<int, bool>>)((int data) => data < 5),
                 QueryContent.GreaterThan5 => (Expression<Func<int, bool>>)((int data) => data > 5),
                 QueryContent.GreaterThan7 => (Expression<Func<int, bool>>)((int data) => data > 7),
+                QueryContent.GreaterThanX => (Expression<Func<int, IEnumerable<int>>>)
+                    ((int data) => MockQueryable.DataSource.SkipWhile(i => i <= data)),
+                QueryContent.LesserThan5 => (Expression<Func<int, bool>>)((int data) => data < 5),
                 QueryContent.LesserThan10 => (Expression<Func<int, bool>>)((int data) => data < 10),
+                QueryContent.LesserThanX => (Expression<Func<int, IEnumerable<int>>>)
+                    ((int data) => MockQueryable.DataSource.TakeWhile(i => i < data)),
                 QueryContent.IsOdd => (Expression<Func<int, bool>>)((int data) => (data & 1) == 1),
                 QueryContent.IsEven => (Expression<Func<int, bool>>)((int data) => (data & 1) == 0),
                 QueryContent.ToString => (Expression<Func<int, string>>)((int data) => $"The number is {data}."),
@@ -415,7 +453,10 @@ namespace TupleAlgebraTests
                 QueryContent.Mod3Is0 => (Expression<Func<int, bool>>)((int data) => data % 3 == 0),
                 QueryContent.Mod6 => (Expression<Func<int, int, int>>)
                     ((int outerData, int innerData) => outerData == innerData ? outerData : 0),
-            };
+                QueryContent.OneToManyForumUsers => (Expression<Func<ForumUser, IEnumerable<ForumUser>>>)
+                    ((ForumUser fu) => ForumUsersMockQueryable.DataSource),
+                _ => throw new ArgumentException()
+            };;
 
             return (queryKind, queryContent) switch
             {
@@ -435,8 +476,6 @@ namespace TupleAlgebraTests
                 (QueryKind.First, QueryContent.GreaterThan7) => queryBody,
                 (QueryKind.First, QueryContent.LesserThan10) => queryBody,
                 (QueryKind.First, _) => throw new ArgumentException(),
-                //QueryKind.Count => null,
-                //QueryKind.First => null,
                 (QueryKind.Select, QueryContent.IsOdd) => queryBody,
                 (QueryKind.Select, QueryContent.IsEven) => queryBody,
                 (QueryKind.Select, QueryContent.ToString) => queryBody,
@@ -446,10 +485,15 @@ namespace TupleAlgebraTests
                 (QueryKind.Select, QueryContent.Mod3Is0) => queryBody,
                 (QueryKind.Select, QueryContent.Mod6) => queryBody,
                 (QueryKind.Select, _) => throw new ArgumentException(),
+                (QueryKind.SelectMany, QueryContent.GreaterThanX) => queryBody,
+                (QueryKind.SelectMany, QueryContent.LesserThanX) => queryBody,
+                (QueryKind.SelectMany, QueryContent.OneToManyForumUsers) => queryBody,
+                (QueryKind.SelectMany, _) => throw new ArgumentException(),
                 (QueryKind.SkipWhile, QueryContent.LesserThan5) => queryBody,
                 (QueryKind.SkipWhile, QueryContent.GreaterThan5) => queryBody,
                 (QueryKind.SkipWhile, QueryContent.LesserThan10) => queryBody,
                 (QueryKind.SkipWhile, _) => throw new ArgumentException(),
+                (QueryKind.TakeWhile, QueryContent.GreaterThan0) => queryBody,
                 (QueryKind.TakeWhile, QueryContent.LesserThan5) => queryBody,
                 (QueryKind.TakeWhile, QueryContent.GreaterThan5) => queryBody,
                 (QueryKind.TakeWhile, QueryContent.LesserThan10) => queryBody,
@@ -655,6 +699,21 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
+        public void SelectManyQuery()
+        {
+            GenericMockQueryable<ForumUser> source = new ForumUsersMockQueryable();
+            var selectMany = (from fu1 in source
+                              from fu2 in source
+                              select new { Visited = fu1, Visitor = fu2 });
+
+            var selectManyPredefined = (from fu1 in source
+                                        from fu2 in source
+                                        select new { Visited = fu1, Visitor = fu2 });
+
+            Assert.IsTrue(Enumerable.SequenceEqual(selectManyPredefined, selectMany));
+        }
+
+        [TestMethod]
         public void SkipWhileQuery()
         {
             MockQueryable source = new MockQueryable();
@@ -669,6 +728,23 @@ namespace TupleAlgebraTests
                 skippedWhileLesserThan5.Add(data);
 
             Assert.IsTrue(Enumerable.SequenceEqual(skippedWhileLesserThan5Predefined, skippedWhileLesserThan5));
+        }
+
+        [TestMethod]
+        public void SkipWhileQuery2()
+        {
+            MockQueryable source = new MockQueryable();
+            GenericMockQueryable<int> query = source
+                .SkipWhile(QueryContent.GreaterThan5).AsMockQueryable();
+
+            List<int> skippedWhileGreaterThan5Predefined =
+                MockQueryable.DataSource.SkipWhile(data => data > 5).ToList(),
+                      skippedWhileGreaterThan5 = new List<int>();
+
+            foreach (int data in query)
+                skippedWhileGreaterThan5.Add(data);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(skippedWhileGreaterThan5Predefined, skippedWhileGreaterThan5));
         }
 
         [TestMethod]
@@ -804,12 +880,13 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
-        public void TakeWhileWhereQuery()
+        public void TakeWhileTakeWhileTakeWhileQuery()
         {
             MockQueryable source = new MockQueryable();
             GenericMockQueryable<int> query = source
-                .TakeWhile(QueryContent.LesserThan5).AsMockQueryable()
-                .Where(QueryContent.LesserThan10).AsMockQueryable();
+                .TakeWhile(QueryContent.LesserThan10).AsMockQueryable()
+                .TakeWhile(QueryContent.GreaterThan0).AsMockQueryable()
+                .TakeWhile(QueryContent.LesserThan5).AsMockQueryable();
 
             List<int> takenWhileLesserThan5AndWhereLesserThan10Predefined =
                 MockQueryable.DataSource.TakeWhile(data => data < 5).Where(data => data < 10).ToList(),
@@ -849,42 +926,108 @@ namespace TupleAlgebraTests
         [TestMethod]
         public void ZZZTest()
         {
-            IEnumerable<int> intsMethod = Ints(), intsOneShot = new OneShotEnumerable<int>(Ints());
+            object o;
+            int i = 123;
+            int? i2;
+            string s = "123";
+            DateTime dt = new DateTime(2001, 2, 3);
+            DateTime? dt2;
 
-            /*
-            foreach (int i in intsMethod)
-            {
-                Console.WriteLine(i);
-            }
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            i2 = Ret<int, int?>(i);
+            sw.Stop();
+            (long ms, long ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            i2 = Ret<int, int?>(i);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
 
-            foreach (int i in intsMethod)
-            {
-                Console.WriteLine(i);
-            }
+            sw.Restart();
+            o = Ret<int, object>(i);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            o = Ret<int, object>(i);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            i = Ret<object, int>(o);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            i = Ret<object, int>(o);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            o = Ret<string, object>(s);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            o = Ret<string, object>(s);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            s = Ret<object, string>(o);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            s = Ret<object, string>(o);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            dt2 = Ret<DateTime, DateTime?>(dt);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            dt2 = Ret<DateTime, DateTime?>(dt);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            o = Ret<DateTime, object>(dt);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            o = Ret<DateTime, object>(dt);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            dt = Ret<object, DateTime>(o);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+            sw.Restart();
+            dt = Ret<object, DateTime>(o);
+            sw.Stop();
+            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
 
-            foreach (int i in intsOneShot)
-            {
-                Console.WriteLine(i);
-            }
+            ;
 
-            foreach (int i in intsOneShot)
-            {
-                Console.WriteLine(i);
-            }
+            T2 Ret<T1, T2>(T1 instance) => (dynamic)instance;
 
-            foreach (int i in intsOneShot)
+            void Test<T1, T2>(T1 obj1)
             {
-                Console.WriteLine(i);
+                T2 obj2;
+
+                sw.Restart();
+                obj2 = Ret<T1, T2>(obj1);
+                sw.Stop();
+                (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+                sw.Restart();
+                obj2 = Ret<T1, T2>(obj1);
+                sw.Stop();
+                (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+                sw.Restart();
+                obj1 = Ret<T2, T1>(obj2);
+                sw.Stop();
+                (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+                sw.Restart();
+                obj1 = Ret<T2, T1>(obj2);
+                sw.Stop();
+                (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
+                //System.ComponentModel.TypeConverter tc2 = System.ComponentModel.TypeDescriptor.GetConverter(typeof(T2));
+                //tc2.ConvertFrom(obj1);
+                //obj2 = Converter<T1, T2>. ChangeType(obj1, typeof(T1));
             }
-            */
         }
-
-        private IEnumerable<int> Ints()
-        {
-            yield return 1;
-            yield return 2;
-            yield return 3;
-        }
-
     }
 }
