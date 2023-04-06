@@ -27,16 +27,11 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
 
         protected override QueryContext QueryContext { get => _queryContext; }
 
-        /*
-        public override IQueryable<TData> CreateQuery<TData>(Expression queryExpression)
-        {
-            return null;
-        }
-        */
-
         protected override QueryPipelineExecutor CreateQueryPipelineExecutor(
-            object dataSource,
-            IQueryPipelineMiddleware firstQueryExecutor) =>
-            new OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor(dataSource, firstQueryExecutor);
+            IEnumerable dataSource,
+            IQueryPipelineMiddleware firstQueryExecutor)
+        {
+            return new OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor(dataSource, firstQueryExecutor);
+        }
     }
 }

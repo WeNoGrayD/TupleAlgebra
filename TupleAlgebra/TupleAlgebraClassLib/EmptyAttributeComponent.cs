@@ -67,6 +67,16 @@ namespace TupleAlgebraClassLib
         private class EmptyAttributeComponentPower : AttributeComponentPower
         {
             internal override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
+
+            public override void InitAttributeComponent(AttributeComponent<TData> component)
+            {
+                return;
+            }
+
+            public override bool IsZero()
+            {
+                return true;
+            }
         }
     }
 }

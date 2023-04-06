@@ -117,6 +117,16 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
                 _componentRules = componentRules;
             }
 
+            public override void InitAttributeComponent(AttributeComponent<TData> component)
+            {
+                return;
+            }
+
+            public override bool IsZero()
+            {
+                return false;
+            }
+
             protected override int CompareToSame(dynamic second)
             {
                 if (second is PredicateBasedDecidableNonFictionalAttributeComponentPower second2)

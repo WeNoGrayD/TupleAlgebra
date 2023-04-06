@@ -140,7 +140,7 @@ namespace TupleAlgebraTests
         }
 
         protected override QueryPipelineExecutor CreateQueryPipelineExecutor(
-            object dataSource,
+            IEnumerable dataSource,
             IQueryPipelineMiddleware firstQueryExecutor)
             => new MockQueryPipelineExecutor(dataSource, firstQueryExecutor);
     }
@@ -152,7 +152,7 @@ namespace TupleAlgebraTests
     internal class MockQueryPipelineExecutor : QueryPipelineExecutor
     {
         public MockQueryPipelineExecutor(
-            object dataSource,
+            IEnumerable dataSource,
             IQueryPipelineMiddleware firstQueryExecutor) 
             : base(dataSource, firstQueryExecutor) { }
     }
@@ -693,6 +693,22 @@ namespace TupleAlgebraTests
                       selectIsOdd = new List<bool>();
 
             foreach (bool data in query)
+                selectIsOdd.Add(data);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(selectIsOddPredefined, selectIsOdd));
+        }
+
+        [TestMethod]
+        public void SelectQuery2()
+        {
+            MockQueryable source = new MockQueryable();
+            IQueryable query = from data in source select 1f / data;
+
+            List<float> selectIsOddPredefined =
+                MockQueryable.DataSource.Select(data => 1f / data).ToList(),
+                      selectIsOdd = new List<float>();
+
+            foreach (float data in query)
                 selectIsOdd.Add(data);
 
             Assert.IsTrue(Enumerable.SequenceEqual(selectIsOddPredefined, selectIsOdd));

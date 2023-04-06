@@ -13,18 +13,31 @@ using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib
 {
+    /// <summary>
+    /// Полная фиктивная компонента атрибута.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
     public sealed class FullAttributeComponent<TData> : AttributeComponent<TData>
     {
         private const AttributeComponentContentType CONTENT_TYPE = AttributeComponentContentType.Full;
 
         protected override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
 
+        /// <summary>
+        /// Статический конструктор.
+        /// </summary>
         static FullAttributeComponent()
         {
             AttributeComponent<TData>.InitSetOperations(
                 CONTENT_TYPE, new FullAttributeComponentOperationExecutersContainer());
         }
 
+        /// <summary>
+        /// Конструктор экземпляра.
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <param name="queryProvider"></param>
+        /// <param name="queryExpression"></param>
         public FullAttributeComponent(
             AttributeDomain<TData> domain,
             QueryProvider queryProvider = null,
@@ -50,6 +63,8 @@ namespace TupleAlgebraClassLib
 
         #endregion
 
+        #region Inner classes
+
         private class FullAttributeComponentOperationExecutersContainer : InstantSetOperationExecutersContainer<TData>
         {
             public FullAttributeComponentOperationExecutersContainer() : base(
@@ -64,9 +79,24 @@ namespace TupleAlgebraClassLib
             { }
         }
 
+        /// <summary>
+        /// Мощность полной фиктивной компоненты атрибута.
+        /// </summary>
         private class FullAttributeComponentPower : AttributeComponentPower
         {
             internal override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
+
+            public override void InitAttributeComponent(AttributeComponent<TData> component)
+            {
+                return;
+            }
+
+            public override bool IsZero()
+            {
+                return false;
+            }
         }
+
+        #endregion
     }
 }

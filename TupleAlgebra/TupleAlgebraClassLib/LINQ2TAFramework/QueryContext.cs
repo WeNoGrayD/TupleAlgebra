@@ -22,6 +22,9 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                 (2, [_, UnaryExpression param1Expr]) => 
                     RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
                         (dynamic)param1Expr.Operand, methodExpr),
+                (2, [_, ConstantExpression param1Expr]) =>
+                    RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
+                        (dynamic)param1Expr.Value, methodExpr),
                 (3, [_, UnaryExpression param1Expr, UnaryExpression param2Expr]) =>
                     RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
                         (dynamic)param1Expr.Operand, (dynamic)param2Expr.Operand, methodExpr),
@@ -67,6 +70,19 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             };
 
             return BuildSingleQueryExecutorImpl(queryBuildingMethod, lambdaFunc.Compile());
+        }
+
+        protected IQueryPipelineMiddleware RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor<TData>(
+            TData obj1,
+            MethodCallExpression methodExpr)
+        {
+            string queryMethodName = methodExpr.Method.Name;
+            MethodInfo queryBuildingMethod = typeof(QueryContext)
+                .GetMethod("Build" + queryMethodName + "Query", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            queryBuildingMethod = queryBuildingMethod.MakeGenericMethod(typeof(TData));
+
+            return BuildSingleQueryExecutorImpl(queryBuildingMethod, obj1);
         }
 
         /// <summary>
@@ -136,7 +152,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         {
             IQueryPipelineAcceptor iqpa = 
                 queryBuildingMethod.Invoke(this, queryBuildingMethodParams) as IQueryPipelineAcceptor;
-            IQueryPipelineMiddleware iqpm = SingleQueryExecutorWithAccumulationFactory.Create((dynamic)iqpa);
+            IQueryPipelineMiddleware iqpm = QueryPipelineMiddlewareWithAccumulationFactory.Create((dynamic)iqpa);
 
             _firstQueryExecutor = _firstQueryExecutor is null ? iqpm : _firstQueryExecutor.ContinueWith((dynamic)iqpm);
 
@@ -149,8 +165,11 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         protected virtual SingleQueryExecutor<TData, bool> BuildAnyQuery<TData>(
             Func<TData, bool> predicate) => new AnyStreamingQueryExecutor<TData>(predicate);
 
+        protected virtual SingleQueryExecutor<TData, bool> BuildContainsQuery<TData>(
+            TData sampleObj) => new ContainsStreamingQueryExecutor<TData>(sampleObj);
+
         protected virtual SingleQueryExecutor<TData, int> BuildCountQuery<TData>(
-            Func<TData, bool> predicate) => new CountByFilterBufferingQueryExecutor<TData>(predicate);
+            Func<TData, bool> predicate) => new CountByFilterStreamingQueryExecutor<TData>(predicate);
 
         protected virtual SingleQueryExecutor<TData, TData> BuildFirstQuery<TData>(
             Func<TData, bool> predicate) => new FirstStreamingQueryExecutor<TData>(predicate);

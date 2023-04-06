@@ -22,4 +22,29 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             return count;
         }
     }
+
+    public class CountByFilterStreamingQueryExecutor<TData> 
+        : StreamingQueryExecutorWithAggregableResult<TData, int>
+    {
+        private int _count = 0;
+
+        public CountByFilterStreamingQueryExecutor(Func<TData, bool> dataPassingCondition)
+            : base(dataPassingCondition, (TData data, bool didDataPass) => 0)
+        {
+            InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
+            this.DataPassed += (_) => _count++;
+        }
+
+        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
+        {
+            bool didDataPass = DataPassingCondition(data);
+
+            return (didDataPass, true);
+        }
+
+        public override void AccumulateIfDataPassed(ref int accumulator, int outputData)
+        {
+            accumulator = _count;
+        }
+    }
 }

@@ -23,16 +23,6 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
         #endregion
 
-        #region Constructors
-
-        /// <summary>
-        /// Конструктор экземпляра.
-        /// </summary>
-        public SingleQueryExecutor()
-        { }
-
-        #endregion
-
         #region Instance methods
 
         /// <summary>
@@ -75,7 +65,8 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         /// <param name="queryPipeline"></param>
         /// <returns></returns>
         public abstract TPipelineQueryResult Accept<TPipelineQueryResultParam, TPipelineQueryResult>(
-            bool isResultEnumerable, ISingleQueryExecutorVisitor queryPipeline);
+            bool isResultEnumerable, 
+            ISingleQueryExecutorVisitor queryPipeline);
 
         #endregion
     }

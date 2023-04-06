@@ -17,19 +17,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
     /// </summary>
     public abstract class AttributeComponentQueryProvider : QueryProvider
     {
-        /// <summary>
-        /// Создание запроса с заданным выражением.
-        /// </summary>
-        /// <typeparam name="TData"></typeparam>
-        /// <param name="queryExpression"></param>
-        /// <returns></returns>
-        public override IQueryable<TData> CreateQuery<TData>(Expression queryExpression)
-        {
-            AttributeComponent<TData> queryableAC = 
-                new DataSourceExtractor<AttributeComponent<TData>>().Extract(queryExpression);
-
-            return CreateQueryImpl(queryExpression, queryableAC);
-        }
+        #region Istance methods
 
         /// <summary>
         /// Имплементированное обобщённое создание запроса.
@@ -47,7 +35,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
                Если оно избыточно, то экземпляр MethodCallInspector вернёт
                неизбыточное выражение, равное константному выражению источника данных для запроса.
              */
-            if (queryExpression != new QueryInspector().Inspect(queryExpression))
+            if (queryExpression != new AttributeComponentQueryInspector().Inspect(queryExpression))
                 return queryableAC;
 
             AttributeComponentFactoryArgs<TData> factoryArgs = queryableAC.ZipInfo(null);
@@ -56,27 +44,68 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             return queryableAC.Reproduce(factoryArgs);
         }
 
-        public override TQueryResult Execute<TQueryResult>(Expression queryExpression)
-        {
-            TQueryResult queryResult = base.Execute<TQueryResult>(queryExpression);
-            if (_isResultEnumerable && !_queryIsFiction)
-                return (TQueryResult)WrapEnumerableResultWithAttributeComponent((dynamic)_queryDataSource, queryResult);
-            else return queryResult;
-        }
-
+        /// <summary>
+        /// Оборачивание перечислимого нефиктивного результата запроса в компоненту атрибута.
+        /// </summary>
+        /// <typeparam name="TQueryResultData"></typeparam>
+        /// <param name="queryableAC"></param>
+        /// <param name="queryResult"></param>
+        /// <returns></returns>
         protected object WrapEnumerableResultWithAttributeComponent<TQueryResultData>(
             AttributeComponent<TQueryResultData> queryableAC,
             IEnumerable<TQueryResultData> queryResult)
         {
             AttributeComponentFactoryArgs<TQueryResultData> factoryArgs = queryableAC.ZipInfo(queryResult);
+
             return queryableAC.Reproduce(factoryArgs);
         }
+
+        #endregion
+
+        #region IQueryProvider implementation
+
+        /// <summary>
+        /// Создание запроса с заданным выражением.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <param name="queryExpression"></param>
+        /// <returns></returns>
+        public override IQueryable<TData> CreateQuery<TData>(Expression queryExpression)
+        {
+            AttributeComponent<TData> queryableAC = 
+                new DataSourceExtractor<AttributeComponent<TData>>().Extract(queryExpression);
+
+            return CreateQueryImpl(queryExpression, queryableAC);
+        }
+
+        /// <summary>
+        /// Обобщённое выполнение запроса.
+        /// </summary>
+        /// <typeparam name="TQueryResult"></typeparam>
+        /// <param name="queryExpression"></param>
+        /// <returns></returns>
+        public override TQueryResult Execute<TQueryResult>(Expression queryExpression)
+        {
+            TQueryResult queryResult = base.Execute<TQueryResult>(queryExpression);
+            /*
+             * Результат запроса оборачивается в компоненту атрибута, если он перечислимый и нефиктивный.
+             */
+            if (_isResultEnumerable && !_queryIsFiction)
+                return (TQueryResult)WrapEnumerableResultWithAttributeComponent((dynamic)_queryDataSource, queryResult);
+            else return queryResult;
+        }
+
+        #endregion
+
+        #region Inner classes
 
         /// <summary>
         /// Инспектор запросов к компоненте атрибута.
         /// </summary>
         protected class AttributeComponentQueryInspector : QueryInspector
         {
+            #region Instance methods
+
             /// <summary>
             /// Метод для инспеции метода Select.
             /// </summary>
@@ -90,6 +119,10 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
                         "выражение вида AttributeComponent.Select может содержать только" +
                         "проекцию вида { (el) => el }.");
             }
+
+            #endregion
         }
+
+        #endregion
     }
 }

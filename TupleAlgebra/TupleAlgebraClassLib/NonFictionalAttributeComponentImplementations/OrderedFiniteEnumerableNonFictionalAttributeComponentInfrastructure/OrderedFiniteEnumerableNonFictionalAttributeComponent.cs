@@ -73,6 +73,14 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                 new OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutersContainer());
         }
 
+        public OrderedFiniteEnumerableNonFictionalAttributeComponent() 
+            : this(
+                  null,
+                  Enumerable.Empty<TData>())
+        {
+            return;
+        }
+
         /// <summary>
         /// Конструктор экземпляра.
         /// </summary>
@@ -85,14 +93,13 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             QueryProvider queryProvider = null,
             Expression queryExpression = null)
             : base(domain,
-                   new OrderedFiniteEnumerableNonFictionalAttributeComponentPower(values),
+                   new OrderedFiniteEnumerableNonFictionalAttributeComponentPower(),
                    queryProvider ?? new OrderedFiniteEnumerableAttributeComponentQueryProvider(),
                    queryExpression)
         {
-            if (_orderingComparer is null)
-                InitOrderingComparer();
-            if (!(values is null))
-                InitValues(values);
+            Initialize(values);
+
+            return;
         }
 
         /// <summary>
@@ -106,15 +113,14 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             out Action<AttributeDomain<TData>> setDomainCallback,
             QueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(new OrderedFiniteEnumerableNonFictionalAttributeComponentPower(values),
+            : base(new OrderedFiniteEnumerableNonFictionalAttributeComponentPower(),
                    out setDomainCallback,
                    queryProvider ?? new OrderedFiniteEnumerableAttributeComponentQueryProvider(),
                    queryExpression)
         {
-            if (_orderingComparer is null)
-                InitOrderingComparer();
-            if (!(values is null))
-                InitValues(values);
+            Initialize(values);
+
+            return;
         }
 
         #endregion
@@ -142,6 +148,16 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
         #region Instance methods
 
+        private void Initialize(IEnumerable<TData> values)
+        {
+            if (_orderingComparer is null)
+                InitOrderingComparer();
+            if (!(values is null))
+                InitValues(values);
+
+            return;
+        }
+
         public override AttributeComponentFactoryArgs<TData> ZipInfo(
             IEnumerable<TData> populatingData)
         {
@@ -155,10 +171,10 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         /// Инициализация перечисления значений компоненты.
         /// </summary>
         /// <param name="values"></param>
-        protected virtual void InitValues(IEnumerable<TData> values)
+        public virtual void InitValues(IEnumerable<TData> values)
         {
             List<TData> orderedValues = new List<TData>(values);
-            orderedValues.Sort(OrderingComparer);
+            orderedValues.Sort(_orderingComparer);
             TData[] orderedValuesArr = new TData[orderedValues.Count];
             orderedValues.CopyTo(orderedValuesArr);
             _values = orderedValuesArr;
@@ -187,7 +203,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         protected virtual IComparer<TData> InitOrderingComparerImpl()
         {
             Type valueType = typeof(TData);
-            if (!(valueType.GetInterface(nameof(IComparable<TData>)) is null))
+            if (valueType.GetInterface(nameof(IComparable<TData>)) is not null)
                 return Comparer<TData>.Default;
             //else if (!(valueType.GetInterface(nameof(IComparable)) is null))
             //    return Comparer.Default;
@@ -204,7 +220,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             if (_values is null)
                 return false;
             else
-                return _values.Count() == 0;
+                return this.Power.IsZero();
+            //_values.Count() == 0;
         }
 
         /// <summary>
@@ -265,13 +282,21 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         /// </summary>
         public class OrderedFiniteEnumerableNonFictionalAttributeComponentPower : NonFictionalAttributeComponentPower
         {
-            private IEnumerable<TData> _componentValues;
+            private OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> _component;
 
-            public int Value { get => _componentValues.Count(); }
+            public int Value { get => _component._values.Count(); }
 
-            public OrderedFiniteEnumerableNonFictionalAttributeComponentPower(IEnumerable<TData> componentValues)
+            //public static readonly OrderedFiniteEnumerableNonFictionalAttributeComponentPower Empty =
+            //    new OrderedFiniteEnumerableNonFictionalAttributeComponentPower(Enumerable.Empty<TData>());
+
+            public override void InitAttributeComponent(AttributeComponent<TData> component)
             {
-                _componentValues = componentValues;
+                _component = component as OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>;
+            }
+
+            public override bool IsZero()
+            {
+                return Value == 0;
             }
 
             protected override int CompareToSame(dynamic second)

@@ -51,10 +51,13 @@ namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
             if (entityType.IsPrimitive)
                 ConstructPrimitiveType();
             else
-                ConstructReferenceType();
+                ConstructComplicatedType();
 
             return;
 
+            /*
+             * Построение метода добавления нового атрибута к схеме кортежа.
+             */
             MethodInfo BuildAddAttributeMethodInfo(Type targetAttributeType)
             {
                 MethodInfo addAttributeToSchema = typeof(AlgebraicTupleSchema<TEntity>)
@@ -64,6 +67,9 @@ namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
                 return addAttributeToSchema;
             }
 
+            /*
+             * Построение примитивного типа.
+             */
             void ConstructPrimitiveType()
             {
                 BuildAddAttributeMethodInfo(entityType)
@@ -72,12 +78,15 @@ namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
                 return;
             }
 
-            void ConstructReferenceType()
+            /*
+             * Построение сложного типа.
+             */
+            void ConstructComplicatedType()
             {
-                foreach (MemberInfo memberInfo in entityType.GetProperties(memberFlags))
+                foreach (PropertyInfo propertyInfo in entityType.GetProperties(memberFlags))
                 {
-                    BuildAddAttributeMethodInfo(entityType)
-                        .Invoke(_schemaPattern, new object[] { memberInfo.Name, null });
+                    BuildAddAttributeMethodInfo(propertyInfo.PropertyType)
+                        .Invoke(_schemaPattern, new object[] { propertyInfo.Name, null });
                 }
 
                 return;

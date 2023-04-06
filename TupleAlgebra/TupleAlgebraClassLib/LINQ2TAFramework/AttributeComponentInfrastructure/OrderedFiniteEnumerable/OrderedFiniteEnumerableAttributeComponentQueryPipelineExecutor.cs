@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable
 {
@@ -12,9 +13,16 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
     public class OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor
         : QueryPipelineExecutor
     {
+        #region Contstructors
+
         public OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor(
-            object dataSource,
+            IEnumerable dataSource,
             IQueryPipelineMiddleware firstQueryExecutor)
-            : base(dataSource, firstQueryExecutor) { }
+            : base(dataSource, firstQueryExecutor) 
+        {
+            return;
+        }
+
+        #endregion
     }
 }

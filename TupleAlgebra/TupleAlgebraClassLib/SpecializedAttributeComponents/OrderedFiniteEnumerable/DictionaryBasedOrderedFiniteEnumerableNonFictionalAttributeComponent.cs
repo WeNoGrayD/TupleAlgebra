@@ -8,21 +8,55 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnumerable
 {
+    /// <summary>
+    /// Упорядоченная конечная перечислимая компонента атрибута, основанная на контейнере данных, 
+    /// который поддерживает интерфейс IDIctionary<TKey, TData>.
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TData"></typeparam>
     public class DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>
         : OrderedFiniteEnumerableNonFictionalAttributeComponent<KeyValuePair<TKey, TData>>
         where TKey : IComparable<TKey>
     {
+        #region Constructors
+
+        /// <summary>
+        /// труктор экземпляра.
+        /// </summary>
+        public DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent() : base()
+        { 
+            return;
+        }
+
+        /// <summary>
+        /// Конструктор экземпляра.
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <param name="values"></param>
         public DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
             DictionaryBasedOrderedFiniteEnumerableAttributeDomain<TKey, TData> domain,
             IDictionary<TKey, TData> values)
             : base(domain, values)
-        { }
+        {
+            return;
+        }
 
+        #endregion
+
+        #region Instance methods
+
+        /// <summary>
+        /// Инициализация компаратора для упорядочения внутренних данных.
+        /// </summary>
+        /// <returns></returns>
         protected override IComparer<KeyValuePair<TKey, TData>> InitOrderingComparerImpl()
         {
             return new KeyValuePairComparer();
         }
 
+        /// <summary>
+        /// Класс компаратора пар "ключ-значение". Поддерживает сравнение по ключу.
+        /// </summary>
         private class KeyValuePairComparer : IComparer<KeyValuePair<TKey, TData>>
         {
             public int Compare(KeyValuePair<TKey, TData> first, KeyValuePair<TKey, TData> second)
@@ -30,5 +64,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
                 return first.Key.CompareTo(second.Key);
             }
         }
+
+        #endregion
     }
 }

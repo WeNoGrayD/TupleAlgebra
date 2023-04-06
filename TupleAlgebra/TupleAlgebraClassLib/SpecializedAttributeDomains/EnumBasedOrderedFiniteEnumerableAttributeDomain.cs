@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraClassLib.SpecializedAttributeDomains
 {
@@ -12,8 +13,8 @@ namespace TupleAlgebraClassLib.SpecializedAttributeDomains
     /// </summary>
     /// <typeparam name="TData">Тип значений домена.</typeparam>
     public class EnumBasedOrderedFiniteEnumerableAttributeDomain<TData>
-        : OrderedFiniteEnumerableAttributeDomain<TData>
-        where TData : struct, IComparable
+        : OrderedFiniteEnumerableAttributeDomain<EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, TData>
+        where TData : Enum
     {
         /// <summary>
         /// Конструктор.

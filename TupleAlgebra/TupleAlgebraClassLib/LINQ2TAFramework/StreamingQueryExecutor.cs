@@ -16,7 +16,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
         public event Action<TQueryResult> DataNotPassed;
 
-        public StreamingQueryExecutor(Func<TData, bool> dataPassingCondition) : base()
+        public StreamingQueryExecutor(Func<TData, bool> dataPassingCondition)
         {
             DataPassingCondition = dataPassingCondition;
         }

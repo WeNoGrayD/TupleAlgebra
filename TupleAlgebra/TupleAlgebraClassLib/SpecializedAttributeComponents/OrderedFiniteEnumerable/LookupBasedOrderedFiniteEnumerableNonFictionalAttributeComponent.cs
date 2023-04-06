@@ -12,11 +12,19 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         : OrderedFiniteEnumerableNonFictionalAttributeComponent<IGrouping<TKey, TData>>
         where TKey : IComparable<TKey>
     {
+        public LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent() 
+            : base()
+        {
+            return;
+        }
+
         public LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
             LookupBasedOrderedFiniteEnumerableAttributeDomain<TKey, TData> domain,
             ILookup<TKey, TData> values)
             : base(domain, values)
-        { }
+        {
+            return;
+        }
 
         protected override IComparer<IGrouping<TKey, TData>> InitOrderingComparerImpl()
         {

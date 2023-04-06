@@ -18,11 +18,24 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
     /// </summary>
     public abstract class QueryProvider : IQueryProvider
     {
-        protected object _queryDataSource;
+        #region Instance fields
 
+        /// <summary>
+        /// Источник данных запроса.
+        /// </summary>
+        protected IEnumerable _queryDataSource;
+
+        /// <summary>
+        /// Флаг фиктивности, избыточности запроса.
+        /// </summary>
         protected bool _queryIsFiction;
 
+        /// <summary>
+        /// Флаг перечислимости результата запроса.
+        /// </summary>
         protected bool _isResultEnumerable;
+
+        #endregion
 
         #region Instance properties
 
@@ -33,7 +46,21 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
         #endregion
 
-        #region IQueryProvider implemented methods
+        #region Instance methods
+
+        /// <summary>
+        /// Создание исполнителя конвейера запросов.
+        /// </summary>
+        /// <param name="dataSource"></param>
+        /// <param name="firstPipelineMiddleware"></param>
+        /// <returns></returns>
+        protected abstract QueryPipelineExecutor CreateQueryPipelineExecutor(
+            IEnumerable dataSource,
+            IQueryPipelineMiddleware firstPipelineMiddleware);
+
+        #endregion
+
+        #region IQueryProvider implementation
 
         /// <summary>
         /// Необобщённое создание запроса.
@@ -74,8 +101,12 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             MethodCallChainBuilder methodCallChainBuilder = new MethodCallChainBuilder();
             methodCallChainBuilder.Build(queryExpression);
             List<Expression> methodCallChain = methodCallChainBuilder.MethodCallChain;
-            object queryDataSource = _queryDataSource = methodCallChainBuilder.QueryDataSource;
+            IEnumerable queryDataSource = _queryDataSource = methodCallChainBuilder.QueryDataSource;
 
+            /*
+             * Запрос считается фиктивным, если цепочка методов запроса не содержит ни одного метода 
+             * (только константу источника данных). 
+             */
             if (methodCallChain.Count == 0)
             {
                 _isResultEnumerable = true;
@@ -89,22 +120,28 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             foreach (Expression queryMethod in methodCallChain)
                 firstQueryExecutor = QueryContext.BuildSingleQueryExecutor(queryMethod as MethodCallExpression);
 
-            bool isResultEnumerable = _isResultEnumerable = 
-                typeof(TQueryResult).GetInterface(nameof(IEnumerable)) is not null;
+            _isResultEnumerable = typeof(TQueryResult).GetInterface(nameof(IEnumerable)) is not null;
 
             QueryPipelineExecutor queryPipelineExecutor = CreateQueryPipelineExecutor(
                 queryDataSource,
                 firstQueryExecutor);
 
-            TQueryResult queryResult = isResultEnumerable ?
+            return _isResultEnumerable ?
                 ExecuteWithExpectedEnumerableResult() :
                 queryPipelineExecutor.ExecuteWithExpectedAggregableResult<TQueryResult>();
 
-            return queryResult;
-
+            /*
+             * Вызов метода исполнения запроса с ожидаемым перечислимым результатом.
+             */
             TQueryResult ExecuteWithExpectedEnumerableResult()
             {
-                Type queryResultDataType = typeof(TQueryResult).GetGenericArguments().Single();
+                /*
+                 * Предполагается, что TQueryResult - это либо IEnumerable, либо IEnumerable<>.
+                 * Если задать другой перечислимый тип, то могут возникнуть две ошибки:
+                 * 1) отсутствия параметров типа (необобщённая реализация IEnumerable<>);
+                 * 2) неоднозначности параметров типа (реализация нескольких вариантов IEnumerable<>).
+                 */
+                Type queryResultDataType = typeof(TQueryResult).GetGenericArguments().SingleOrDefault() ?? typeof(object);
 
                 MethodInfo executionMethodInfo = queryPipelineExecutor
                     .GetType()
@@ -115,38 +152,41 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             }
         }
 
-        /// <summary>
-        /// Создание исполнителя конвейера запросов.
-        /// </summary>
-        /// <param name="dataSource"></param>
-        /// <param name="firstQueryExecutor"></param>
-        /// <returns></returns>
-        protected abstract QueryPipelineExecutor CreateQueryPipelineExecutor(
-            object dataSource, 
-            IQueryPipelineMiddleware firstQueryExecutor);
-
         #endregion
+
+        #region Inner classes
 
         /// <summary>
         /// Построитель цепочки вызовов методов запроса.
         /// </summary>
         private class MethodCallChainBuilder : ExpressionVisitor
         {
+            #region Instance properties
+
             /// <summary>
             /// Источник данных.
             /// </summary>
-            public object QueryDataSource { get; private set; }
+            public IEnumerable QueryDataSource { get; private set; }
 
             /// <summary>
             /// Цепочка вызовов методов запроса.
             /// </summary>
             public readonly List<Expression> MethodCallChain = new List<Expression>();
 
+            #endregion
+
+            #region Instance methods
+
             /// <summary>
             /// API для построения цепочки вызовов методов запроса и извлечения первоначального источника данных.
             /// </summary>
             /// <param name="expr"></param>
-            public void Build(Expression expr) => Visit(expr);
+            public void Build(Expression expr)
+            {
+                Visit(expr);
+
+                return;
+            }
 
             /// <summary>
             /// Посещение константного, самого последнего в цепочке, выражения, которое
@@ -156,7 +196,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             /// <returns></returns>
             protected override Expression VisitConstant(ConstantExpression node)
             {
-                QueryDataSource = node.Value;
+                QueryDataSource = node.Value as IEnumerable;
 
                 return base.VisitConstant(node);
             }
@@ -173,6 +213,8 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
 
                 return Visit(node.Arguments[0]);
             }
+
+            #endregion
         }
 
         /// <summary>
@@ -180,8 +222,18 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         /// </summary>
         /// <typeparam name="TDataSource"></typeparam>
         protected class DataSourceExtractor<TDataSource> : ExpressionVisitor
+            where TDataSource : IEnumerable
         {
+            #region Instance fields
+
+            /// <summary>
+            /// Источник данных.
+            /// </summary>
             protected TDataSource _dataSource;
+
+            #endregion
+
+            #region Instance methods
 
             /// <summary>
             /// API для извлечения первоначального источника данных.
@@ -218,6 +270,8 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             {
                 return Visit(node.Arguments[0]);
             }
+
+            #endregion
         }
 
         /// <summary>
@@ -226,12 +280,26 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         /// </summary>
         protected class QueryInspector : ExpressionVisitor
         {
+            #region Instance methods
+
             /// <summary>
             /// API для инспекции запроса.
             /// </summary>
             /// <param name="expr"></param>
             /// <returns></returns>
-            public Expression Inspect(Expression expr) => Visit(expr);
+            public Expression Inspect(Expression expr)
+            {
+                return Visit(expr);
+            }
+
+            /// <summary>
+            /// Метод для инспеции метода Select.
+            /// </summary>
+            /// <param name="selectExpression"></param>
+            protected virtual void CheckSelectQueryOnAcceptability(MethodCallExpression selectExpression)
+            {
+                return;
+            }
 
             /// <summary>
             /// Посещение выражения вызова метода. 
@@ -246,21 +314,17 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
                     case "Select":
                         {
                             CheckSelectQueryOnAcceptability(node);
-                            return base.VisitMethodCall(node);
-                        }
-                    default:
-                        {
-                            return base.VisitMethodCall(node);
+
+                            break;
                         }
                 }
+
+                return base.VisitMethodCall(node);
             }
 
-            /// <summary>
-            /// Метод для инспеции метода Select.
-            /// </summary>
-            /// <param name="selectExpression"></param>
-            protected virtual void CheckSelectQueryOnAcceptability(MethodCallExpression selectExpression)
-            { }
+            #endregion
         }
+
+        #endregion
     }
 }

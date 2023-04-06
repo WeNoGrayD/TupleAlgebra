@@ -85,7 +85,7 @@ namespace TupleAlgebraClassLib
             Expression queryExpression = null)
             : base(domain, power, queryProvider, queryExpression)
         {
-            Domain = domain;
+            return;
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace TupleAlgebraClassLib
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {
-            setDomainCallback = (domain) => Domain = domain;
+            GetSettingDomainCallback(out setDomainCallback);
         }
 
         #endregion
@@ -124,6 +124,11 @@ namespace TupleAlgebraClassLib
         #endregion
 
         #region Instance methods
+
+        public void GetSettingDomainCallback(out Action<AttributeDomain<TData>> setDomainCallback)
+        {
+            setDomainCallback = (domain) => Domain = domain;
+        }
 
         protected override sealed AttributeComponent<TData> ReproduceImpl(
             AttributeComponentFactoryArgs<TData> factoryArgs)

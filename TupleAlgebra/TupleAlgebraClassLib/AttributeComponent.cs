@@ -35,7 +35,7 @@ namespace TupleAlgebraClassLib
         /// </summary>
         public AttributeDomain<TData> Domain { get; protected set; }
 
-        public readonly AttributeComponentPower Power;
+        public AttributeComponentPower Power { get; private set; }
 
         protected abstract AttributeComponentContentType ContentType { get; }
 
@@ -60,10 +60,11 @@ namespace TupleAlgebraClassLib
         /// <param name="power"></param>
         public AttributeComponent(
             AttributeComponentPower power,
-            QueryProvider queryProvider,
+            IQueryProvider queryProvider,
             Expression queryExpression)
         {
             Power = power;
+            this.Power.InitAttributeComponent(this);
             Provider = queryProvider;
             Expression = queryExpression ?? Expression.Constant(this);
         }
@@ -75,7 +76,7 @@ namespace TupleAlgebraClassLib
         public AttributeComponent(
             AttributeDomain<TData> domain,
             AttributeComponentPower power,
-            QueryProvider queryProvider,
+            IQueryProvider queryProvider,
             Expression queryExpression)
             : this(power, queryProvider, queryExpression)
         {
@@ -269,6 +270,10 @@ namespace TupleAlgebraClassLib
         public abstract class AttributeComponentPower : IComparable<AttributeComponentPower>
         {
             internal abstract AttributeComponentContentType ContentType { get; }
+
+            public abstract void InitAttributeComponent(AttributeComponent<TData> component);
+
+            public abstract bool IsZero();
 
             public virtual int CompareTo(AttributeComponentPower second)
             {

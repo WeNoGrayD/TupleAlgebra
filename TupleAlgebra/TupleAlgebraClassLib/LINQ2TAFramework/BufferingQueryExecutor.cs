@@ -18,7 +18,6 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
         public Action<TData> ExecuteOverDataInstance { get; private set; }
 
         public BufferingQueryExecutor(Func<TData, bool> dataPassingCondition)
-            : base()
         {
             DataPassingCondition = dataPassingCondition;
             InitBehavior();

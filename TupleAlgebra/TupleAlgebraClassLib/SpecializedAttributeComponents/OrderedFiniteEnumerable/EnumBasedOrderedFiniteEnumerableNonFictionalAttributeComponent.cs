@@ -8,19 +8,32 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnumerable
 {
+    /// <summary>
+    /// Упорядоченная конечная перечислимая компонента атрибута, тип данных которого является перечислением в C# (Enum).
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
     public class EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TData>
         : OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>
-        where TData : struct, IComparable
+        where TData : Enum
     {
+        public EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent()
+            : base()
+        {
+            return;
+        }
+
         public EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
             EnumBasedOrderedFiniteEnumerableAttributeDomain<TData> domain,
             IEnumerable<TData> values)
             : base(domain, values)
-        { }
+        {
+            return;
+        }
 
+        /*
         protected override IComparer<TData> InitOrderingComparerImpl()
         {
-            return new EnumComparer();
+            return Comparer<TData>.Default;// new EnumComparer();
         }
 
         private class EnumComparer : IComparer<TData>
@@ -30,5 +43,6 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
                 return first.CompareTo(second);
             }
         }
+        */
     }
 }
