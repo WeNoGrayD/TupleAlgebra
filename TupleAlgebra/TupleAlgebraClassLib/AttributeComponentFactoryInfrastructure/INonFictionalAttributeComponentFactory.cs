@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
-    public interface INonFictionalAttributeComponentFactory<TData, TFactoryArgs>
-        where TFactoryArgs : AttributeComponentFactoryArgs<TData>
+    public interface INonFictionalAttributeComponentFactory<TFactoryArgs>
+        where TFactoryArgs : AttributeComponentFactoryArgs
     {
-        NonFictionalAttributeComponent<TData> CreateSpecificNonFictional(TFactoryArgs args);
+        NonFictionalAttributeComponent<TData> CreateSpecificNonFictional<TData>(TFactoryArgs args);
     }
 }

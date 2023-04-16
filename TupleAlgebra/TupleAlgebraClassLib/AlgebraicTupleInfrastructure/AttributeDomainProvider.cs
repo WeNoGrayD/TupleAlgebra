@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
 {
+    /*
     public class AttributeDomainProvider<TDomain> : AttributeDomain<TDomain>
     {
         public AttributeDomainProvider()
@@ -20,4 +21,5 @@ namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
             return null;
         }
     }
+    */
 }

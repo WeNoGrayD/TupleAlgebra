@@ -4,16 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using TupleAlgebraTests.DataModels;
 using System.Linq.Expressions;
-using TupleAlgebraClassLib.LINQ2TAFramework;
-using TupleAlgebraClassLib;
 using System.Collections;
-using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using System.Diagnostics;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using LINQProvider;
 
-[assembly: InternalsVisibleTo("TupleAlgebraClassLib")]
+[assembly: InternalsVisibleTo("LINQProvider")]
 
 namespace TupleAlgebraTests
 {
@@ -76,12 +73,35 @@ namespace TupleAlgebraTests
 
         public static IEnumerable<int> DataSource => _dataSource;
 
+        public IEnumerable<int> InstanceDataSource => _dataSource;
+
         public MockQueryable()
         {
             Expression = Expression.Constant(_dataSource.AsQueryable());
         }
 
         public MockQueryable(Expression queryExpression, IQueryProvider provider) 
+            : base(queryExpression, provider)
+        { }
+    }
+
+    internal class MultidimensionalMockQueryable : GenericMockQueryable<MockQueryable>
+    {
+        private static IEnumerable<MockQueryable> _dataSource = new List<MockQueryable>()
+        {
+            new MockQueryable(),
+            new MockQueryable(),
+            new MockQueryable()
+        };
+
+        public static IEnumerable<MockQueryable> DataSource => _dataSource;
+
+        public MultidimensionalMockQueryable()
+        {
+            Expression = Expression.Constant(_dataSource.AsQueryable());
+        }
+
+        public MultidimensionalMockQueryable(Expression queryExpression, IQueryProvider provider)
             : base(queryExpression, provider)
         { }
     }
@@ -115,10 +135,6 @@ namespace TupleAlgebraTests
 
     internal class MockQueryProvider<T> : QueryProvider
     {
-        private QueryContext _queryContext = new MockQueryContext();
-
-        protected override QueryContext QueryContext => _queryContext;
-
         static MockQueryProvider()
         {
             //_queryContext = new MockQueryContext();
@@ -513,6 +529,17 @@ namespace TupleAlgebraTests
     public class CustomLINQTests
     {
         [TestMethod]
+        public void AggregateQuery()
+        {
+            MockQueryable source = new MockQueryable();
+            int query = source.Aggregate(0, (acc, data) => acc + data);
+
+            int sum = MockQueryable.DataSource.Aggregate(0, (acc, data) => acc + data);
+
+            Assert.IsTrue(sum == query);
+        }
+
+        [TestMethod]
         public void AllQuery()
         {
             MockQueryable source = new MockQueryable();
@@ -537,6 +564,30 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
+        public void ContainsQuery()
+        {
+            MockQueryable source = new MockQueryable();
+            bool query = source.Contains(10);
+
+            bool contains10Predefined = MockQueryable.DataSource.Contains(10),
+                 contains10 = query;
+
+            Assert.IsTrue(contains10Predefined == contains10);
+        }
+
+        [TestMethod]
+        public void CountQuery()
+        {
+            MockQueryable source = new MockQueryable();
+            int query = source.Count();
+
+            int countPredefined = MockQueryable.DataSource.Count(),
+                count = query;
+
+            Assert.IsTrue(countPredefined == count);
+        }
+
+        [TestMethod]
         public void CountByFilterQuery()
         {
             MockQueryable source = new MockQueryable();
@@ -558,6 +609,18 @@ namespace TupleAlgebraTests
                firstGreaterThan7 = query;
 
             Assert.IsTrue(firstGreaterThan7Predefined == firstGreaterThan7);
+        }
+
+        [TestMethod]
+        public void FirstWhereQuery()
+        {
+            MultidimensionalMockQueryable source = new MultidimensionalMockQueryable();
+            var query = source.First().Where(x => x < 5);
+
+            IEnumerable<int> firstGreaterThan7Predefined = MultidimensionalMockQueryable.DataSource.First().InstanceDataSource.Where(x => x < 5),
+                             firstGreaterThan7 = query;
+
+            Assert.IsTrue(Enumerable.SequenceEqual(firstGreaterThan7Predefined, firstGreaterThan7));
         }
 
         [TestMethod]
@@ -656,6 +719,22 @@ namespace TupleAlgebraTests
 
 
         [TestMethod]
+        public void TakeQuery()
+        {
+            GenericMockQueryable<int> source = new MockQueryable();
+            IQueryable<int> query = source.Take(10);
+
+            List<int> joinIsOddOnMod3Is0ToMod6Predefined = MockQueryable.DataSource.Take(10).ToList(),
+                     joinIsOddOnMod3Is0ToMod6 = new List<int>();
+
+            foreach (int data in query)
+                joinIsOddOnMod3Is0ToMod6.Add(data);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(joinIsOddOnMod3Is0ToMod6Predefined, joinIsOddOnMod3Is0ToMod6));
+        }
+
+
+        [TestMethod]
         public void TakeWhileJoinQuery()
         {
             GenericMockQueryable<int> source = new MockQueryable().TakeWhile(QueryContent.LesserThan10).AsMockQueryable();
@@ -727,6 +806,22 @@ namespace TupleAlgebraTests
                                         select new { Visited = fu1, Visitor = fu2 });
 
             Assert.IsTrue(Enumerable.SequenceEqual(selectManyPredefined, selectMany));
+        }
+
+
+        [TestMethod]
+        public void SkipQuery()
+        {
+            GenericMockQueryable<int> source = new MockQueryable();
+            IQueryable<int> query = source.Skip(10);
+
+            List<int> joinIsOddOnMod3Is0ToMod6Predefined = MockQueryable.DataSource.Skip(10).ToList(),
+                     joinIsOddOnMod3Is0ToMod6 = new List<int>();
+
+            foreach (int data in query)
+                joinIsOddOnMod3Is0ToMod6.Add(data);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(joinIsOddOnMod3Is0ToMod6Predefined, joinIsOddOnMod3Is0ToMod6));
         }
 
         [TestMethod]

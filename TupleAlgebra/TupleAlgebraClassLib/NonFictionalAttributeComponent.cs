@@ -81,7 +81,7 @@ namespace TupleAlgebraClassLib
         public NonFictionalAttributeComponent(
             AttributeDomain<TData> domain,
             NonFictionalAttributeComponentPower power,
-            QueryProvider queryProvider = null,
+            IQueryProvider queryProvider,
             Expression queryExpression = null)
             : base(domain, power, queryProvider, queryExpression)
         {
@@ -98,7 +98,7 @@ namespace TupleAlgebraClassLib
         public NonFictionalAttributeComponent(
             NonFictionalAttributeComponentPower power,
             out Action<AttributeDomain<TData>> setDomainCallback,
-            QueryProvider queryProvider = null,
+            IQueryProvider queryProvider,
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {
@@ -131,10 +131,10 @@ namespace TupleAlgebraClassLib
         }
 
         protected override sealed AttributeComponent<TData> ReproduceImpl(
-            AttributeComponentFactoryArgs<TData> factoryArgs)
+            AttributeComponentFactoryArgs factoryArgs)
         {
             return _nonFictionalSpecificSetOperations[NatureType]
-                .ProduceNonFictionalAttributeComponent(factoryArgs);
+                .ProduceNonFictionalAttributeComponent<TData>(factoryArgs);
         }
 
         #endregion

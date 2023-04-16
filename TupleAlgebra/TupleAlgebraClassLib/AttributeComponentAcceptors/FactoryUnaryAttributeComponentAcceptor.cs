@@ -12,7 +12,7 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     {
         public TOperationResult Accept(
             AttributeComponent<TData> first,
-            AttributeComponentFactory<TData> factory)
+            AttributeComponentFactory factory)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -24,7 +24,7 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 
         protected TOperationResult DowncastOperandToContentType<TOperand1>(
             TOperand1 first,
-            AttributeComponentFactory<TData> factory)
+            AttributeComponentFactory factory)
             where TOperand1 : AttributeComponent<TData>
         {
             var data = (this as IFactoryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>).Accept(first, factory);

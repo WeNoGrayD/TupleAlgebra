@@ -8,6 +8,7 @@ using System.Diagnostics;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using LINQProvider;
 using System.Reflection;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
@@ -38,10 +39,10 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             if (queryExpression != new AttributeComponentQueryInspector().Inspect(queryExpression))
                 return queryableAC;
 
-            AttributeComponentFactoryArgs<TData> factoryArgs = queryableAC.ZipInfo(null);
+            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo(null);
             factoryArgs.QueryExpression = queryExpression;
 
-            return queryableAC.Reproduce(factoryArgs);
+            return queryableAC.Reproduce<TData>(factoryArgs);
         }
 
         /// <summary>
@@ -55,9 +56,9 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             AttributeComponent<TQueryResultData> queryableAC,
             IEnumerable<TQueryResultData> queryResult)
         {
-            AttributeComponentFactoryArgs<TQueryResultData> factoryArgs = queryableAC.ZipInfo(queryResult);
+            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo(queryResult);
 
-            return queryableAC.Reproduce(factoryArgs);
+            return queryableAC.Reproduce<TQueryResultData>(factoryArgs);
         }
 
         #endregion

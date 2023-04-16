@@ -10,7 +10,7 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     public interface IFactoryAttributeComponentAcceptor<TData, in TOperand, out TOperationResult>
         where TOperand : AttributeComponent<TData>
     {
-        TOperationResult Accept(TOperand first, AttributeComponentFactory<TData> factory);
+        TOperationResult Accept(TOperand first, AttributeComponentFactory factory);
     }
 
     public interface IInstantAttributeComponentAcceptor<TData, in TOperand1, in TOperand2, out TOperationResult>

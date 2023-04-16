@@ -31,7 +31,7 @@ namespace TupleAlgebraTests
             Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.Following)].IsPlugged);
             Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LatestProfileVisitors)].IsPlugged);
             Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.GainedAchievments)].IsPlugged);
-            //Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LatestComments)].IsPlugged);
+            Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LatestComments)].IsPlugged);
 
             bool attributeCheck = likedPersons - nameof(ForumUser.LikeCount);
             Assert.IsFalse(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
@@ -66,10 +66,9 @@ namespace TupleAlgebraTests
                 new OrderedFiniteEnumerableAttributeDomain<ForumUser>(_forumUsers);
             builder.Attribute(user => user.LatestProfileVisitors).OneToOneRelation().SetDomain(users);
             builder.Attribute(user => user.GainedAchievments).OneToOneRelation().SetDomain(intRange);
-            //AttributeDomain<IGrouping<DateTime, string>> comments =
-            //    new LookupBasedOrderedFiniteEnumerableAttributeDomain<DateTime, string>(ForumDatabase.GetLatestCommentsByDateTimeDomain());
-            //builder.Attribute(user => user.LatestComments).OneToOneRelation().SetDomain(comments, 
-            //    (Func<IGrouping<DateTime, string>, IEnumerable<KeyValuePair<DateTime, string>>>)EnumerateComments);
+            AttributeDomain<IGrouping<DateTime, string>> comments =
+                new LookupBasedOrderedFiniteEnumerableAttributeDomain<DateTime, string>(ForumDatabase.GetLatestCommentsByDateTimeDomain());
+            builder.Attribute(user => user.LatestComments).OneToOneRelation().SetDomain(comments.ShiftMany(EnumerateComments));
         }
 
         private IEnumerable<KeyValuePair<DateTime, string>> EnumerateComments(IGrouping<DateTime, string> comments)

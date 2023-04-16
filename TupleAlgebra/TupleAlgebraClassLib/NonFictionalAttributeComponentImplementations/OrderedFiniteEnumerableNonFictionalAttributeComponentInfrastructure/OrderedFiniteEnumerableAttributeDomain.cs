@@ -26,9 +26,15 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
             return universumComponent;
         }
+
+        public override IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
+            IEnumerable<TReproducedData> reproducedData)
+        {
+            return new OrderedFiniteEnumerableAttributeDomain<TReproducedData>(reproducedData);
+        }
     }
 
-    public class OrderedFiniteEnumerableAttributeDomain<TData> //: AttributeDomain<TData>
+    public class OrderedFiniteEnumerableAttributeDomain<TData> 
         : OrderedFiniteEnumerableAttributeDomain<OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, TData>
     {
         public OrderedFiniteEnumerableAttributeDomain(IEnumerable<TData> universum)

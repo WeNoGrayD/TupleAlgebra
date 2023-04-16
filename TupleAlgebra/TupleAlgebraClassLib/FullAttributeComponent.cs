@@ -40,7 +40,7 @@ namespace TupleAlgebraClassLib
         /// <param name="queryExpression"></param>
         public FullAttributeComponent(
             AttributeDomain<TData> domain,
-            QueryProvider queryProvider = null,
+            IQueryProvider queryProvider = null,
             Expression queryExpression = null) 
             : base(domain, new FullAttributeComponentPower(), queryProvider, queryExpression)
         { }
@@ -53,10 +53,10 @@ namespace TupleAlgebraClassLib
         #region Instance methods
 
         protected override AttributeComponent<TData> ReproduceImpl(
-            AttributeComponentFactoryArgs<TData> factoryArgs)
+            AttributeComponentFactoryArgs factoryArgs)
         {
             return new FullAttributeComponent<TData>(
-                factoryArgs.Domain,
+                factoryArgs.Domain as AttributeDomain<TData>,
                 factoryArgs.QueryProvider,
                 factoryArgs.QueryExpression);
         }

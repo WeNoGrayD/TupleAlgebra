@@ -16,13 +16,14 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         {
             bool isIncludes = false;
             IEnumerator<TData> greaterEnumerator = greater.GetEnumerator(),
-                                lesserEnumerator = lesser.GetEnumerator();
+                               lesserEnumerator = lesser.GetEnumerator();
             bool isContinuesLesserEnumerator = true,
                  isContinuesGreaterEnumerator = true;
             TData firstElement = default(TData), secondElement = default(TData);
             int elementsComparisonResult;
 
             ReadComponentsUntilAnyIsOver();
+            DisposeEnumerators();
 
             return isIncludes;
 
@@ -73,12 +74,24 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             {
                 if (isContinuesGreaterEnumerator = greaterEnumerator.MoveNext())
                     firstElement = greaterEnumerator.Current;
+
+                return;
             }
 
             void LesserEnumeratorMoveNextAndReadCurrent()
             {
                 if (isContinuesLesserEnumerator = lesserEnumerator.MoveNext())
                     secondElement = lesserEnumerator.Current;
+
+                return;
+            }
+
+            void DisposeEnumerators()
+            {
+                greaterEnumerator.Dispose();
+                lesserEnumerator.Dispose();
+
+                return;
             }
         }
     }

@@ -10,17 +10,17 @@ using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
-    public class AttributeComponentFactoryArgs<TData>
+    public class AttributeComponentFactoryArgs
     {
-        public readonly AttributeDomain<TData> Domain;
+        public readonly object Domain;
 
-        public readonly QueryProvider QueryProvider;
+        public readonly IQueryProvider QueryProvider;
 
         public Expression QueryExpression { get; set; }
 
         public AttributeComponentFactoryArgs(
-            AttributeDomain<TData> domain, 
-            QueryProvider queryProvider = null, 
+            object domain, 
+            IQueryProvider queryProvider = null, 
             Expression queryExpression = null)
         {
             Domain = domain;

@@ -17,16 +17,16 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
         public abstract TOperationResult Accept(
             TOperand1 first,
             EmptyAttributeComponent<TData> second,
-            AttributeComponentFactory<TData> factory);
+            AttributeComponentFactory factory);
 
         public abstract TOperationResult Accept(
             TOperand1 first,
             NonFictionalAttributeComponent<TData> second,
-            AttributeComponentFactory<TData> factory);
+            AttributeComponentFactory factory);
 
         public abstract TOperationResult Accept(
             TOperand1 first,
             FullAttributeComponent<TData> second,
-            AttributeComponentFactory<TData> factory);
+            AttributeComponentFactory factory);
     }
 }

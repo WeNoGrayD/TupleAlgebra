@@ -17,7 +17,7 @@ namespace TupleAlgebraTests
         protected MockAttributeComponentFactory<string> stringFactory;
         protected Dictionary<Type, object> factories;
 
-        protected class MockAttributeComponentFactory<TData> : OrderedFiniteEnumerableAttributeComponentFactory<TData>
+        protected class MockAttributeComponentFactory<TData> : OrderedFiniteEnumerableAttributeComponentFactory
             where TData : IComparable<TData>
         {
             public readonly AttributeDomain<TData> FactoryDomain;
@@ -29,24 +29,24 @@ namespace TupleAlgebraTests
 
             public EmptyAttributeComponent<TData> CreateEmpty()
             {
-                AttributeComponentFactoryArgs<TData> factoryArgs =
-                    new AttributeComponentFactoryArgs<TData>(FactoryDomain);
-                return CreateEmpty(factoryArgs);
+                AttributeComponentFactoryArgs factoryArgs =
+                    new AttributeComponentFactoryArgs(FactoryDomain);
+                return CreateEmpty<TData>(factoryArgs);
             }
 
             public AttributeComponent<TData> CreateNonFictional(
                 IEnumerable<TData> values)
             {
-                OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
-                    new OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(FactoryDomain, values);
-                return CreateNonFictional(factoryArgs);
+                OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
+                    OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(FactoryDomain, null, values);
+                return CreateNonFictional<TData>(factoryArgs);
             }
 
             public FullAttributeComponent<TData> CreateFull()
             {
-                AttributeComponentFactoryArgs<TData> factoryArgs = 
-                    new AttributeComponentFactoryArgs<TData>(FactoryDomain);
-                return CreateFull(factoryArgs);
+                AttributeComponentFactoryArgs factoryArgs = 
+                    new AttributeComponentFactoryArgs(FactoryDomain);
+                return CreateFull<TData>(factoryArgs);
             }
         }
 

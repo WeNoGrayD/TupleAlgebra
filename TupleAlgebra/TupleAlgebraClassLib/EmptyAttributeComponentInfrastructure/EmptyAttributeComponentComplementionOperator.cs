@@ -14,8 +14,8 @@ namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
     {
         public AttributeComponent<TData> Accept(EmptyAttributeComponent<TData> first)
         {
-            return FullAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull
-                (new AttributeComponentFactoryArgs<TData>(first.Domain));
+            return FullAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull<TData>
+                (new AttributeComponentFactoryArgs(first.Domain));
         }
     }
 }

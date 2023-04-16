@@ -16,7 +16,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         public AttributeComponent<TData> Accept(
             PredicateBasedDecidableNonFictionalAttributeComponent<TData> first,
             PredicateBasedDecidableNonFictionalAttributeComponent<TData> second,
-            AttributeComponentFactory<TData> factory)
+            AttributeComponentFactory factory)
         {
             IEnumerable<Expression<Predicate<TData>>> exprs1 = first.Rules.Cast<Expression<Predicate<TData>>>(),
                                                        exprs2 = second.Rules.Cast<Expression<Predicate<TData>>>();

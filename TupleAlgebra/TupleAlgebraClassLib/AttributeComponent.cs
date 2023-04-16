@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using System.Linq.Expressions;
-using TupleAlgebraClassLib.LINQ2TAFramework;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
@@ -22,7 +21,8 @@ namespace TupleAlgebraClassLib
     public abstract class AttributeComponent<TData>
         : IEnumerable<TData>, 
           IQueryable<TData>, 
-          IReproducingQueryable<TData>
+          IReproducingQueryable<TData>,
+          IReproducingQueryable<AttributeComponentFactoryArgs, TData>
     {
         public virtual Expression Expression { get; protected set; }
 
@@ -41,8 +41,8 @@ namespace TupleAlgebraClassLib
 
         private static Dictionary<AttributeComponentContentType, InstantSetOperationExecutersContainer<TData>> _setOperations;
 
-        public static readonly AttributeComponentFactory<TData> FictionalAttributeComponentFactory
-            = new AttributeComponentFactory<TData>();
+        public static readonly AttributeComponentFactory FictionalAttributeComponentFactory
+            = new AttributeComponentFactory();
 
         #region Constructors
 
@@ -87,33 +87,41 @@ namespace TupleAlgebraClassLib
 
         #region Instance methods
 
-        public virtual AttributeComponentFactoryArgs<TData> ZipInfo(
+        public virtual AttributeComponentFactoryArgs ZipInfo(
             IEnumerable<TData> populatingData)
         {
-            return new AttributeComponentFactoryArgs<TData>(
+            return new AttributeComponentFactoryArgs(
                 this.Domain, 
-                this.Provider as QueryProvider);
+                this.Provider);
         }
 
         protected abstract AttributeComponent<TData> ReproduceImpl(
-            AttributeComponentFactoryArgs<TData> factoryArgs);
+            AttributeComponentFactoryArgs factoryArgs);
 
-        public AttributeComponent<TReproducedData> Reproduce<TReproducedData>(
-            AttributeComponentFactoryArgs<TReproducedData> factoryArgs)
+        /*
+        public IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
+            AttributeComponentFactoryArgs factoryArgs)
         {
-            return ReproduceImpl(factoryArgs as AttributeComponentFactoryArgs<TData>)
-                as AttributeComponent<TReproducedData>;
+            return ReproduceImpl<TReproducedData>(factoryArgs);
+        }
+        */
+        public IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
+            AttributeComponentFactoryArgs factoryArgs)
+        {
+            return ReproduceImpl(factoryArgs) as IReproducingQueryable<TReproducedData>;
         }
 
         public IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
             IEnumerable<TReproducedData> reproducedData)
         {
+            /*
             if (typeof(TData) != typeof(TReproducedData))
             {
                 throw new ArgumentException($"Тип {this.GetType()} не может воспроизводить " +
                     $"компоненты атрибутов, чей тип данных отличается от типа данных {this.GetType()}.\n" +
                     $"Тип данных воспроизводимой компоненты атрибута: {typeof(TReproducedData)}.");
             }
+            */
 
             return ReproduceImpl(ZipInfo(reproducedData as IEnumerable<TData>))
                 as IReproducingQueryable<TReproducedData>;

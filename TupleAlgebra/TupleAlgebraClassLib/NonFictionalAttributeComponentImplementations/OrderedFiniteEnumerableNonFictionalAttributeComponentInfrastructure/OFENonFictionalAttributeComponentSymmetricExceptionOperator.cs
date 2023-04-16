@@ -16,12 +16,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         public AttributeComponent<TData> Accept(
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
-            AttributeComponentFactory<TData> factory)
+            AttributeComponentFactory factory)
         {
             IEnumerable<TData> remainedElements = ExceptComponentsElements();
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
-                new OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(first.Domain, remainedElements);
-            AttributeComponent<TData> resultComponent = factory.CreateNonFictional(factoryArgs);
+            AttributeComponentFactoryArgs factoryArgs = first.ZipInfo(remainedElements);
+            AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
             return resultComponent;
 
@@ -31,9 +30,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                     (second.Power as OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>.OrderedFiniteEnumerableNonFictionalAttributeComponentPower).Value;
                 List<TData> remained = new List<TData>(summaryPower);
                 IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
-                                    secondEnumerator = second.GetEnumerator(),
-                                    withLowerBoundEnumerator = firstEnumerator,
-                                    withGreaterBoundEnumerator = secondEnumerator;
+                                   secondEnumerator = second.GetEnumerator(),
+                                   withLowerBoundEnumerator = firstEnumerator,
+                                   withGreaterBoundEnumerator = secondEnumerator;
                 bool isContinuesWithLowerBoundEnumerator = true,
                      isContinuesWithGreaterBoundEnumerator = true;
                 TData firstElement = default(TData), secondElement = default(TData);
@@ -41,6 +40,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
                 ReadComponentsUntilAtLeastOneIsOver();
                 FinishReadingIfAnyComponentRemains();
+                DisposeEnumerators();
 
                 return remained;
 
@@ -71,9 +71,10 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                                     break;
                                 }
                         }
-
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
+
+                    return;
                 }
 
                 void FinishReadingIfAnyComponentRemains()
@@ -84,6 +85,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                             SwapEnumeratorsAndCurrentElements();
                         FinishReadingRemainingComponent();
                     }
+
+                    return;
                 }
 
                 void FinishReadingRemainingComponent()
@@ -94,6 +97,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
                     while (isContinuesWithLowerBoundEnumerator);
+
+                    return;
                 }
 
                 void SwapEnumeratorsAndCurrentElements()
@@ -101,18 +106,32 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                     (withLowerBoundEnumerator, withGreaterBoundEnumerator) =
                         (withGreaterBoundEnumerator, withLowerBoundEnumerator);
                     (firstElement, secondElement) = (secondElement, firstElement);
+
+                    return;
                 }
 
                 void WithLowerBoundEnumeratorMoveNextAndReadCurrent()
                 {
                     if (isContinuesWithLowerBoundEnumerator = withLowerBoundEnumerator.MoveNext())
                         firstElement = withLowerBoundEnumerator.Current;
+
+                    return;
                 }
 
                 void WithGreaterBoundEnumeratorMoveNextAndReadCurrent()
                 {
                     if (isContinuesWithGreaterBoundEnumerator = withGreaterBoundEnumerator.MoveNext())
                         secondElement = withGreaterBoundEnumerator.Current;
+
+                    return;
+                }
+
+                void DisposeEnumerators()
+                {
+                    firstEnumerator.Dispose();
+                    secondEnumerator.Dispose();
+
+                    return;
                 }
             }
         }

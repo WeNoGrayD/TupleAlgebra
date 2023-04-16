@@ -12,7 +12,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
     {
         public DecidableNonFictionalAttributeComponent(
             AttributeDomain<TData> domain, NonFictionalAttributeComponentPower power)
-            : base(domain, power)
+            : base(domain, power, null)
         { }
 
         public abstract bool Decide(TData value);
@@ -94,7 +94,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         private class PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer : FactorySetOperationExecutersContainer<TData>
         {
             public PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer() : base(
-                new PredicateBasedDecidableNonFictionalAttributeComponentFactory<TData>(),
+                new PredicateBasedDecidableNonFictionalAttributeComponentFactory(),
                 new PredicateBasedDecidableNonFictionalAttributeComponentIntersectionOperator<TData>(),
                 new PredicateBasedDecidableNonFictionalAttributeComponentUnionOperator<TData>(),
                 new PredicateBasedDecidableNonFictionalAttributeComponentExceptionOperator<TData>(),

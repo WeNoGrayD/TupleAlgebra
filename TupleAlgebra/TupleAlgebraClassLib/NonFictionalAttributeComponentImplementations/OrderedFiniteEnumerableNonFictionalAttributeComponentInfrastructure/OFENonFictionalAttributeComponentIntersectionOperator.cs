@@ -16,12 +16,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         public AttributeComponent<TData> Accept(
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
-            AttributeComponentFactory<TData> factory)
+            AttributeComponentFactory factory)
         {
             IEnumerable<TData> intersectedElements = IntersectComponentsElements();
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
-                new OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(first.Domain, intersectedElements);
-            AttributeComponent<TData> resultComponent = factory.CreateNonFictional(factoryArgs);
+            AttributeComponentFactoryArgs factoryArgs = first.ZipInfo(intersectedElements);
+            AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
             return resultComponent;
 
@@ -33,15 +32,16 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                         .Value;
                 List<TData> intersected = new List<TData>(minPower);
                 IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
-                                    secondEnumerator = second.GetEnumerator(),
-                                    withLowerBoundEnumerator = firstEnumerator,
-                                    withGreaterBoundEnumerator = secondEnumerator;
+                                   secondEnumerator = second.GetEnumerator(),
+                                   withLowerBoundEnumerator = firstEnumerator,
+                                   withGreaterBoundEnumerator = secondEnumerator;
                 bool isContinuesWithLowerBoundEnumerator = true,
                      isContinuesWithGreaterBoundEnumerator = true;
                 TData firstElement = default(TData), secondElement = default(TData);
                 int elementsComparisonResult;
 
                 ReadComponentsUntilAtLeastOneIsOver();
+                DisposeEnumerators();
 
                 return intersected;
 
@@ -68,9 +68,10 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                                     break;
                                 }
                         }
-
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
+
+                    return;
                 }
 
                 void SwapEnumeratorsAndCurrentElements()
@@ -78,18 +79,32 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                     (withLowerBoundEnumerator, withGreaterBoundEnumerator) =
                         (withGreaterBoundEnumerator, withLowerBoundEnumerator);
                     (firstElement, secondElement) = (secondElement, firstElement);
+
+                    return;
                 }
 
                 void WithLowerBoundEnumeratorMoveNextAndReadCurrent()
                 {
                     if (isContinuesWithLowerBoundEnumerator = withLowerBoundEnumerator.MoveNext())
                         firstElement = withLowerBoundEnumerator.Current;
+
+                    return;
                 }
 
                 void WithGreaterBoundEnumeratorMoveNextAndReadCurrent()
                 {
                     if (isContinuesWithGreaterBoundEnumerator = withGreaterBoundEnumerator.MoveNext())
                         secondElement = withGreaterBoundEnumerator.Current;
+
+                    return;
+                }
+
+                void DisposeEnumerators()
+                {
+                    firstEnumerator.Dispose();
+                    secondEnumerator.Dispose();
+
+                    return;
                 }
             }
         }

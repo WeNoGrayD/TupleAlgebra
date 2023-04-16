@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LINQProvider\LINQProvider.csproj" />
     <ProjectReference Include="..\TupleAlgebraClassLib\TupleAlgebraClassLib.csproj" />
   </ItemGroup>
 

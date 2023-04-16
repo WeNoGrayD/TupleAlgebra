@@ -19,6 +19,6 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
         TOperationResult Accept(
             TOperand1 first,
             TOperand2 second,
-            AttributeComponentFactory<TData> factory);
+            AttributeComponentFactory factory);
     }
 }

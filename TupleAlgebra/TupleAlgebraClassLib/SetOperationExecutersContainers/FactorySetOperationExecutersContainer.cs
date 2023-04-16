@@ -10,7 +10,7 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
 {
     public abstract class FactorySetOperationExecutersContainer<TData> : SetOperationExecutersContainer<TData>
     {
-        protected AttributeComponentFactory<TData> _componentFactory;
+        protected AttributeComponentFactory _componentFactory;
 
         protected FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _intersectionOperator;
         protected FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _unionOperator;
@@ -18,7 +18,7 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
         protected FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _symmetricExceptionOperator;
 
         public FactorySetOperationExecutersContainer(
-            AttributeComponentFactory<TData> componentFactory,
+            AttributeComponentFactory componentFactory,
             FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> intersectionOperator,
             FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> unionOperator,
             FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> differenceOperator,
@@ -39,9 +39,10 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
         }
 
         public AttributeComponent<TQueryResult> ProduceNonFictionalAttributeComponent<TQueryResult>(
-            AttributeComponentFactoryArgs<TQueryResult> factoryArgs)
+            AttributeComponentFactoryArgs factoryArgs)
         {
-            return AttributeComponentGeneralFactory.CreateNonFictional(_componentFactory.GetType(), factoryArgs);
+            //return AttributeComponentGeneralFactory.CreateNonFictional(_componentFactory.GetType(), factoryArgs);
+            return _componentFactory.CreateNonFictional<TQueryResult>(factoryArgs);
         }
 
         public override AttributeComponent<TData> Intersect(AttributeComponent<TData> first, AttributeComponent<TData> second)

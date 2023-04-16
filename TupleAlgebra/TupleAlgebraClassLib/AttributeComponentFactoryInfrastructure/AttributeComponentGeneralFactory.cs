@@ -13,6 +13,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
     /// </summary>
     public static class AttributeComponentGeneralFactory
     {
+        /*
         /// <summary>
         /// 
         /// </summary>
@@ -24,10 +25,18 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             Type factoryType, 
             AttributeComponentFactoryArgs<TData> factoryArgs)
         {
-            AttributeComponentFactory<TData> componentFactory = 
-                factoryType.GetConstructor(new Type[0]).Invoke(null) as AttributeComponentFactory<TData>;
+            //AttributeComponentFactory componentFactory = 
+            //    factoryType.GetConstructor(new Type[0]).Invoke(null) as AttributeComponentFactory<TData>;
 
             return componentFactory.CreateNonFictional(factoryArgs);
         }
+
+        public static AttributeComponent<TData> CreateNonFictional<TData>(
+            AttributeComponentFactory factory,
+            AttributeComponentFactoryArgs factoryArgs)
+        {
+            return factory.CreateNonFictional(factoryArgs);
+        }
+        */
     }
 }

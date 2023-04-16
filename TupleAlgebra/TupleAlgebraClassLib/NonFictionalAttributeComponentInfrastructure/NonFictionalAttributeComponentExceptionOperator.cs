@@ -29,8 +29,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
             NonFictionalAttributeComponent<TData> first,
             FullAttributeComponent<TData> second)
         {
-            return EmptyAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateEmpty
-                (new AttributeComponentFactoryArgs<TData>(first.Domain));
+            return EmptyAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateEmpty<TData>
+                (new AttributeComponentFactoryArgs(first.Domain));
         }
     }
 }

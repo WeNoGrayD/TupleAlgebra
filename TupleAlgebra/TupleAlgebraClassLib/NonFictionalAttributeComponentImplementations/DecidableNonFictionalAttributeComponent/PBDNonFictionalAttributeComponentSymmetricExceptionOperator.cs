@@ -16,7 +16,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         public AttributeComponent<TData> Accept(
             PredicateBasedDecidableNonFictionalAttributeComponent<TData> first,
             PredicateBasedDecidableNonFictionalAttributeComponent<TData> second,
-            AttributeComponentFactory<TData> factory)
+            AttributeComponentFactory factory)
         {
             return null;
         }

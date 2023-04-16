@@ -10,6 +10,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using System.Reflection;
+using LINQProvider;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable
 {
@@ -19,13 +20,12 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
     public class OrderedFiniteEnumerableAttributeComponentQueryProvider
         : AttributeComponentQueryProvider
     {
-        #region Instance fields
+        #region Instance methods
 
-        private QueryContext _queryContext = new OrderedFiniteEnumerableAttributeComponentQueryContext();
-
-        #endregion
-
-        protected override QueryContext QueryContext { get => _queryContext; }
+        protected override QueryContext CreateQueryContext()
+        {
+            return new OrderedFiniteEnumerableAttributeComponentQueryContext();
+        }
 
         protected override QueryPipelineExecutor CreateQueryPipelineExecutor(
             IEnumerable dataSource,
@@ -33,5 +33,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
         {
             return new OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor(dataSource, firstQueryExecutor);
         }
+
+        #endregion
     }
 }

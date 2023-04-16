@@ -16,4 +16,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LINQProvider\LINQProvider.csproj" />
+  </ItemGroup>
 </Project>

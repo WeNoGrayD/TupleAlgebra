@@ -15,10 +15,12 @@ namespace TupleAlgebraTests
     {
         protected IEnumerable<TData> CreateAttributeComponent<TData>(
             AttributeDomain<TData> domain,
-            Dictionary<string, object> constructorParameters) =>
-            new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(
-                domain, 
+            Dictionary<string, object> constructorParameters)
+        {
+            return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(
+                domain,
                 constructorParameters["values"] as IEnumerable<TData>);
+        }
 
         [TestMethod]
         public void SelectQuery()

@@ -8,15 +8,17 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableAttributeComponentFactory<TData>
-        : AttributeComponentFactory<TData>,
-          INonFictionalAttributeComponentFactory<TData, OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+    public class OrderedFiniteEnumerableAttributeComponentFactory
+        : AttributeComponentFactory,
+          INonFictionalAttributeComponentFactory<OrderedFiniteEnumerableAttributeComponentFactoryArgs>
     {
-        public NonFictionalAttributeComponent<TData> CreateSpecificNonFictional(OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> args)
+        public NonFictionalAttributeComponent<TData> CreateSpecificNonFictional<TData>(
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs args)
         {
             return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(
-                args.Domain, 
-                args.Values, 
+                args.Domain as AttributeDomain<TData>, 
+                args.Values as IEnumerable<TData>,
+                args.OrderingComparer as IComparer<TData>,
                 args.QueryProvider, 
                 args.QueryExpression);
         }

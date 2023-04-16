@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,18 +13,38 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> : AttributeComponentFactoryArgs<TData>
+    public class OrderedFiniteEnumerableAttributeComponentFactoryArgs
+        : AttributeComponentFactoryArgs
     {
-        public IEnumerable<TData> Values { get; private set; }
+        public IEnumerable Values { get; private set; }
 
-        public OrderedFiniteEnumerableAttributeComponentFactoryArgs(
-            AttributeDomain<TData> domain,
-            IEnumerable<TData> values = null,
+        public object OrderingComparer { get; private set; }
+
+        private OrderedFiniteEnumerableAttributeComponentFactoryArgs(
+            object domain,
+            object orderingComparer,
+            IEnumerable values = null,
             OrderedFiniteEnumerableAttributeComponentQueryProvider queryProvider = null,
             Expression queryExpression = null)
             : base(domain, queryProvider, queryExpression)
         {
             Values = values;
+            OrderingComparer = orderingComparer;
+        }
+
+        public static OrderedFiniteEnumerableAttributeComponentFactoryArgs Construct<TData>(
+            AttributeDomain<TData> domain,
+            IComparer<TData> orderingComparer,
+            IEnumerable<TData> values = null,
+            OrderedFiniteEnumerableAttributeComponentQueryProvider queryProvider = null,
+            Expression queryExpression = null)
+        {
+            return new OrderedFiniteEnumerableAttributeComponentFactoryArgs(
+                domain, 
+                orderingComparer,
+                values, 
+                queryProvider,
+                queryExpression);
         }
     }
 }
