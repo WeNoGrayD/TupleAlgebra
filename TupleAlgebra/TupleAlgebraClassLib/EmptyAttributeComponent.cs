@@ -26,10 +26,9 @@ namespace TupleAlgebraClassLib
         }
 
         public EmptyAttributeComponent(
-            AttributeDomain<TData> domain,
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(domain, new EmptyAttributeComponentPower(), queryProvider, queryExpression)
+            : base(new EmptyAttributeComponentPower(), queryProvider, queryExpression)
         { }
 
         public override IEnumerator<TData> GetEnumeratorImpl()
@@ -39,11 +38,10 @@ namespace TupleAlgebraClassLib
 
         #region Instance methods
 
-        protected override AttributeComponent<TData> ReproduceImpl(
+        protected override AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return new EmptyAttributeComponent<TData>(
-                factoryArgs.Domain as AttributeDomain<TData>,
+            return new EmptyAttributeComponent<TReproducedData>(
                 factoryArgs.QueryProvider,
                 factoryArgs.QueryExpression);
         }

@@ -11,27 +11,27 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         where TAttributeComponent : OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, new()
     {
         public OrderedFiniteEnumerableAttributeDomain(IEnumerable<TData> universum)
-            : base(BuildUniversum(universum, out _setDomainCallback))
+            : base(BuildUniversum(universum))
         {
-            _setDomainCallback(this);
-            _setDomainCallback = null;
+            return;
         }
 
         protected static OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> BuildUniversum(
-            IEnumerable<TData> universum, out Action<AttributeDomain<TData>> setDomainCallback)
+            IEnumerable<TData> universum)
         {
             TAttributeComponent universumComponent = new TAttributeComponent();
-            universumComponent.GetSettingDomainCallback(out setDomainCallback);
             universumComponent.InitValues(universum);
 
             return universumComponent;
         }
 
+        /*
         public override IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
             IEnumerable<TReproducedData> reproducedData)
         {
             return new OrderedFiniteEnumerableAttributeDomain<TReproducedData>(reproducedData);
         }
+        */
     }
 
     public class OrderedFiniteEnumerableAttributeDomain<TData> 

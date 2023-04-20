@@ -39,7 +39,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             if (queryExpression != new AttributeComponentQueryInspector().Inspect(queryExpression))
                 return queryableAC;
 
-            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo(null);
+            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo<TData>(null);
             factoryArgs.QueryExpression = queryExpression;
 
             return queryableAC.Reproduce<TData>(factoryArgs);
@@ -112,6 +112,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             /// </summary>
             /// <param name="selectExpression"></param>
             /// <exception cref="InvalidOperationException"></exception>
+            /*
             protected override void CheckSelectQueryOnAcceptability(MethodCallExpression selectExpression)
             {
                 if (selectExpression.Arguments[1].NodeType != ExpressionType.Quote)
@@ -120,6 +121,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
                         "выражение вида AttributeComponent.Select может содержать только" +
                         "проекцию вида { (el) => el }.");
             }
+            */
 
             #endregion
         }

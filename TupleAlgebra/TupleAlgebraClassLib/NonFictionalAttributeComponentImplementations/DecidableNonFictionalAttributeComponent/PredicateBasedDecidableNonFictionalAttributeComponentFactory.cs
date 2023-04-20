@@ -13,7 +13,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
     {
         public NonFictionalAttributeComponent<TData> CreateSpecificNonFictional<TData>(PredicateBasedDecidableNonFictionalAttributeComponentFactoryArgs args)
         {
-            return new PredicateBasedDecidableNonFictionalAttributeComponent<TData>(args.Domain as AttributeDomain<TData>, null);
+            return new PredicateBasedDecidableNonFictionalAttributeComponent<TData>(null);
         }
     }
 }

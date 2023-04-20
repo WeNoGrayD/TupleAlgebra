@@ -22,10 +22,8 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
             return;
         }
 
-        public EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
-            EnumBasedOrderedFiniteEnumerableAttributeDomain<TData> domain,
-            IEnumerable<TData> values)
-            : base(domain, values)
+        public EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(IEnumerable<TData> values)
+            : base(values)
         {
             return;
         }

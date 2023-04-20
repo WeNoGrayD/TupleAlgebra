@@ -7,11 +7,11 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
-    public abstract class CrossContentTypesFactoryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
+    public abstract class CrossContentTypesFactoryBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
         : FactoryBinaryAttributeComponentAcceptor<TData, TOperationResult>,
-          IFactoryAttributeComponentAcceptor<TData, TOperand1, EmptyAttributeComponent<TData>, TOperationResult>,
-          IFactoryAttributeComponentAcceptor<TData, TOperand1, NonFictionalAttributeComponent<TData>, TOperationResult>,
-          IFactoryAttributeComponentAcceptor<TData, TOperand1, FullAttributeComponent<TData>, TOperationResult>
+          IFactoryBinaryAttributeComponentAcceptor<TData, TOperand1, EmptyAttributeComponent<TData>, TOperationResult>,
+          IFactoryBinaryAttributeComponentAcceptor<TData, TOperand1, NonFictionalAttributeComponent<TData>, TOperationResult>,
+          IFactoryBinaryAttributeComponentAcceptor<TData, TOperand1, FullAttributeComponent<TData>, TOperationResult>
         where TOperand1 : AttributeComponent<TData>
     {
         public abstract TOperationResult Accept(

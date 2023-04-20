@@ -12,5 +12,15 @@ namespace TupleAlgebraClassLib
         public ConjunctiveAlgebraicTuple(Action<AlgebraicTupleBuilder<TEntity>> onTupleBuilding)
             : base(onTupleBuilding)
         { }
+
+        public override AlgebraicTuple<TEntity> Convert(AlgebraicTuple<TEntity> diagonal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override AlgebraicTuple<TEntity> Diagonal()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

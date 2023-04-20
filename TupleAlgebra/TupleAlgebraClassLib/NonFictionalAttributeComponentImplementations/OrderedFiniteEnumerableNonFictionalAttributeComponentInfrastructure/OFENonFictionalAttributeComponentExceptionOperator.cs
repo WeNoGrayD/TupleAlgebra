@@ -11,7 +11,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 {
     public sealed class OrderedFiniteEnumerableNonFictionalAttributeComponentExceptionOperator<TData>
         : FactoryBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>,
-          IFactoryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+          IFactoryBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
@@ -19,7 +19,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             AttributeComponentFactory factory)
         {
             IEnumerable<TData> remainedElements = ExceptComponentsElements();
-            AttributeComponentFactoryArgs factoryArgs = first.ZipInfo(remainedElements);
+            AttributeComponentFactoryArgs factoryArgs = first.ZipInfo(remainedElements, true);
             AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
             return resultComponent;

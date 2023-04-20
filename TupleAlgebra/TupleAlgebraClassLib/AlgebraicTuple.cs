@@ -48,6 +48,8 @@ namespace TupleAlgebraClassLib
             Schema = _builder.Schema;
         }
 
+        #region InstanceMethods
+
         void ProcessDomain<TDomainEntity>(string attributeName, AttributeDomain<TDomainEntity> attribute)
             where TDomainEntity : IComparable<TDomainEntity>
         {
@@ -66,6 +68,39 @@ namespace TupleAlgebraClassLib
         {
             first.Schema.GeneralizeWith(second.Schema);
         }
+
+        public abstract AlgebraicTuple<TEntity> Diagonal();
+
+        public AlgebraicTuple<TEntity> ComplementThe()
+        {
+            return null;
+        }
+
+        public AlgebraicTuple<TEntity> IntersectWith(AlgebraicTuple<TEntity> second)
+        {
+            return null;
+        }
+
+        public AlgebraicTuple<TEntity> UnionWith(AlgebraicTuple<TEntity> second)
+        {
+            return null;
+        }
+
+        public AlgebraicTuple<TEntity> ExceptWith(AlgebraicTuple<TEntity> second)
+        {
+            return null;
+        }
+
+        public AlgebraicTuple<TEntity> SymmetricExceptWith(AlgebraicTuple<TEntity> second)
+        {
+            return null;
+        }
+
+        public abstract AlgebraicTuple<TEntity> Convert(AlgebraicTuple<TEntity> diagonal);
+
+        #endregion
+
+        #region Operators
 
         /// <summary>
         /// Оператор присоединения атрибута с заданным именем к схеме кортежа.
@@ -88,5 +123,40 @@ namespace TupleAlgebraClassLib
         {
             return tuple.Schema - attributeName;
         }
+
+        public static AlgebraicTuple<TEntity> operator !(AlgebraicTuple<TEntity> first)
+        {
+            return first.ComplementThe();
+        }
+
+        public static AlgebraicTuple<TEntity> operator &(
+            AlgebraicTuple<TEntity> first,
+            AlgebraicTuple<TEntity> second)
+        {
+            return first.IntersectWith(second);
+        }
+
+        public static AlgebraicTuple<TEntity> operator |(
+            AlgebraicTuple<TEntity> first,
+            AlgebraicTuple<TEntity> second)
+        {
+            return first.UnionWith(second);
+        }
+
+        public static AlgebraicTuple<TEntity> operator /(
+            AlgebraicTuple<TEntity> first,
+            AlgebraicTuple<TEntity> second)
+        {
+            return first.ExceptWith(second);
+        }
+
+        public static AlgebraicTuple<TEntity> operator ^(
+            AlgebraicTuple<TEntity> first,
+            AlgebraicTuple<TEntity> second)
+        {
+            return first.SymmetricExceptWith(second);
+        }
+
+        #endregion
     }
 }

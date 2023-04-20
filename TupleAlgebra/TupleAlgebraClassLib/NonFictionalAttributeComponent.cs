@@ -17,7 +17,8 @@ namespace TupleAlgebraClassLib
     /// Тип непустой компоненты атрибута.
     /// </summary>
     /// <typeparam name="TData"></typeparam>
-    public abstract class NonFictionalAttributeComponent<TData> : AttributeComponent<TData>, IQueryable<TData>
+    public abstract class NonFictionalAttributeComponent<TData> 
+        : AttributeComponent<TData>, IQueryable<TData>
     {
         #region Constants
 
@@ -79,30 +80,12 @@ namespace TupleAlgebraClassLib
         /// <param name="queryExpression"></param>
         /// <param name="queryProvider"></param>
         public NonFictionalAttributeComponent(
-            AttributeDomain<TData> domain,
             NonFictionalAttributeComponentPower power,
-            IQueryProvider queryProvider,
-            Expression queryExpression = null)
-            : base(domain, power, queryProvider, queryExpression)
-        {
-            return;
-        }
-
-        /// <summary>
-        /// Конструктор экземпляра.
-        /// </summary>
-        /// <param name="power"></param>
-        /// <param name="setDomainCallback"></param>
-        /// <param name="queryExpression"></param>
-        /// <param name="queryProvider"></param>
-        public NonFictionalAttributeComponent(
-            NonFictionalAttributeComponentPower power,
-            out Action<AttributeDomain<TData>> setDomainCallback,
             IQueryProvider queryProvider,
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {
-            GetSettingDomainCallback(out setDomainCallback);
+            return;
         }
 
         #endregion
@@ -125,33 +108,30 @@ namespace TupleAlgebraClassLib
 
         #region Instance methods
 
-        public void GetSettingDomainCallback(out Action<AttributeDomain<TData>> setDomainCallback)
-        {
-            setDomainCallback = (domain) => Domain = domain;
-        }
-
-        protected override sealed AttributeComponent<TData> ReproduceImpl(
+        protected override sealed AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
             return _nonFictionalSpecificSetOperations[NatureType]
-                .ProduceNonFictionalAttributeComponent<TData>(factoryArgs);
+                .ProduceNonFictionalAttributeComponent<TReproducedData>(factoryArgs);
         }
 
-        #endregion
-
-        #region  Abstract instance methods
-
         /// <summary>
-        /// Проверка нефиктивной компоненты на пустоту.
+        /// Проверка компоненты на пустоту.
         /// </summary>
         /// <returns></returns>
-        public abstract bool IsEmpty();
+        public virtual bool IsEmpty()
+        {
+            return this.Power.IsZero();
+        }
 
         /// <summary>
-        /// Проверка нефиктивной компоненты на полноту.
+        /// Проверка компоненты на полноту.
         /// </summary>
         /// <returns></returns>
-        public abstract bool IsFull();
+        public virtual bool IsFull()
+        {
+            return this.Domain == this;
+        }
 
         #endregion
 

@@ -16,7 +16,6 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
             OrderedFiniteEnumerableAttributeComponentFactoryArgs args)
         {
             return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(
-                args.Domain as AttributeDomain<TData>, 
                 args.Values as IEnumerable<TData>,
                 args.OrderingComparer as IComparer<TData>,
                 args.QueryProvider, 

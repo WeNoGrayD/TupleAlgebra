@@ -71,8 +71,9 @@ namespace TupleAlgebraTests
         {
             DomainOfDataWithKnownHashCode domain = new DomainOfDataWithKnownHashCode();
 
-            AttributeComponent<DataWithKnownHashCode> query =
-                domain.Select(x => new DataWithKnownHashCode(x.GetHashCode() * x.GetHashCode()))     
+            var queryTemp = domain.Select(x => new DataWithKnownHashCode(x.GetHashCode() * x.GetHashCode()));
+            AttributeComponent<DataWithKnownHashCode> query = queryTemp
+                .Provider.Execute<IEnumerable<DataWithKnownHashCode>>(queryTemp.Expression)     
                 as AttributeComponent<DataWithKnownHashCode>;
 
             int hc1 = query.First().GetHashCode(), hc2;

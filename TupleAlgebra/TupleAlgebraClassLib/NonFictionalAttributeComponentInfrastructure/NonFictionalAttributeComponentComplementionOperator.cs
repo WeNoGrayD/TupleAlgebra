@@ -9,7 +9,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
     public sealed class NonFictionalAttributeComponentComplementionOperator<TData>
         : InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>,
-          IInstantAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+          IInstantUnaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(NonFictionalAttributeComponent<TData> first)
         {

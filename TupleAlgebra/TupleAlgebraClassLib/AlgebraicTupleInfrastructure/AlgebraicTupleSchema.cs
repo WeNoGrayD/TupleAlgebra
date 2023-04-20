@@ -50,7 +50,7 @@ namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
         public void AddAttribute<TDomainEntity>(
             string attributeName, AttributeDomain<TDomainEntity> attribute = null)
         {
-            AttributeInfo attributeInfo = AttributeInfo.Construct(!(attribute is null), attribute);
+            AttributeInfo attributeInfo = AttributeInfo.Construct(attribute is not null, attribute);
             _attributes.Add(attributeName, attributeInfo);
         }
 
@@ -73,8 +73,29 @@ namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
             foreach (string attributeName in _attributes.Keys)
             {
                 (attributeInfo1, attributeInfo2) = (this[attributeName], second[attributeName]);
-                if (attributeInfo1 != attributeInfo2)
-                    (this[attributeName], second[attributeName]) = (attributeInfo1.PlugIn(), attributeInfo2.PlugIn());
+                switch ((attributeInfo1.IsPlugged, attributeInfo2.IsPlugged))
+                {
+                    case (false, false):
+                        {
+                            break;
+                        }
+                    case (false, true):
+                        {
+                            this[attributeName] = attributeInfo1.PlugIn();
+
+                            break;
+                        }
+                    case (true, false):
+                        {
+                            second[attributeName] = attributeInfo2.PlugIn();
+
+                            break;
+                        }
+                    case (true, true):
+                        {
+                            break;
+                        }
+                }
             }
         }
 

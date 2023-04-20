@@ -30,19 +30,35 @@ namespace TupleAlgebraClassLib
 
         public virtual IQueryProvider Provider { get; protected set; }
 
-        /// <summary>
-        /// Домен атрибута.
-        /// </summary>
-        public AttributeDomain<TData> Domain { get; protected set; }
-
         public AttributeComponentPower Power { get; private set; }
 
         protected abstract AttributeComponentContentType ContentType { get; }
+
+        public AttributeDomain<TData> Domain { get => _getDomain(); }
 
         private static Dictionary<AttributeComponentContentType, InstantSetOperationExecutersContainer<TData>> _setOperations;
 
         public static readonly AttributeComponentFactory FictionalAttributeComponentFactory
             = new AttributeComponentFactory();
+
+        private event Func<AttributeDomain<TData>> _getDomain;
+
+        public event Func<AttributeDomain<TData>> GetDomain
+        {
+            add
+            {
+                if (_getDomain is null)
+                    _getDomain += value;
+                else
+                {
+                    throw new InvalidOperationException("К событию получения домента атрибута нельзя подключить больше одного обработчика.");
+                }
+            }
+            remove
+            {
+                throw new InvalidOperationException("От события получения домента атрибута нельзя отключить обработчик.");
+            }
+        }
 
         #region Constructors
 
@@ -69,33 +85,31 @@ namespace TupleAlgebraClassLib
             Expression = queryExpression ?? Expression.Constant(this);
         }
 
-        /// <summary>
-        /// Конструктор.
-        /// </summary>
-        /// <param name="power"></param>
-        public AttributeComponent(
-            AttributeDomain<TData> domain,
-            AttributeComponentPower power,
-            IQueryProvider queryProvider,
-            Expression queryExpression)
-            : this(power, queryProvider, queryExpression)
-        {
-            Domain = domain;
-        }
-
         #endregion
 
         #region Instance methods
 
-        public virtual AttributeComponentFactoryArgs ZipInfo(
-            IEnumerable<TData> populatingData)
+        public AttributeComponentFactoryArgs ZipInfo<TReproducedData>(
+            IEnumerable<TReproducedData> populatingData,
+            bool includeDomain = false)
         {
-            return new AttributeComponentFactoryArgs(
-                this.Domain, 
-                this.Provider);
+            AttributeComponentFactoryArgs factoryArgs = ZipInfoImpl(populatingData);
+            if (includeDomain) IncludeDomain(factoryArgs);
+
+            return factoryArgs; 
         }
 
-        protected abstract AttributeComponent<TData> ReproduceImpl(
+        public virtual AttributeComponentFactoryArgs ZipInfoImpl<TReproducedData>(IEnumerable<TReproducedData> populatingData)
+        {
+            return new AttributeComponentFactoryArgs();
+        }
+
+        public void IncludeDomain(AttributeComponentFactoryArgs factoryArgs)
+        {
+            factoryArgs.SetAttributeDomainGetter(_getDomain.GetInvocationList()[0] as Func<AttributeDomain<TData>>);
+        }
+
+        protected abstract AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs);
 
         /*
@@ -108,7 +122,7 @@ namespace TupleAlgebraClassLib
         public IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return ReproduceImpl(factoryArgs) as IReproducingQueryable<TReproducedData>;
+            return ReproduceImpl<TReproducedData>(factoryArgs);// as IReproducingQueryable<TReproducedData>;
         }
 
         public IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
@@ -123,8 +137,8 @@ namespace TupleAlgebraClassLib
             }
             */
 
-            return ReproduceImpl(ZipInfo(reproducedData as IEnumerable<TData>))
-                as IReproducingQueryable<TReproducedData>;
+            return ReproduceImpl<TReproducedData>(ZipInfo(reproducedData));// as IEnumerable<TData>))
+                //as IReproducingQueryable<TReproducedData>;
         }
 
         #endregion

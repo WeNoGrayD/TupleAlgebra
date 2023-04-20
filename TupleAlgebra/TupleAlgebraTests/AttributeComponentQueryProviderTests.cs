@@ -18,7 +18,6 @@ namespace TupleAlgebraTests
             Dictionary<string, object> constructorParameters)
         {
             return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(
-                domain,
                 constructorParameters["values"] as IEnumerable<TData>);
         }
 

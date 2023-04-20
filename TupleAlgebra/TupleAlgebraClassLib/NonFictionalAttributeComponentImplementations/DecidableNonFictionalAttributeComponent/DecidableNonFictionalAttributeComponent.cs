@@ -10,9 +10,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
 {
     public abstract class DecidableNonFictionalAttributeComponent<TData> : NonFictionalAttributeComponent<TData>
     {
-        public DecidableNonFictionalAttributeComponent(
-            AttributeDomain<TData> domain, NonFictionalAttributeComponentPower power)
-            : base(domain, power, null)
+        public DecidableNonFictionalAttributeComponent(NonFictionalAttributeComponentPower power)
+            : base(power, null)
         { }
 
         public abstract bool Decide(TData value);
@@ -42,7 +41,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
 
         public GeneratingDecidableNonFictionalAttributeComponent(
             DecidableNonFictionalAttributeComponent<TData> slave)
-            : base(slave.Domain, slave.Power as NonFictionalAttributeComponentPower)
+            : base(slave.Power as NonFictionalAttributeComponentPower)
         { }
 
         public override IEnumerator<TData> GetEnumeratorImpl()
@@ -74,9 +73,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         }
 
         public PredicateBasedDecidableNonFictionalAttributeComponent(
-            AttributeDomain<TData> domain,
             IEnumerable<Predicate<TData>> rules)
-            : base(domain, new PredicateBasedDecidableNonFictionalAttributeComponentPower(rules))
+            : base(new PredicateBasedDecidableNonFictionalAttributeComponentPower(rules))
         {
             Rules = rules;
         }

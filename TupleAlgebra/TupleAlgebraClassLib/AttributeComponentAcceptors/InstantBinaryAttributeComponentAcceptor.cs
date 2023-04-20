@@ -7,6 +7,24 @@ using System.Diagnostics;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
+    public abstract class InstantBinaryOperator<TOperand1, TOperand2, TOperationResult>
+    {
+        #region Methods
+
+        public TOperationResult Accept(TOperand1 first, TOperand2 second)
+        {
+            return AcceptImpl((dynamic)first, (dynamic)second);
+        }
+
+        protected TOperationResult AcceptImpl<DTOperand1, DTOperand2>(DTOperand1 first, DTOperand2 second)
+        {
+            var data = (this as IInstantBinaryOperator<DTOperand1, DTOperand2, TOperationResult>).Accept(first, second);
+            return data;
+        }
+
+        #endregion
+    }
+
     /// <summary>
     /// Абстрактный класс для операторов и компараторов, которые способны принимать
     /// две компоненты атрибута, одна из которых типизированная.
@@ -15,6 +33,7 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
     public abstract class InstantBinaryAttributeComponentAcceptor<TData, TOperationResult>
+        : InstantBinaryOperator<AttributeComponent<TData>, AttributeComponent<TData>, TOperationResult>
     {
         #region Methods
 
@@ -26,6 +45,7 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
         /// <param name="second"></param>
         /// <returns></returns>
 
+        /*
         public TOperationResult Accept(
             AttributeComponent<TData> first,
             AttributeComponent<TData> second)
@@ -44,9 +64,10 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
             where TOperand1 : AttributeComponent<TData>
             where TOperand2 : AttributeComponent<TData>
         {
-            var data = (this as IInstantAttributeComponentAcceptor<TData, TOperand1, TOperand2, TOperationResult>).Accept(first, second);
+            var data = (this as IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, TOperand2, TOperationResult>).Accept(first, second);
             return data;
         }
+        */
 
         #endregion
     }

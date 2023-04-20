@@ -9,7 +9,7 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
     public sealed class NonFictionalAttributeComponentExceptionOperator<TData>
-        : CrossContentTypesInstantAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+        : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public override AttributeComponent<TData> Accept(
             NonFictionalAttributeComponent<TData> first,
@@ -29,8 +29,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
             NonFictionalAttributeComponent<TData> first,
             FullAttributeComponent<TData> second)
         {
-            return EmptyAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateEmpty<TData>
-                (new AttributeComponentFactoryArgs(first.Domain));
+            return EmptyAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateEmpty<TData>(new AttributeComponentFactoryArgs());
         }
     }
 }

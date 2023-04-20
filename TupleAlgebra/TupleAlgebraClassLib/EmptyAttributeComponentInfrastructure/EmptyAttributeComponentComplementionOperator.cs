@@ -10,12 +10,11 @@ namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 {
     public sealed class EmptyAttributeComponentComplementionOperator<TData>
         : InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>,
-          IInstantAttributeComponentAcceptor<TData, EmptyAttributeComponent<TData>, AttributeComponent<TData>>
+          IInstantUnaryAttributeComponentAcceptor<TData, EmptyAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(EmptyAttributeComponent<TData> first)
         {
-            return FullAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull<TData>
-                (new AttributeComponentFactoryArgs(first.Domain));
+            return AttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull<TData>(first.ZipInfo<TData>(null));
         }
     }
 }

@@ -13,11 +13,11 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     /// паттерн "приниматель" (название временное).
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
-    public abstract class CrossContentTypesInstantAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
+    public abstract class CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
         : InstantBinaryAttributeComponentAcceptor<TData, TOperationResult>,
-          IInstantAttributeComponentAcceptor<TData, TOperand1, EmptyAttributeComponent<TData>, TOperationResult>,
-          IInstantAttributeComponentAcceptor<TData, TOperand1, NonFictionalAttributeComponent<TData>, TOperationResult>,
-          IInstantAttributeComponentAcceptor<TData, TOperand1, FullAttributeComponent<TData>, TOperationResult>
+          IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, EmptyAttributeComponent<TData>, TOperationResult>,
+          IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, NonFictionalAttributeComponent<TData>, TOperationResult>,
+          IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, FullAttributeComponent<TData>, TOperationResult>
         where TOperand1 : AttributeComponent<TData>
     {
         public abstract TOperationResult Accept(

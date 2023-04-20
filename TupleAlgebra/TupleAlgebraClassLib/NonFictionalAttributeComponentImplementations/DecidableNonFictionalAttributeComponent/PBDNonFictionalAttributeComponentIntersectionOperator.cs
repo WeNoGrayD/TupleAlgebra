@@ -11,7 +11,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
 {
     public class PredicateBasedDecidableNonFictionalAttributeComponentIntersectionOperator<TData>
         : FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>,
-          IFactoryAttributeComponentAcceptor<TData, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+          IFactoryBinaryAttributeComponentAcceptor<TData, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(
             PredicateBasedDecidableNonFictionalAttributeComponent<TData> first,

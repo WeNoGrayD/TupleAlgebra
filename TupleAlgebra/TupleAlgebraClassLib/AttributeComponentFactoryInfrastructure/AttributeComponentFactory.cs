@@ -18,9 +18,12 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         public virtual EmptyAttributeComponent<TData> CreateEmpty<TData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return new EmptyAttributeComponent<TData>(
-                factoryArgs.Domain as AttributeDomain<TData>,
-                queryExpression: factoryArgs.QueryExpression);
+            EmptyAttributeComponent<TData> empty = 
+                new EmptyAttributeComponent<TData>(factoryArgs.QueryProvider, factoryArgs.QueryExpression);
+            if (factoryArgs.DomainGetter is not null)
+                empty.GetDomain += factoryArgs.DomainGetter as Func<AttributeDomain<TData>>;
+
+            return empty;
         }
 
         /// <summary>
@@ -37,12 +40,15 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
              * является более простой, чем проверка на полноту.
              */
             NonFictionalAttributeComponent<TData> nonFictional =  CreateSpecificNonFictional();
-            if (nonFictional.IsEmpty())
-                return CreateEmpty<TData>(factoryArgs);
-            else if (nonFictional.IsFull())
-                return CreateFull<TData>(factoryArgs);
-            else
-                return nonFictional;
+            if (factoryArgs.DomainGetter is not null)
+            {
+                nonFictional.GetDomain += factoryArgs.DomainGetter as Func<AttributeDomain<TData>>;
+                if (nonFictional.IsEmpty())
+                    return CreateEmpty<TData>(factoryArgs);
+                else if (nonFictional.IsFull())
+                    return CreateFull<TData>(factoryArgs);
+            }
+            return nonFictional;
 
             /*
              * Построение и вызов обобщённого метода создания нефиктивной компоненты атрибута
@@ -82,9 +88,12 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         public virtual FullAttributeComponent<TData> CreateFull<TData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return new FullAttributeComponent<TData>(
-                factoryArgs.Domain as AttributeDomain<TData>,
-                queryExpression: factoryArgs.QueryExpression);
+            FullAttributeComponent<TData> full = 
+                new FullAttributeComponent<TData>(factoryArgs.QueryProvider, factoryArgs.QueryExpression);
+            if (factoryArgs.DomainGetter is not null)
+                full.GetDomain += factoryArgs.DomainGetter as Func<AttributeDomain<TData>>;
+
+            return full;
         }
     }
 }

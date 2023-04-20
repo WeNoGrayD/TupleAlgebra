@@ -21,26 +21,23 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
         public object OrderingComparer { get; private set; }
 
         private OrderedFiniteEnumerableAttributeComponentFactoryArgs(
-            object domain,
             object orderingComparer,
             IEnumerable values = null,
             OrderedFiniteEnumerableAttributeComponentQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(domain, queryProvider, queryExpression)
+            : base(queryProvider, queryExpression)
         {
             Values = values;
             OrderingComparer = orderingComparer;
         }
 
         public static OrderedFiniteEnumerableAttributeComponentFactoryArgs Construct<TData>(
-            AttributeDomain<TData> domain,
             IComparer<TData> orderingComparer,
             IEnumerable<TData> values = null,
             OrderedFiniteEnumerableAttributeComponentQueryProvider queryProvider = null,
             Expression queryExpression = null)
         {
             return new OrderedFiniteEnumerableAttributeComponentFactoryArgs(
-                domain, 
                 orderingComparer,
                 values, 
                 queryProvider,

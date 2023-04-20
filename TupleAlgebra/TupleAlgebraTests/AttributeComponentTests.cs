@@ -29,8 +29,8 @@ namespace TupleAlgebraTests
 
             public EmptyAttributeComponent<TData> CreateEmpty()
             {
-                AttributeComponentFactoryArgs factoryArgs =
-                    new AttributeComponentFactoryArgs(FactoryDomain);
+                AttributeComponentFactoryArgs factoryArgs = new AttributeComponentFactoryArgs();
+                factoryArgs.SetAttributeDomainGetter(FactoryDomain.UniversumDomainGetter);
                 return CreateEmpty<TData>(factoryArgs);
             }
 
@@ -38,14 +38,15 @@ namespace TupleAlgebraTests
                 IEnumerable<TData> values)
             {
                 OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
-                    OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(FactoryDomain, null, values);
+                    OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(null, values);
+                factoryArgs.SetAttributeDomainGetter(FactoryDomain.UniversumDomainGetter);
                 return CreateNonFictional<TData>(factoryArgs);
             }
 
             public FullAttributeComponent<TData> CreateFull()
             {
-                AttributeComponentFactoryArgs factoryArgs = 
-                    new AttributeComponentFactoryArgs(FactoryDomain);
+                AttributeComponentFactoryArgs factoryArgs = new AttributeComponentFactoryArgs();
+                factoryArgs.SetAttributeDomainGetter(FactoryDomain.UniversumDomainGetter);
                 return CreateFull<TData>(factoryArgs);
             }
         }

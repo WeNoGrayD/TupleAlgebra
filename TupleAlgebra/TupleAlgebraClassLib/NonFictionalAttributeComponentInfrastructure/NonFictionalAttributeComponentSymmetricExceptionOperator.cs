@@ -8,7 +8,7 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
     public sealed class NonFictionalAttributeComponentSymmetricExceptionOperator<TData>
-        : CrossContentTypesInstantAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+        : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public override AttributeComponent<TData> Accept(
             NonFictionalAttributeComponent<TData> first,

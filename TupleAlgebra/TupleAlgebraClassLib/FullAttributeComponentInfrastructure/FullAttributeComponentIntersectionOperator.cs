@@ -8,7 +8,7 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
 {
     public sealed class FullAttributeComponentIntersectionOperator<TData>
-        : CrossContentTypesInstantAttributeComponentAcceptor<TData, FullAttributeComponent<TData>, AttributeComponent<TData>>
+        : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, FullAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public override AttributeComponent<TData> Accept(
             FullAttributeComponent<TData> first,

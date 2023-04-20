@@ -34,9 +34,8 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         /// <param name="domain"></param>
         /// <param name="values"></param>
         public DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
-            DictionaryBasedOrderedFiniteEnumerableAttributeDomain<TKey, TData> domain,
             IDictionary<TKey, TData> values)
-            : base(domain, values)
+            : base(values)
         {
             return;
         }

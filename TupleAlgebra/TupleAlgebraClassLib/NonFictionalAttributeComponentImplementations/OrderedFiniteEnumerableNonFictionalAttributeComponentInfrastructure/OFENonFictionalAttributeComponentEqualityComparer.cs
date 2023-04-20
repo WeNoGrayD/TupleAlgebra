@@ -9,7 +9,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 {
     public sealed class OrderedFiniteEnumerableNonFictionalAttributeComponentEqualityComparer<TData>
         : InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>,
-          IInstantAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
+          IInstantBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
     {
         public bool Accept(OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second)
         {

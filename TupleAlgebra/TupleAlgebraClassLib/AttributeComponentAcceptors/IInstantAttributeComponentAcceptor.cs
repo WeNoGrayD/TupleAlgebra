@@ -7,18 +7,24 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
-    public interface IInstantAttributeComponentAcceptor<TData, in TOperand, out TOperationResult>
-        where TOperand : AttributeComponent<TData>
+    public interface IInstantUnaryOperator<in TOperand, out TOperationResult>
     {
         TOperationResult Accept(TOperand first);
     }
-    public interface IFactoryAttributeComponentAcceptor<TData, in TOperand1, in TOperand2, out TOperationResult>
+
+    public interface IInstantUnaryAttributeComponentAcceptor<TData, in TOperand, out TOperationResult>
+        : IInstantUnaryOperator<TOperand, TOperationResult>
+        where TOperand : AttributeComponent<TData>
+    { }
+
+    public interface IInstantBinaryOperator<in TOperand1, in TOperand2, out TOperationResult>
+    {
+        TOperationResult Accept(TOperand1 first, TOperand2 second);
+    }
+
+    public interface IInstantBinaryAttributeComponentAcceptor<TData, in TOperand1, in TOperand2, out TOperationResult>
+        : IInstantBinaryOperator<TOperand1, TOperand2, TOperationResult>
         where TOperand1 : AttributeComponent<TData>
         where TOperand2 : AttributeComponent<TData>
-    {
-        TOperationResult Accept(
-            TOperand1 first,
-            TOperand2 second,
-            AttributeComponentFactory factory);
-    }
+    { }
 }

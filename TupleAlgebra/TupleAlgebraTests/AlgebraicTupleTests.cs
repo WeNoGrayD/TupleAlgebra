@@ -37,17 +37,6 @@ namespace TupleAlgebraTests
             Assert.IsFalse(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
             attributeCheck = likedPersons + nameof(ForumUser.LikeCount);
             Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            Expression<Func<ForumUser, List<ForumUser>>> expr = (user => user.LatestProfileVisitors);
-            sw.Stop();
-            (long ms, long ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
-            sw.Restart();
-            var m = expr.Compile();
-            sw.Stop();
-            (ms, ticks) = (sw.ElapsedMilliseconds, sw.ElapsedTicks);
-            ;
         }
 
         public void CustomLikedUsers(AlgebraicTupleBuilder<ForumUser> builder)

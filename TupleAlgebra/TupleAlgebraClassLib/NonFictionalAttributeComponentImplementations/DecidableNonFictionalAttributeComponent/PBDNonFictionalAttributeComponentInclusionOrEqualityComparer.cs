@@ -11,7 +11,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
 {
     public class PredicateBasedDecidableNonFictionalAttributeComponentInclusionOrEqualityComparer<TData>
         : InstantBinaryAttributeComponentAcceptor<TData, bool>,
-          IInstantAttributeComponentAcceptor<TData, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, bool>
+          IInstantBinaryAttributeComponentAcceptor<TData, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, PredicateBasedDecidableNonFictionalAttributeComponent<TData>, bool>
     {
         public bool Accept(
             PredicateBasedDecidableNonFictionalAttributeComponent<TData> greater,

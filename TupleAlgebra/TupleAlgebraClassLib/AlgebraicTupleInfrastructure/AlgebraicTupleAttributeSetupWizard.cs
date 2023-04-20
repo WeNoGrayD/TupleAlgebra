@@ -84,7 +84,9 @@ namespace TupleAlgebraClassLib.AlgebraicTupleInfrastructure
         */
 
         /// <summary>
-        /// Установка отношения эквивалентности по атрибуту.
+        /// Установка отношения эквивалентности по атрибуту. 
+		/// (сжатие объектов по этому атрибуту).
+		/// (можно не сжимать, тогда кортеж будет раздутый).
         /// </summary>
         /// <returns></returns>
         public IAlgebraicTupleAttributeSetupWizard<TAttribute> SetEquivalenceRelation()

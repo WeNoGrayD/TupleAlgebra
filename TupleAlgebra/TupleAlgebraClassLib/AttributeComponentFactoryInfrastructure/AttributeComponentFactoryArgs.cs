@@ -12,20 +12,25 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
     public class AttributeComponentFactoryArgs
     {
-        public readonly object Domain;
+        public Delegate DomainGetter { get; private set; } = null;
 
         public readonly IQueryProvider QueryProvider;
 
         public Expression QueryExpression { get; set; }
 
         public AttributeComponentFactoryArgs(
-            object domain, 
             IQueryProvider queryProvider = null, 
             Expression queryExpression = null)
         {
-            Domain = domain;
             QueryProvider = queryProvider;
             QueryExpression = queryExpression;
+        }
+
+        public void SetAttributeDomainGetter<TData>(Func<AttributeDomain<TData>> domainGetter)
+        {
+            DomainGetter = domainGetter;
+
+            return;
         }
     }
 }

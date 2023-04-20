@@ -9,7 +9,7 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
 {
     public sealed class FullAttributeComponentSymmetricExceptionOperator<TData>
-        : CrossContentTypesInstantAttributeComponentAcceptor<TData, FullAttributeComponent<TData>, AttributeComponent<TData>>
+        : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, FullAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public override AttributeComponent<TData> Accept(
             FullAttributeComponent<TData> first,
@@ -29,8 +29,7 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
             FullAttributeComponent<TData> first,
             FullAttributeComponent<TData> second)
         {
-            return EmptyAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateEmpty<TData>
-                (new AttributeComponentFactoryArgs(first.Domain));
+            return EmptyAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateEmpty<TData>(new AttributeComponentFactoryArgs());
         }
     }
 }

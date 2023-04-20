@@ -18,10 +18,8 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
             return;
         }
 
-        public LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
-            LookupBasedOrderedFiniteEnumerableAttributeDomain<TKey, TData> domain,
-            ILookup<TKey, TData> values)
-            : base(domain, values)
+        public LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(ILookup<TKey, TData> values)
+            : base(values)
         {
             return;
         }

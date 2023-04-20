@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using LINQProvider;
 
 namespace TupleAlgebraClassLib
@@ -15,8 +16,8 @@ namespace TupleAlgebraClassLib
     /// Домен атрибута.
     /// </summary>
     /// <typeparam name="TData"></typeparam>
-    public abstract class AttributeDomain<TData> 
-        : IEnumerable, IEnumerable<TData>, IQueryable<TData>, IReproducingQueryable<TData>
+    public class AttributeDomain<TData> 
+        : IEnumerable, IEnumerable<TData>, IQueryable<TData>//, IReproducingQueryable<TData>
     {
         #region IQueryable<TData> implemented properties
 
@@ -64,6 +65,7 @@ namespace TupleAlgebraClassLib
             Expression queryExpression = null)
         {
             Universum = universum;
+            universum.GetDomain += UniversumDomainGetter;
             Provider = universum.Provider;
             this.Expression = queryExpression ?? Expression.Constant(Universum);
         }
@@ -72,25 +74,57 @@ namespace TupleAlgebraClassLib
 
         #region Instance methods
 
-        public abstract IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
-            IEnumerable<TReproducedData> reproducedData);
+        public AttributeDomain<TData> UniversumDomainGetter() => this;
 
-        public AttributeDomain<TReproducedData> Shift<TReproducedData>(
-            Func<TData, TReproducedData> itemSelector)
+        //public abstract IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
+        //    IEnumerable<TReproducedData> reproducedData);
+
+        /// <summary>
+        /// Преобразование домена с отношением 1-к-1.
+        /// </summary>
+        /// <typeparam name="TShiftedData"></typeparam>
+        /// <param name="itemSelector"></param>
+        /// <returns></returns>
+        public AttributeDomain<TShiftedData> Shift<TShiftedData>(
+            Expression<Func<TData, TShiftedData>> itemSelector)
         {
-            NonFictionalAttributeComponent<TReproducedData> shiftedUniversum =
-                Universum.Reproduce(Universum.Select(itemSelector)) as NonFictionalAttributeComponent<TReproducedData>;
+            NonFictionalAttributeComponent<TShiftedData> shiftedUniversum =
+                Universum.Select(itemSelector) as NonFictionalAttributeComponent<TShiftedData>;
 
-            return null;// new AttributeDomain<TReproducedData>(shiftedUniversum);
+            return new AttributeDomain<TShiftedData>(shiftedUniversum);
         }
 
-        public AttributeDomain<TReproducedData> ShiftMany<TReproducedData>(
-            Func<TData, IEnumerable<TReproducedData>> itemsSelector)
+        public AttributeDomain<TShiftedData> Shift<TShiftedData>(
+            Func<TData, TShiftedData> itemSelector)
         {
-            NonFictionalAttributeComponent<TReproducedData> shiftedUniversum =
-                Universum.Reproduce(Universum.SelectMany(itemsSelector)) as NonFictionalAttributeComponent<TReproducedData>;
+            NonFictionalAttributeComponent<TShiftedData> shiftedUniversum =
+                Universum.Select(itemSelector) as NonFictionalAttributeComponent<TShiftedData>;
 
-            return null;//;new AttributeDomain<TReproducedData>(shiftedUniversum);
+            return new AttributeDomain<TShiftedData>(shiftedUniversum);
+        }
+
+        /// <summary>
+        /// Преобразование домена с отношением 1-к-N.
+        /// </summary>
+        /// <typeparam name="TShiftedData"></typeparam>
+        /// <param name="itemsSelector"></param>
+        /// <returns></returns>
+        public AttributeDomain<TShiftedData> ShiftMany<TShiftedData>(
+            Expression<Func<TData, IEnumerable<TShiftedData>>> itemsSelector)
+        {
+            NonFictionalAttributeComponent<TShiftedData> shiftedUniversum =
+                Universum.Reproduce(Universum.SelectMany(itemsSelector)) as NonFictionalAttributeComponent<TShiftedData>;
+
+            return new AttributeDomain<TShiftedData>(shiftedUniversum);
+        }
+
+        public AttributeDomain<TShiftedData> ShiftMany<TShiftedData>(
+            Func<TData, IEnumerable<TShiftedData>> itemsSelector)
+        {
+            NonFictionalAttributeComponent<TShiftedData> shiftedUniversum =
+                Universum.Reproduce(Universum.SelectMany(itemsSelector)) as NonFictionalAttributeComponent<TShiftedData>;
+
+            return new AttributeDomain<TShiftedData>(shiftedUniversum);
         }
 
         #endregion
