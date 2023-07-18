@@ -38,6 +38,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         public QueryPipelineExecutor(IEnumerable dataSource)
         {
             _dataSource = dataSource;
+            MustGoOn = true;
 
             return;
         }
@@ -74,11 +75,10 @@ namespace LINQProvider.QueryPipelineInfrastructure
                 CreateExecuteWithExecptedEnumerableResultMethodPattern();
 
             Type[] endpointInterfaceGenericArguments = GetGenericQueryableMiddlewareInterfaceArguments();
-            Type endpointInputDataType = endpointInterfaceGenericArguments[0],
-                 endpointOutputDataType = GetEndpointOutputDataType(endpointInterfaceGenericArguments);
+            Type endpointOutputDataType = GetEndpointOutputDataType(endpointInterfaceGenericArguments);
 
-            return (_executeWithExpectedEnumerableResultMIPattern
-                .MakeGenericMethod(endpointInputDataType, endpointOutputDataType)
+            return (_executeWithExpectedEnumerableResultMIPattern!
+                .MakeGenericMethod(endpointOutputDataType)
                 .Invoke(this, null) as IEnumerable)!;
 
         }
@@ -107,11 +107,11 @@ namespace LINQProvider.QueryPipelineInfrastructure
             return endpointOutputType.GetGenericArguments().SingleOrDefault() ?? typeof(object);
         }
 
-        protected IEnumerable<TEndpointOutputData> ExecuteWithExpectedEnumerableResult<TEndpointInputData, TEndpointOutputData>()
+        protected IEnumerable<TEndpointOutputData> ExecuteWithExpectedEnumerableResult<TEndpointOutputData>()
         {
             IEnumerable<TEndpointOutputData> intermediateQueryPipelineResult = StartupMiddleware
                 .AcceptToExecuteWithEnumerableResult<TEndpointOutputData>(this);
-            _dataSource = intermediateQueryPipelineResult;
+            //_dataSource = intermediateQueryPipelineResult;
 
             //OnEndedUpWithEnumerableResult(intermediateQueryPipelineResult);
 
@@ -201,12 +201,13 @@ namespace LINQProvider.QueryPipelineInfrastructure
         {
             StartupMiddleware.PrepareToAggregableResult<TPipelineQueryResult>(this);
             queryExecutor.PrepareToQueryStart();
-
-            bool mustGoOn;
-            foreach (TData data in GetDataSource<TData>())
+            if (MustGoOn)
             {
-                (_, mustGoOn) = queryExecutor.ExecuteOverDataInstance(data);
-                if (!mustGoOn) break;
+                foreach (TData data in GetDataSource<TData>())
+                {
+                    (_, MustGoOn) = queryExecutor.ExecuteOverDataInstance(data);
+                    if (!MustGoOn) break;
+                }
             }
 
             return StartupMiddleware.GetAggregablePipelineQueryResult<TPipelineQueryResult>(this);

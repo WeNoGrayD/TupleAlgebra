@@ -13,7 +13,8 @@ namespace LINQProvider.QueryPipelineInfrastructure
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TQueryResult"></typeparam>
     public abstract class QueryPipelineMiddleware<TInnerQueryExecutor, TData, TQueryResult>
-        : IQueryPipelineMiddleware<TData, TQueryResult>
+        : IQueryPipelineMiddleware<TData, TQueryResult>,
+          IQueryPipelineMiddlewareWithContinuationAcceptor<TData>
         where TInnerQueryExecutor : SingleQueryExecutor<TData, TQueryResult>
     {
         #region Instance fields
@@ -130,16 +131,13 @@ namespace LINQProvider.QueryPipelineInfrastructure
         #region IQueryPipelineMiddleware implementation
 
         /// <summary>
-        /// Продолжение компонента конвейера следующим (явная реализация).
+        /// Продолжение компонента конвейера следующим.
         /// </summary>
         /// <param name="continuingExecutor"></param>
         /// <returns></returns>
-        IQueryPipelineMiddleware IQueryPipelineMiddleware.ContinueWith(
+        public abstract IQueryPipelineMiddleware ContinueWith(
             IQueryPipelineMiddleware continuingExecutor,
-            IQueryPipelineScheduler scheduler)
-        {
-            return ContinueWith((dynamic)continuingExecutor, scheduler);
-        }
+            IQueryPipelineScheduler scheduler);
 
         /// <summary>
         /// Подготовка компонента конвейера к тому, что итоговым результатом конвейера запросов
@@ -191,16 +189,11 @@ namespace LINQProvider.QueryPipelineInfrastructure
             return;
         }
 
-        /// <summary>
-        /// Продолжение компонента конвейера следующим.
-        /// </summary>
-        /// <typeparam name="TContinuingQueryData"></typeparam>
-        /// <typeparam name="TContinuingQueryResult"></typeparam>
-        /// <param name="continuingExecutor"></param>
-        /// <returns></returns>
-        public abstract IQueryPipelineMiddleware<TData, TQueryResult> ContinueWith<TContinuingQueryData, TContinuingQueryResult>(
-            IQueryPipelineMiddleware<TContinuingQueryData, TContinuingQueryResult> continuingExecutor,
-            IQueryPipelineScheduler scheduler);
+        #endregion
+
+        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TData> implementation
+
+        public abstract void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor);
 
         #endregion
     }

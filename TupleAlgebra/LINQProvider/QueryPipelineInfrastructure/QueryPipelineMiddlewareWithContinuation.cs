@@ -17,8 +17,9 @@ namespace LINQProvider.QueryPipelineInfrastructure
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TQueryResultData"></typeparam>
     /// <typeparam name="TNextQueryResult"></typeparam>
-    public abstract class QueryPipelineMiddlewareWithContinuation<TInnerQueryExecutor, TData, TQueryResultData, TNextQueryResult>
-        : QueryPipelineMiddleware<TInnerQueryExecutor, TData, IEnumerable<TQueryResultData>>
+    public abstract class QueryPipelineMiddlewareWithContinuation<TInnerQueryExecutor, TData, TQueryResultData>
+        : QueryPipelineMiddleware<TInnerQueryExecutor, TData, IEnumerable<TQueryResultData>>,
+          IQueryPipelineMiddlewareVisitor<TQueryResultData>
         where TInnerQueryExecutor : SingleQueryExecutor<TData, IEnumerable<TQueryResultData>>
     {
         #region Instance fields
@@ -35,7 +36,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <summary>
         /// Следующий компонент в конвейере.
         /// </summary>
-        public IQueryPipelineMiddleware<TQueryResultData, TNextQueryResult> NextExecutor { get; protected set; }
+        public IQueryPipelineMiddleware NextExecutor { get => _node.Next!.Value!; }
 
         public override bool ResultProvided
         {
@@ -78,33 +79,21 @@ namespace LINQProvider.QueryPipelineInfrastructure
         protected QueryPipelineMiddlewareWithContinuation(
             LinkedListNode<IQueryPipelineMiddleware> node,
             TInnerQueryExecutor innerExecutor,
-            IQueryPipelineMiddleware<TQueryResultData, TNextQueryResult> nextExecutor)
+            IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData> nextExecutor)
             : base(node, innerExecutor)
         {
-            NextExecutor = nextExecutor;
+            _node.List.AddAfter(_node, nextExecutor.PipelineScheduleNode);
             innerExecutor.DataPassed += OnDataPassed;
             DataPassed += DataPassedHandler;
-
-            switch (NextExecutor.InnerExecutor)
-            {
-                case StreamingQueryExecutor<TQueryResultData, TNextQueryResult> streaming:
-                    {
-                        VisitNextStreamingQueryExecutorOnInit(streaming);
-                        break;
-                    }
-                case BufferingQueryExecutor<TQueryResultData, TNextQueryResult> buffering:
-                    {
-                        VisitNextBufferingQueryExecutorOnInit(buffering);
-                        break;
-                    }
-                default: throw new ArgumentException();
-            }
+            // Обход следующего компонента конвейера для создания надлежащей связи между компонентами.
+            nextExecutor.Accept(this);
         }
 
         #endregion
 
         #region Instance methods
 
+        /*
         /// <summary>
         /// Обработка случая, когда следующий компонент конвейера запросов является
         /// потоковым компонентом.
@@ -128,6 +117,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
 
             return;
         }
+        */
 
         /// <summary>
         /// Обработчик события пропуска промежуточных данных внутренним исполнителем запроса.
@@ -206,10 +196,9 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <typeparam name="TContinuingQueryResult"></typeparam>
         /// <param name="continuingExecutor"></param>
         /// <returns></returns>
-        public override IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>>
-            ContinueWith<TContinuingQueryData, TContinuingQueryResult>(
-                IQueryPipelineMiddleware<TContinuingQueryData, TContinuingQueryResult> continuingExecutor,
-                IQueryPipelineScheduler scheduler)
+        public override IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> ContinueWith(
+            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineScheduler scheduler)
         {
             NextMiddleware.ContinueWith(continuingExecutor, scheduler);
             //NextExecutor = NextExecutor.ContinueWith(continuingExecutor, pipelineQueryExecutor);
@@ -223,6 +212,16 @@ namespace LINQProvider.QueryPipelineInfrastructure
 
             return;
         }
+
+        #endregion
+
+        #region IQueryPipelineMiddlewareVisitor implemention
+
+        public abstract void VisitStreamingQueryExecutor<TNextQueryResult>(
+            StreamingQueryExecutor<TQueryResultData, TNextQueryResult> streaming);
+
+        public abstract void VisitBufferingQueryExecutor<TNextQueryResult>(
+            BufferingQueryExecutor<TQueryResultData, TNextQueryResult> buffering);
 
         #endregion
     }

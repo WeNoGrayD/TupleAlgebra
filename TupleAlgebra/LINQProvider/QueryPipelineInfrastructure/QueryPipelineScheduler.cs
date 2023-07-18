@@ -51,6 +51,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         protected IQueryPipelineMiddleware LastPipelineTask
         {
             get => PipelineTaskSchedule.Last!.Value;
+            set => PipelineTaskSchedule.Last!.Value = value;
         }
 
         public QueryPipelineMiddlewareWithAccumulationFactory MiddlewareWithAccumulationFactory { get; private set; }
@@ -131,7 +132,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
             if (PipelineTaskSchedule.Count == 0)
                 PushMiddleware(middleware);
             else
-                LastPipelineTask.ContinueWith(middleware, this);
+                LastPipelineTask = LastPipelineTask.ContinueWith(middleware, this);
 
             return;
         }
@@ -150,15 +151,14 @@ namespace LINQProvider.QueryPipelineInfrastructure
 
         #endregion
 
-        #region ISingleQueryExecutorVisitor implementation
+        #region IQueryPipelineScheduler implementation
 
         public TPipelineQueryResult Execute<TPipelineQueryResult>()
         {
-            IQueryPipelineEndpoint queryPipelineEndpoint;
-
             IEnumerable enumerableIntermediateResult = null!;
             TPipelineQueryResult result = default(TPipelineQueryResult)!;
 
+            _currentPipelineTask = PipelineTaskSchedule.First!;
             do
             {
                 _executor.StartupMiddleware = StartupPipelineTask;
@@ -200,8 +200,11 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="startupMiddleware"></param>
         public void PushMiddleware(IQueryPipelineMiddleware startupMiddleware)
         {
-            // Конечная точка последней задачи инициализируется как локальный аккумулятор этой задачи.
-            LastPipelineTask.PipelineEndpoint.InitializeAsQueryPipelineEndpoint();
+            if (PipelineTaskSchedule.Count > 0)
+            {
+                // Конечная точка последней задачи инициализируется как локальный аккумулятор этой задачи.
+                LastPipelineTask.PipelineEndpoint.InitializeAsQueryPipelineEndpoint();
+            }
 
             /*
              * 1) Создаётся новая задача.

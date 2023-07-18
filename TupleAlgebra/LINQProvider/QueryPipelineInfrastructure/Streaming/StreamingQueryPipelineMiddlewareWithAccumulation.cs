@@ -54,6 +54,17 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         }
 
         #endregion
+
+        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
+
+        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
+        {
+            visitor.VisitStreamingQueryExecutor(_innerExecutorImpl);
+
+            return;
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -79,6 +90,13 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         }
 
         #endregion
+
+        public override IQueryPipelineMiddleware<TData, TQueryResult> ContinueWith(
+            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineScheduler scheduler)
+        {
+            throw new NotImplementedException();
+        }
 
         #region IQueryPipelineMiddleware implementation
 
@@ -134,6 +152,23 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         }
 
         #endregion
+
+        /// <summary>
+        /// Продолжение компонента конвейера следующим.
+        /// </summary>
+        /// <typeparam name="TContinuingQueryData"></typeparam>
+        /// <typeparam name="TContinuingQueryResult"></typeparam>
+        /// <param name="continuingExecutor"></param>
+        /// <returns></returns>
+        public override IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> ContinueWith(
+            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineScheduler scheduler)
+        {
+            return scheduler.MiddlewareWithContinuationFactory.Create(
+                _node,
+                this,
+                (continuingExecutor as IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>)!);
+        }
 
         #region IQueryPipelineMiddleware implementation
 

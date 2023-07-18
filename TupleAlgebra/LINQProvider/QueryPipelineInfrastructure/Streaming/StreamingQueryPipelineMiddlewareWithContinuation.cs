@@ -14,12 +14,11 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TQueryResultData"></typeparam>
     /// <typeparam name="TNextQueryResult"></typeparam>
-    public class StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult<TData, TQueryResultData, TNextQueryResult>
+    public class StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult<TData, TQueryResultData>
         : QueryPipelineMiddlewareWithContinuation<
             StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>>,
             TData,
-            TQueryResultData,
-            TNextQueryResult>
+            TQueryResultData>
     {
         #region Instance events
 
@@ -40,7 +39,7 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         public StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult(
             LinkedListNode<IQueryPipelineMiddleware> node,
             StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> innerExecutor,
-            IQueryPipelineMiddleware<TQueryResultData, TNextQueryResult> nextExecutor)
+            IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData> nextExecutor)
             : base(node, innerExecutor, nextExecutor)
         {
             innerExecutor.DataNotPassed += OnDataNotPassed;
@@ -51,46 +50,6 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         #endregion
 
         #region Instance methods
-
-        /// <summary>
-        /// Обработка случая, когда следующий компонент конвейера запросов является
-        /// потоковым компонентом.
-        /// </summary>
-        /// <param name="nextStreaming"></param>
-        protected override void VisitNextStreamingQueryExecutorOnInit(
-            StreamingQueryExecutor<TQueryResultData, TNextQueryResult> nextStreaming)
-        {
-            nextStreaming.PrepareToQueryStart();
-            SubscribeOnInnerExecutorEventsOnDataInstanceProcessing((intermediateResult) =>
-            {
-                (NextExecutor.ResultProvided, MustGoOn) = nextStreaming.ExecuteOverDataInstance(intermediateResult.First());
-                MustGoOn &= NextExecutor.MustGoOn;
-            });
-        }
-
-        /// <summary>
-        /// Обработка случая, когда следующий компонент конвейера запросов является
-        /// буферизирующим компонентов.
-        /// </summary>
-        /// <param name="nextBuffering"></param>
-        /// <exception cref="InvalidOperationException"></exception>
-        protected override void VisitNextBufferingQueryExecutorOnInit(
-            BufferingQueryExecutor<TQueryResultData, TNextQueryResult> nextBuffering)
-        {
-            Type nextQueryResultType = typeof(TNextQueryResult);
-            string ienumerableName = nameof(System.Collections.IEnumerable);
-            if (nextQueryResultType.Name.StartsWith(ienumerableName) ||
-                nextQueryResultType.GetInterface(ienumerableName) is not null)
-            {
-                throw new InvalidOperationException("Потоковой исполнитель запроса не поддерживает продолжение " +
-                                                    "буферизированным исполнителем запроса с ожидаемым " +
-                                                    "перечислимым результатом.");
-            }
-
-            base.VisitNextBufferingQueryExecutorOnInit(nextBuffering);
-            InnerExecutor.DataPassed += (intermediateResult) =>
-                nextBuffering.ExecuteOverDataInstance(intermediateResult.First());
-        }
 
         /// <summary>
         /// Вызов события непропуска данных с готовым промежуточным результатом.
@@ -117,6 +76,52 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         }
 
         #endregion
+
+        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
+
+        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
+        {
+            visitor.VisitStreamingQueryExecutor(_innerExecutorImpl);
+
+            return;
+        }
+
+        #endregion
+
+        #region IQueryPipelineMiddlewareVisitor<TData> implemention
+
+        public override void VisitStreamingQueryExecutor<TNextQueryResult>(
+            StreamingQueryExecutor<TQueryResultData, TNextQueryResult> nextStreaming)
+        {
+            nextStreaming.PrepareToQueryStart();
+            SubscribeOnInnerExecutorEventsOnDataInstanceProcessing((intermediateResult) =>
+            {
+                (NextExecutor.ResultProvided, MustGoOn) = nextStreaming.ExecuteOverDataInstance(intermediateResult.First());
+                MustGoOn &= NextExecutor.MustGoOn;
+            });
+        }
+
+        public override void VisitBufferingQueryExecutor<TNextQueryResult>(
+            BufferingQueryExecutor<TQueryResultData, TNextQueryResult> nextBuffering)
+        {
+            /*
+            Type nextQueryResultType = typeof(TNextQueryResult);
+            string ienumerableName = nameof(System.Collections.IEnumerable);
+            if (nextQueryResultType.Name.StartsWith(ienumerableName) ||
+                nextQueryResultType.GetInterface(ienumerableName) is not null)
+            {
+                throw new InvalidOperationException("Потоковой исполнитель запроса не поддерживает продолжение " +
+                                                    "буферизированным исполнителем запроса с ожидаемым " +
+                                                    "перечислимым результатом.");
+            }
+
+            base.VisitNextBufferingQueryExecutorOnInit(nextBuffering);
+            InnerExecutor.DataPassed += (intermediateResult) =>
+                nextBuffering.ExecuteOverDataInstance(intermediateResult.First());
+            */
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -126,12 +131,11 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TQueryResultData"></typeparam>
     /// <typeparam name="TNextQueryResult"></typeparam>
-    public class StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult<TData, TQueryResultData, TNextQueryResult>
+    public class StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult<TData, TQueryResultData>
     : QueryPipelineMiddlewareWithContinuation<
         StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>>,
         TData,
-        TQueryResultData,
-        TNextQueryResult>
+        TQueryResultData>
     {
         #region Instance fields
 
@@ -196,7 +200,7 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         public StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult(
             LinkedListNode<IQueryPipelineMiddleware> node,
             StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> innerExecutor,
-            IQueryPipelineMiddleware<TQueryResultData, TNextQueryResult> nextExecutor)
+            IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData> nextExecutor)
             : base(node, innerExecutor, nextExecutor)
         {
             innerExecutor.DataNotPassed += OnDataNotPassed;
@@ -207,46 +211,6 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         #endregion
 
         #region Instance methods
-
-        /// <summary>
-        /// Обработка случая, когда следующий компонент конвейера запросов является
-        /// потоковым компонентом.
-        /// </summary>
-        /// <param name="nextStreaming"></param>
-        protected override void VisitNextStreamingQueryExecutorOnInit(
-            StreamingQueryExecutor<TQueryResultData, TNextQueryResult> nextStreaming)
-        {
-            _nextExecuteOverResultDataInstance = (outputDataInstance) =>
-                (NextExecutor.ResultProvided, MustGoOn) = nextStreaming.ExecuteOverDataInstance(outputDataInstance);
-        }
-
-        /// <summary>
-        /// Обработка случая, когда следующий компонент конвейера запросов является
-        /// буферизирующим компонентов.
-        /// </summary>
-        /// <param name="nextBuffering"></param>
-        protected override void VisitNextBufferingQueryExecutorOnInit(
-            BufferingQueryExecutor<TQueryResultData, TNextQueryResult> nextBuffering)
-        {
-            /*
-            Type nextQueryResultType = typeof(TNextQueryResult);
-            string ienumerableName = nameof(IEnumerable);
-            if (nextQueryResultType.Name.StartsWith(ienumerableName) ||
-                nextQueryResultType.GetInterface(ienumerableName) is not null)
-            {
-                throw new InvalidOperationException("Потоковой исполнитель запроса не поддерживает продолжение " +
-                                                    "буферизированным исполнителем запроса с ожидаемым " +
-                                                    "перечислимым результатом.");
-            }
-
-            _nextExecuteOverResultDataInstance = (outputDataInstance) => 
-                nextBuffering.ExecuteOverDataInstance(outputDataInstance);
-            
-            base.VisitNextBufferingQueryExecutorOnInit(nextBuffering);
-            InnerExecutor.DataPassed += (intermediateResult) =>
-                nextBuffering.ExecuteOverDataInstance(intermediateResult.First());
-            */
-        }
 
         /// <summary>
         /// Вызов события непропуска данных с готовым промежуточным результатом.
@@ -340,6 +304,53 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
                 }
                 if (!(MustGoOn &= NextExecutor.MustGoOn)) yield break;
             }
+        }
+
+        #endregion
+
+        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
+
+        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
+        {
+            visitor.VisitStreamingQueryExecutor(_innerExecutorImpl);
+
+            return;
+        }
+
+        #endregion
+
+        #region IQueryPipelineMiddlewareVisitor<TData> implemention
+
+        public override void VisitStreamingQueryExecutor<TNextQueryResult>(
+            StreamingQueryExecutor<TQueryResultData, TNextQueryResult> nextStreaming)
+        {
+            _nextExecuteOverResultDataInstance = (outputDataInstance) =>
+                (NextExecutor.ResultProvided, MustGoOn) = nextStreaming.ExecuteOverDataInstance(outputDataInstance);
+
+            return;
+        }
+
+        public override void VisitBufferingQueryExecutor<TNextQueryResult>(
+            BufferingQueryExecutor<TQueryResultData, TNextQueryResult> nextBuffering)
+        {
+            /*
+            Type nextQueryResultType = typeof(TNextQueryResult);
+            string ienumerableName = nameof(IEnumerable);
+            if (nextQueryResultType.Name.StartsWith(ienumerableName) ||
+                nextQueryResultType.GetInterface(ienumerableName) is not null)
+            {
+                throw new InvalidOperationException("Потоковой исполнитель запроса не поддерживает продолжение " +
+                                                    "буферизированным исполнителем запроса с ожидаемым " +
+                                                    "перечислимым результатом.");
+            }
+
+            _nextExecuteOverResultDataInstance = (outputDataInstance) => 
+                nextBuffering.ExecuteOverDataInstance(outputDataInstance);
+            
+            base.VisitNextBufferingQueryExecutorOnInit(nextBuffering);
+            InnerExecutor.DataPassed += (intermediateResult) =>
+                nextBuffering.ExecuteOverDataInstance(intermediateResult.First());
+            */
         }
 
         #endregion

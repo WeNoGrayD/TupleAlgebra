@@ -86,28 +86,6 @@ namespace LINQProvider.QueryPipelineInfrastructure
             return;
         }
 
-        /// <summary>
-        /// Продолжение компонента конвейера следующим.
-        /// </summary>
-        /// <typeparam name="TContinuingQueryData"></typeparam>
-        /// <typeparam name="TContinuingQueryResult"></typeparam>
-        /// <param name="continuingExecutor"></param>
-        /// <returns></returns>
-        public override IQueryPipelineMiddleware<TData, TQueryResult>
-            ContinueWith<TContinuingQueryData, TContinuingQueryResult>(
-                IQueryPipelineMiddleware<TContinuingQueryData, TContinuingQueryResult> continuingExecutor,
-                IQueryPipelineScheduler scheduler)
-        {
-            _node.List!.AddAfter(_node, continuingExecutor.PipelineScheduleNode);
-
-            return (scheduler
-                .MiddlewareWithContinuationFactory.Create(
-                    _node,
-                    (this as IQueryPipelineMiddleware<TData, IEnumerable<TContinuingQueryData>>)!,
-                    continuingExecutor)
-                 as IQueryPipelineMiddleware<TData, TQueryResult>)!;
-        }
-
         #endregion
 
         #region IQueryPipelineMiddleware implementation

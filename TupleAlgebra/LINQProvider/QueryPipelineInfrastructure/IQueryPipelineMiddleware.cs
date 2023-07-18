@@ -9,7 +9,8 @@ namespace LINQProvider.QueryPipelineInfrastructure
     /// <summary>
     /// Интерфейс компонента конвейера запросов.
     /// </summary>
-    public interface IQueryPipelineMiddleware : IQueryPipelineAcceptor
+    public interface IQueryPipelineMiddleware 
+        : IQueryPipelineAcceptor
     {
         #region Properties
 
@@ -92,7 +93,8 @@ namespace LINQProvider.QueryPipelineInfrastructure
     /// </summary>
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TQueryResult"></typeparam>
-    public interface IQueryPipelineMiddleware<TData, TQueryResult> : IQueryPipelineMiddleware
+    public interface IQueryPipelineMiddleware<TData, TQueryResult> 
+        : IQueryPipelineMiddleware
     {
         #region Properties
 
@@ -100,27 +102,6 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// Внутренний сполнитель запроса.
         /// </summary>
         SingleQueryExecutor<TData, TQueryResult> InnerExecutor { get; }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Продолжение компонента конвейера следующим.
-        /// </summary>
-        /// <typeparam name="TContinuingQueryData"></typeparam>
-        /// <typeparam name="TContinuingQueryResult"></typeparam>
-        /// <param name="continuingExecutor"></param>
-        /// <returns></returns>
-        IQueryPipelineMiddleware<TData, TQueryResult> ContinueWith<TContinuingQueryData, TContinuingQueryResult>(
-                IQueryPipelineMiddleware<TContinuingQueryData, TContinuingQueryResult> continuingExecutor,
-                IQueryPipelineScheduler scheduler);
-
-        /// <summary>
-        /// Подписка компонента конвейера запросов на событие пропуска промежуточных данных своего исполнителя запросов.
-        /// </summary>
-        /// <param name="queryResultPassingHandler"></param>
-        void SubscribeOnInnerExecutorEventsOnDataInstanceProcessing(Action<TQueryResult> queryResultPassingHandler);
 
         #endregion
     }

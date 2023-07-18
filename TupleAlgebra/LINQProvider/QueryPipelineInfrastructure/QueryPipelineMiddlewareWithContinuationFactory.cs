@@ -25,20 +25,20 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="nextExecutor"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public virtual IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> Create<TData, TQueryResultData, TNextQueryResult>(
+        public virtual IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> Create<TData, TQueryResultData>(
             LinkedListNode<IQueryPipelineMiddleware> node,
             IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> continuedExecutor,
-            IQueryPipelineMiddleware<TQueryResultData, TNextQueryResult> nextExecutor)
+            IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData> nextExecutor)
         {
             return continuedExecutor.InnerExecutor switch
             {
                 StreamingQueryExecutorWithEnumerableOneToManyResult<TData, TQueryResultData> streaming =>
-                    new StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult<TData, TQueryResultData, TNextQueryResult>(
+                    new StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult<TData, TQueryResultData>(
                         node,
                         streaming,
                         nextExecutor),
                 StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> streaming =>
-                    new StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult<TData, TQueryResultData, TNextQueryResult>(
+                    new StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult<TData, TQueryResultData>(
                         node,
                         streaming, 
                         nextExecutor),

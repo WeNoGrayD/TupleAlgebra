@@ -19,10 +19,9 @@ namespace LINQProvider.QueryPipelineInfrastructure.Buffering
             : base(node, innerExecutor, innerExecutorAsAccumulating)
         { }
 
-        public override IQueryPipelineMiddleware<TData, TQueryResult>
-            ContinueWith<TContinuingQueryData, TContinuingQueryResult>(
-                IQueryPipelineMiddleware<TContinuingQueryData, TContinuingQueryResult> continuingExecutor,
-                IQueryPipelineScheduler scheduler)
+        public override IQueryPipelineMiddleware<TData, TQueryResult> ContinueWith(
+            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineScheduler scheduler)
         {
             throw new NotImplementedException();
         }
@@ -45,6 +44,17 @@ namespace LINQProvider.QueryPipelineInfrastructure.Buffering
             InnerExecutor.DataPassed += (outputData) =>
                 queryResultPassingHandler(_innerExecutorImpl.GetQueryResult());
         }
+
+        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
+
+        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
+        {
+            visitor.VisitBufferingQueryExecutor(_innerExecutorImpl);
+
+            return;
+        }
+
+        #endregion
     }
 
     public class BufferingQueryExecutorWithAccumulationOfEnumerableResult<TData, TQueryResultData>
@@ -60,10 +70,9 @@ namespace LINQProvider.QueryPipelineInfrastructure.Buffering
             : base(node, innerExecutor, innerExecutorAsAccumulating)
         { }
 
-        public override IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>>
-            ContinueWith<TContinuingQueryData, TContinuingQueryResult>(
-                IQueryPipelineMiddleware<TContinuingQueryData, TContinuingQueryResult> continuingExecutor,
-                IQueryPipelineScheduler scheduler)
+        public override IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> ContinueWith(
+            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineScheduler scheduler)
         {
             scheduler.PushMiddleware(continuingExecutor);
 
@@ -89,5 +98,16 @@ namespace LINQProvider.QueryPipelineInfrastructure.Buffering
             InnerExecutor.DataPassed += (outputData) =>
                 queryResultPassingHandler(_innerExecutorImpl.GetQueryResult());
         }
+
+        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
+
+        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
+        {
+            visitor.VisitBufferingQueryExecutor(_innerExecutorImpl);
+
+            return;
+        }
+
+        #endregion
     }
 }
