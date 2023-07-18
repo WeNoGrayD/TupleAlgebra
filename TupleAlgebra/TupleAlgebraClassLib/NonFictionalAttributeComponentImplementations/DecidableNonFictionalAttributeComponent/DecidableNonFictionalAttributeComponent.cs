@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.DecidableNonFictionalAttributeComponent
 {
@@ -56,20 +57,16 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         List<IEnumerable<Predicate<TData>>> _rule
     }
     */
-    public class PredicateBasedDecidableNonFictionalAttributeComponent<TData>
+    public abstract class PredicateBasedDecidableNonFictionalAttributeComponent<TData>
         : DecidableNonFictionalAttributeComponent<TData>
     {
-        private const string NATURE_TYPE = "PredicateBasedDecidable";
-
-        protected override string NatureType { get => NATURE_TYPE; }
-
         public IEnumerable<Predicate<TData>> Rules { get; private set; }
 
         static PredicateBasedDecidableNonFictionalAttributeComponent()
         {
-            NonFictionalAttributeComponent<TData>.InitSetOperations(
-                NATURE_TYPE,
-                new PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer());
+            //NonFictionalAttributeComponent<TData>.InitSetOperations(
+            //    NATURE_TYPE,
+            //    new PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer());
         }
 
         public PredicateBasedDecidableNonFictionalAttributeComponent(
@@ -89,6 +86,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
             return Rules.All(rule => rule(value));
         }
 
+        /*
         private class PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer : FactorySetOperationExecutersContainer<TData>
         {
             public PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer() : base(
@@ -102,6 +100,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
                 new PredicateBasedDecidableNonFictionalAttributeComponentInclusionOrEqualityComparer<TData>())
             { }
         }
+        */
 
         public class PredicateBasedDecidableNonFictionalAttributeComponentPower : NonFictionalAttributeComponentPower
         {

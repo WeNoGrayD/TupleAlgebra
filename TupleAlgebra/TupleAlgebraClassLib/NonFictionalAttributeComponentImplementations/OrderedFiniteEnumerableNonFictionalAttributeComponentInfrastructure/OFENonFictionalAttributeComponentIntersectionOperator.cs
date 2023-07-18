@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
     public class OrderedFiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TData>
-        : FactoryBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>,
+        : NonFictionalAttributeComponentIntersectionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
           IFactoryBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(
@@ -38,6 +40,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                 bool isContinuesWithLowerBoundEnumerator = true,
                      isContinuesWithGreaterBoundEnumerator = true;
                 TData firstElement = default(TData), secondElement = default(TData);
+                IComparer<TData> orderingComparer = first.OrderingComparer;
                 int elementsComparisonResult;
 
                 ReadComponentsUntilAtLeastOneIsOver();
@@ -52,7 +55,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
                     while (isContinuesWithLowerBoundEnumerator && isContinuesWithGreaterBoundEnumerator)
                     {
-                        elementsComparisonResult = _orderingComparer.Compare(firstElement, secondElement);
+                        elementsComparisonResult = orderingComparer.Compare(firstElement, secondElement);
                         switch (elementsComparisonResult)
                         {
                             case -1: break;

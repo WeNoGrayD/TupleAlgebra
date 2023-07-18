@@ -4,9 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LINQProvider.QueryPipelineInfrastructure;
 
 namespace LINQProvider
 {
+    [Flags]
+    public enum QuerySourceToResultMiltiplicity : byte
+    {
+        ManyToOne = 1,
+        OneToOne = 2,
+        OneToMany = 6
+    }
+
     /// <summary>
     /// Исполнитель запроса.
     /// </summary>
@@ -14,6 +23,15 @@ namespace LINQProvider
     /// <typeparam name="TQueryResult"></typeparam>
     public abstract class SingleQueryExecutor<TData, TQueryResult> : IQueryPipelineAcceptor
     {
+        #region Instance properties
+
+        /// <summary>
+        /// Кратность источника данных запроса и его результат.
+        /// </summary>
+        public abstract QuerySourceToResultMiltiplicity Multiplicity { get; } 
+
+        #endregion
+
         #region Instance events
 
         /// <summary>
@@ -56,16 +74,10 @@ namespace LINQProvider
 
         #region IQueryPipelineAcceptor implementation
 
-        /// <summary>
-        /// Приём конвейера запросов для вызова метода запуска конвейера.
-        /// </summary>
-        /// <typeparam name="TPipelineQueryResultParam"></typeparam>
-        /// <typeparam name="TPipelineQueryResult"></typeparam>
-        /// <param name="isResultEnumerable"></param>
-        /// <param name="queryPipeline"></param>
-        /// <returns></returns>
-        public abstract TPipelineQueryResult Accept<TPipelineQueryResultParam, TPipelineQueryResult>(
-            bool isResultEnumerable, 
+        public abstract TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+            ISingleQueryExecutorVisitor queryPipeline);
+
+        public abstract IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
             ISingleQueryExecutorVisitor queryPipeline);
 
         #endregion

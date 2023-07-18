@@ -7,6 +7,7 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
+    /*
     public abstract class FactoryBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>
         : FactoryBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>
     {
@@ -17,4 +18,5 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             _orderingComparer = orderingComparer;
         }
     }
+    */
 }

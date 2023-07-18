@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TupleAlgebraClassLib;
 using TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.SpecializedAttributeDomains;
 using TupleAlgebraTests.DataModels;
@@ -9,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 using System.Runtime.CompilerServices;
+using TupleAlgebraClassLib.AttributeComponents;
 
 [assembly: InternalsVisibleTo("TupleAlgebraClassLib")]
 

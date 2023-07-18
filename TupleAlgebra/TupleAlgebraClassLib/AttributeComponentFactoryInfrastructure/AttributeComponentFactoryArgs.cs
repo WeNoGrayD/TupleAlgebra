@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
@@ -24,6 +25,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         {
             QueryProvider = queryProvider;
             QueryExpression = queryExpression;
+
+            return;
         }
 
         public void SetAttributeDomainGetter<TData>(Func<AttributeDomain<TData>> domainGetter)

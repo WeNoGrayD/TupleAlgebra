@@ -3,12 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
     public class AllStreamingQueryExecutor<TData> : StreamingQueryExecutorWithAggregableResult<TData, bool>
     {
+        #region Instance fields
+        
         private bool _success = true;
+
+        #endregion
 
         public AllStreamingQueryExecutor(Func<TData, bool> dataPassingCondition) 
             : base(dataPassingCondition)
@@ -16,6 +21,7 @@ namespace LINQProvider.DefaultQueryExecutors
             InitBehavior(ExecuteOverDataInstanceHandlerWithFullCovering);
         }
 
+        /*
         public override bool ExecuteOverDataInstanceHandlerWithFullCovering(TData data)
         {
             (bool didDataPass, bool mustGoOn) = ConsumeData(data);
@@ -27,6 +33,7 @@ namespace LINQProvider.DefaultQueryExecutors
 
             return mustGoOn;
         }
+        */
 
         protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
         {

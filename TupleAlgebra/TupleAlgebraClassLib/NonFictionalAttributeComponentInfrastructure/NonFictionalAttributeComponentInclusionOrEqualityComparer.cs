@@ -4,23 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
-    public sealed class NonFictionalAttributeComponentInclusionOrEqualityComparer<TData>
-        : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, bool>
+    public abstract class NonFictionalAttributeComponentInclusionOrEqualityComparer<TData, CTOperand1>
+        : InstantBinaryAttributeComponentAcceptor<TData, CTOperand1, bool>,
+          IInstantBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, EmptyAttributeComponent<TData>, bool>,
+          IInstantBinaryAttributeComponentAcceptor<TData, CTOperand1, NonFictionalAttributeComponent<TData>, bool>,
+          IInstantBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, FullAttributeComponent<TData>, bool>
+        where CTOperand1 : NonFictionalAttributeComponent<TData>
     {
-        public override bool Accept(NonFictionalAttributeComponent<TData> first, EmptyAttributeComponent<TData> second)
+        public bool Accept(NonFictionalAttributeComponent<TData> first, EmptyAttributeComponent<TData> second)
         {
             return true;
         }
 
-        public override bool Accept(NonFictionalAttributeComponent<TData> first, NonFictionalAttributeComponent<TData> second)
+        public bool Accept(CTOperand1 first, NonFictionalAttributeComponent<TData> second)
         {
-            return first.IncludesOrEqualsTo(second);
+            throw new NotImplementedException();
         }
 
-        public override bool Accept(NonFictionalAttributeComponent<TData> first, FullAttributeComponent<TData> second)
+        public bool Accept(NonFictionalAttributeComponent<TData> first, FullAttributeComponent<TData> second)
         {
             return false;
         }

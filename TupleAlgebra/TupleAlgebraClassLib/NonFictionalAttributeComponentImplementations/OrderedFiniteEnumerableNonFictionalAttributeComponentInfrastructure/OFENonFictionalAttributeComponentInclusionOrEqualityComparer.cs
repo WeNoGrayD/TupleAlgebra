@@ -4,29 +4,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
     public class OrderedFiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer<TData>
-        : InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>,
+        : NonFictionalAttributeComponentInclusionOrEqualityComparer<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
           IInstantBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
     {
         public bool Accept(
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> greater,
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> lesser)
         {
-            bool isIncludes = false;
+            bool isInclude = false;
             IEnumerator<TData> greaterEnumerator = greater.GetEnumerator(),
                                lesserEnumerator = lesser.GetEnumerator();
             bool isContinuesLesserEnumerator = true,
                  isContinuesGreaterEnumerator = true;
             TData firstElement = default(TData), secondElement = default(TData);
+            IComparer<TData> orderingComparer = greater.OrderingComparer;
             int elementsComparisonResult;
 
             ReadComponentsUntilAnyIsOver();
             DisposeEnumerators();
 
-            return isIncludes;
+            return isInclude;
 
             void ReadComponentsUntilAnyIsOver()
             {
@@ -39,7 +41,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                     LesserEnumeratorMoveNextAndReadCurrent();
                 }
 
-                isIncludes = !isContinuesLesserEnumerator;
+                isInclude = !isContinuesLesserEnumerator;
 
                 return;
             }
@@ -48,7 +50,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             {
                 while (isContinuesGreaterEnumerator)
                 {
-                    elementsComparisonResult = _orderingComparer.Compare(firstElement, secondElement);
+                    elementsComparisonResult = orderingComparer.Compare(firstElement, secondElement);
                     switch (elementsComparisonResult)
                     {
                         case -1:

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
@@ -14,7 +15,7 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
     public abstract class CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
-        : InstantBinaryAttributeComponentAcceptor<TData, TOperationResult>,
+        : InstantBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>,
           IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, EmptyAttributeComponent<TData>, TOperationResult>,
           IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, NonFictionalAttributeComponent<TData>, TOperationResult>,
           IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, FullAttributeComponent<TData>, TOperationResult>

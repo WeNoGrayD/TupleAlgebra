@@ -11,6 +11,7 @@ using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using System.Reflection;
 using LINQProvider;
+using LINQProvider.QueryPipelineInfrastructure;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable
 {
@@ -27,11 +28,12 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             return new OrderedFiniteEnumerableAttributeComponentQueryContext();
         }
 
-        protected override QueryPipelineExecutor CreateQueryPipelineExecutor(
-            IEnumerable dataSource,
-            IQueryPipelineMiddleware firstQueryExecutor)
+        protected override QueryPipelineScheduler CreateQueryPipelineExecutor(
+            QueryContext queryContext,
+            IEnumerable<MethodCallExpression> methodCallChain,
+            IEnumerable dataSource)
         {
-            return new OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor(dataSource, firstQueryExecutor);
+            return new OrderedFiniteEnumerableAttributeComponentQueryPipelineScheduler(queryContext, methodCallChain, dataSource);
         }
 
         #endregion

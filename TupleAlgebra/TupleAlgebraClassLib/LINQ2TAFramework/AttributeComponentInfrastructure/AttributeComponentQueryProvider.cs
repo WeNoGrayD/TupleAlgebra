@@ -10,6 +10,7 @@ using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using LINQProvider;
 using System.Reflection;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
 {
@@ -19,31 +20,6 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
     public abstract class AttributeComponentQueryProvider : QueryProvider
     {
         #region Istance methods
-
-        /// <summary>
-        /// Имплементированное обобщённое создание запроса.
-        /// </summary>
-        /// <typeparam name="TData"></typeparam>
-        /// <param name="queryExpression"></param>
-        /// <param name="queryableAC"></param>
-        /// <returns></returns>
-        protected IQueryable<TData> CreateQueryImpl<TData>(
-            Expression queryExpression,
-            AttributeComponent<TData> queryableAC)
-        {
-            /*
-               Проверка выражения запроса на избыточность (а также корректность). 
-               Если оно избыточно, то экземпляр MethodCallInspector вернёт
-               неизбыточное выражение, равное константному выражению источника данных для запроса.
-             */
-            if (queryExpression != new AttributeComponentQueryInspector().Inspect(queryExpression))
-                return queryableAC;
-
-            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo<TData>(null);
-            factoryArgs.QueryExpression = queryExpression;
-
-            return queryableAC.Reproduce<TData>(factoryArgs);
-        }
 
         /// <summary>
         /// Оборачивание перечислимого нефиктивного результата запроса в компоненту атрибута.
@@ -66,17 +42,27 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
         #region IQueryProvider implementation
 
         /// <summary>
-        /// Создание запроса с заданным выражением.
+        /// Имплементированное обобщённое создание запроса.
         /// </summary>
         /// <typeparam name="TData"></typeparam>
         /// <param name="queryExpression"></param>
+        /// <param name="queryableAC"></param>
         /// <returns></returns>
-        public override IQueryable<TData> CreateQuery<TData>(Expression queryExpression)
+        protected override IQueryable<TData> CreateQueryImpl<TData>(
+            Expression queryExpression,
+            IQueryable dataSource)
         {
-            AttributeComponent<TData> queryableAC = 
-                new DataSourceExtractor<AttributeComponent<TData>>().Extract(queryExpression);
+            AttributeComponent<TData> queryableAC = dataSource as AttributeComponent<TData>;
 
-            return CreateQueryImpl(queryExpression, queryableAC);
+            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo<TData>(null);
+            factoryArgs.QueryExpression = queryExpression;
+
+            return queryableAC.Reproduce<TData>(factoryArgs);
+        }
+
+        protected override IDataSourceExtractor<IQueryable<TData>> CreateDataSourceExtractor<TData>()
+        {
+            return new DataSourceExtractor<AttributeComponent<TData>>();
         }
 
         /// <summary>
@@ -105,6 +91,16 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
         /// </summary>
         protected class AttributeComponentQueryInspector : QueryInspector
         {
+            #region Constructors
+
+            public AttributeComponentQueryInspector(IQueryable dataSource)
+                : base(dataSource)
+            {
+                return;
+            }
+
+            #endregion
+
             #region Instance methods
 
             /// <summary>

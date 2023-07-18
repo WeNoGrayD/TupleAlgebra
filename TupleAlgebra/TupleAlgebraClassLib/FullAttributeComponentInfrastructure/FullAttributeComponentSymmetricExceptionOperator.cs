@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
 {

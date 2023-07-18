@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
@@ -15,11 +16,22 @@ namespace LINQProvider.DefaultQueryExecutors
         public SkipStreamingQueryExecutor(int skippingCount)
             : base(null, (data) => data)
         {
-            InitBehavior(ExecuteOverDataInstanceHandlerWithNegativeCovering);
+            InitBehavior(ExecuteOverDataInstanceHandlerWithFullCovering);
             _skippedCount = skippingCount;
+            
+            Action<IEnumerable<TData>> onDataPassed = null;
+            onDataPassed = (_) =>
+            {
+                _skippedHead = true;
+                DataPassed -= onDataPassed;
+            };
+
+            DataPassed += onDataPassed;
+            DataNotPassed += (_) => _skippedCount--;
         }
 
-        public override bool ExecuteOverDataInstanceHandlerWithNegativeCovering(TData data)
+        /*
+        public override (bool ResultProvided, bool MustGoOn) ExecuteOverDataInstanceHandlerWithPositiveCovering(TData data)
         {
             if (_skippedHead || _skippedCount == 0)
             {
@@ -31,10 +43,11 @@ namespace LINQProvider.DefaultQueryExecutors
 
             return true;
         }
+        */
 
         protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
         {
-            throw new NotImplementedException();
+            return ((_skippedHead || _skippedCount == 0), true);
         }
     }
 }

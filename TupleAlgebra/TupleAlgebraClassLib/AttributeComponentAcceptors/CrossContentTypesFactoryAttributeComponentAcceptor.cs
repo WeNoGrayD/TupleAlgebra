@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
     public abstract class CrossContentTypesFactoryBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
-        : FactoryBinaryAttributeComponentAcceptor<TData, TOperationResult>,
+        : FactoryBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>,
           IFactoryBinaryAttributeComponentAcceptor<TData, TOperand1, EmptyAttributeComponent<TData>, TOperationResult>,
           IFactoryBinaryAttributeComponentAcceptor<TData, TOperand1, NonFictionalAttributeComponent<TData>, TOperationResult>,
           IFactoryBinaryAttributeComponentAcceptor<TData, TOperand1, FullAttributeComponent<TData>, TOperationResult>

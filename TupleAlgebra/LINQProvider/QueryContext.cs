@@ -7,44 +7,36 @@ using System.Linq.Expressions;
 using System.Reflection;
 using LINQProvider.DefaultQueryExecutors;
 using System.Collections;
+using LINQProvider.QueryPipelineInfrastructure;
+using System.ComponentModel;
 
 namespace LINQProvider
 {
     public class QueryContext
     {
-        private IQueryPipelineMiddleware _firstQueryExecutor;
-
-        public void ResetFirstQueryExecutor() => _firstQueryExecutor = null;
-
-        public IQueryPipelineMiddleware BuildSingleQueryExecutor(MethodCallExpression methodExpr) =>
-            (methodExpr.Arguments.Count, methodExpr.Arguments) switch
+        public IQueryPipelineAcceptor BuildSingleQueryExecutor(MethodCallExpression methodExpr)
+        {
+            int argc = methodExpr.Arguments.Count - 1;
+            if (argc > 0)
             {
-                (1, _) => RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(methodExpr),
-                (2, [_, UnaryExpression param1Expr]) => 
-                    RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
-                        methodExpr, (param1Expr.Operand as LambdaExpression).Compile()),
-                (2, [_, ConstantExpression param1Expr]) =>
-                    RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
-                        methodExpr, param1Expr.Value),
-                (3, [_, UnaryExpression param1Expr, UnaryExpression param2Expr]) =>
-                    RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
-                        methodExpr, 
-                        (param1Expr.Operand as LambdaExpression).Compile(), 
-                        (param2Expr.Operand as LambdaExpression).Compile()),
-                (3, [_, ConstantExpression param1Expr, UnaryExpression param2Expr]) =>
-                    RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
-                        methodExpr, 
-                        param1Expr.Value, 
-                        (param2Expr.Operand as LambdaExpression).Compile()),
-                (5, [_, ConstantExpression param1Expr, UnaryExpression param2Expr, UnaryExpression param3Expr, UnaryExpression param4Expr]) => 
-                    RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
-                        methodExpr, 
-                        param1Expr.Value, 
-                        (param2Expr.Operand as LambdaExpression).Compile(), 
-                        (param3Expr.Operand as LambdaExpression).Compile(), 
-                        (param4Expr.Operand as LambdaExpression).Compile()),
-                var methodInfo => BuildCustomSingleQueryExecutor(methodExpr, methodInfo)
-            };
+                object[] arguments = new object[argc];
+                Expression argExpr;
+                for (int i = 0; i < argc; i++)
+                {
+                    argExpr = methodExpr.Arguments[i + 1];
+                    arguments[i] = argExpr switch
+                    {
+                        ConstantExpression cExpr => cExpr.Expand(),
+                        UnaryExpression unaryExpr => unaryExpr.ExpandAsDelegate(),
+                        _ => throw new NotImplementedException()
+                    };
+                }
+
+                return RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(methodExpr, arguments);
+            }
+
+            return RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(methodExpr);
+        }
 
         /// <summary>
         /// Метод для построения пользовательских запросов с сигнатурами методов, отличными от нескольких стандартных.
@@ -53,12 +45,12 @@ namespace LINQProvider
         /// <param name="info"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        protected virtual IQueryPipelineMiddleware BuildCustomSingleQueryExecutor(
+        protected virtual IQueryPipelineAcceptor BuildCustomSingleQueryExecutor(
             MethodCallExpression methodExpr, 
             (int Argc, System.Collections.ObjectModel.ReadOnlyCollection<Expression> Argv) info) =>
             throw new NotImplementedException();
 
-        protected IQueryPipelineMiddleware RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
+        protected IQueryPipelineAcceptor RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
             MethodCallExpression methodExpr,
             params object[] methodParams)
         {
@@ -73,16 +65,11 @@ namespace LINQProvider
             return BuildSingleQueryExecutorImpl(queryBuildingMethod, methodParams);
         }
 
-        private IQueryPipelineMiddleware BuildSingleQueryExecutorImpl(
-            MethodInfo queryBuildingMethod, params object[] queryBuildingMethodParams)
+        private IQueryPipelineAcceptor BuildSingleQueryExecutorImpl(
+            MethodInfo queryBuildingMethod,
+            params object[] queryBuildingMethodParams)
         {
-            IQueryPipelineAcceptor iqpa = 
-                queryBuildingMethod.Invoke(this, queryBuildingMethodParams) as IQueryPipelineAcceptor;
-            IQueryPipelineMiddleware iqpm = QueryPipelineMiddlewareWithAccumulationFactory.Create((dynamic)iqpa);
-
-            _firstQueryExecutor = _firstQueryExecutor is null ? iqpm : _firstQueryExecutor.ContinueWith((dynamic)iqpm);
-
-            return _firstQueryExecutor;
+            return (queryBuildingMethod.Invoke(this, queryBuildingMethodParams) as IQueryPipelineAcceptor)!;
         }
 
         protected virtual SingleQueryExecutor<TData, TQueryResult> BuildAggregateQuery<TData, TQueryResult>(

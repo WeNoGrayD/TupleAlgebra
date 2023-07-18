@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using TupleAlgebraTests.DataModels;
 using System.Linq.Expressions;
-using TupleAlgebraClassLib;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraTests
 {

@@ -4,14 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
-    public sealed class NonFictionalAttributeComponentComplementionOperator<TData>
-        : InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>>,
-          IInstantUnaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+    public sealed class NonFictionalAttributeComponentComplementionOperator<TData, CTOperand>
+        : FactoryUnaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>>,
+          IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>>
+        where CTOperand: NonFictionalAttributeComponent<TData>
     {
-        public AttributeComponent<TData> Accept(NonFictionalAttributeComponent<TData> first)
+        public override AttributeComponent<TData> Accept(CTOperand first, AttributeComponentFactory factory)
         {
             return first.Domain ^ first;
         }

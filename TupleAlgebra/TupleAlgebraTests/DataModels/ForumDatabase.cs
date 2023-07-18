@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
-using TupleAlgebraClassLib;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraTests.DataModels
 {

@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TupleAlgebraClassLib;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraTests
 {

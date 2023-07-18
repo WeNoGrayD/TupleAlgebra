@@ -4,26 +4,30 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.SetOperationExecutersContainers
 {
-    public abstract class InstantSetOperationExecutersContainer<TData> : SetOperationExecutersContainer<TData>
+    public abstract class InstantSetOperationExecutersContainer<BTOperand, CTOperand>
+        : SetOperationExecutersContainer<BTOperand, CTOperand>
+        where CTOperand : BTOperand
     {
-        protected InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _complementionOperator;
-        protected InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _intersectionOperator;
-        protected InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _unionOperator;
-        protected InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _differenceOperator;
-        protected InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> _symmetricExceptionOperator;
+        protected InstantUnaryOperator<CTOperand, BTOperand> _complementionOperator;
+        protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> _intersectionOperator;
+        protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> _unionOperator;
+        protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> _differenceOperator;
+        protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> _symmetricExceptionOperator;
 
         public InstantSetOperationExecutersContainer(
-            InstantUnaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> complementionOperator,
-            InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> intersectionOperator,
-            InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> unionOperator,
-            InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> differenceOperator,
-            InstantBinaryAttributeComponentAcceptor<TData, AttributeComponent<TData>> symmetricExceptionOperator,
-            InstantBinaryAttributeComponentAcceptor<TData, bool> inclusionComparer,
-            InstantBinaryAttributeComponentAcceptor<TData, bool> equalityComparer,
-            InstantBinaryAttributeComponentAcceptor<TData, bool> inclusionOrEquationComparer)
+            InstantUnaryOperator<CTOperand, BTOperand> complementionOperator,
+            InstantBinaryOperator<CTOperand, BTOperand, BTOperand> intersectionOperator,
+            InstantBinaryOperator<CTOperand, BTOperand, BTOperand> unionOperator,
+            InstantBinaryOperator<CTOperand, BTOperand, BTOperand> differenceOperator,
+            InstantBinaryOperator<CTOperand, BTOperand, BTOperand> symmetricExceptionOperator,
+            InstantBinaryOperator<CTOperand, BTOperand, bool> inclusionComparer,
+            InstantBinaryOperator<CTOperand, BTOperand, bool> equalityComparer,
+            InstantBinaryOperator<CTOperand, BTOperand, bool> inclusionOrEquationComparer)
             : base(inclusionComparer,
                    equalityComparer,
                    inclusionOrEquationComparer)
@@ -35,29 +39,55 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
             _symmetricExceptionOperator = symmetricExceptionOperator;
         }
 
-        public AttributeComponent<TData> Complement(AttributeComponent<TData> first)
+        public override BTOperand Complement(CTOperand first)
         {
             return _complementionOperator.Accept(first);
         }
 
-        public override AttributeComponent<TData> Intersect(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public override BTOperand Intersect(CTOperand first, BTOperand second)
         {
             return _intersectionOperator.Accept(first, second);
         }
 
-        public override AttributeComponent<TData> Union(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public override BTOperand Union(CTOperand first, BTOperand second)
         {
             return _unionOperator.Accept(first, second);
         }
 
-        public override AttributeComponent<TData> Except(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public override BTOperand Except(CTOperand first, BTOperand second)
         {
             return _differenceOperator.Accept(first, second);
         }
 
-        public override AttributeComponent<TData> SymmetricExcept(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public override BTOperand SymmetricExcept(CTOperand first, BTOperand second)
         {
             return _symmetricExceptionOperator.Accept(first, second);
+        }
+    }
+
+    public abstract class InstantAttributeComponentOperationExecutersContainer<TData, CTOperand>
+        : InstantSetOperationExecutersContainer<AttributeComponent<TData>, CTOperand>
+        where CTOperand : AttributeComponent<TData>
+    {
+        public InstantAttributeComponentOperationExecutersContainer(
+            InstantUnaryOperator<CTOperand, AttributeComponent<TData>> complementionOperator,
+            InstantBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponent<TData>> intersectionOperator,
+            InstantBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponent<TData>> unionOperator,
+            InstantBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponent<TData>> differenceOperator,
+            InstantBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponent<TData>> symmetricExceptionOperator,
+            InstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool> inclusionComparer,
+            InstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool> equalityComparer,
+            InstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool> inclusionOrEquationComparer)
+            : base(complementionOperator,
+                   intersectionOperator,
+                   unionOperator,
+                   differenceOperator,
+                   symmetricExceptionOperator,
+                   inclusionComparer,
+                   equalityComparer,
+                   inclusionOrEquationComparer)
+        {
+            return;
         }
     }
 }

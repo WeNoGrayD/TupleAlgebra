@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
-using TupleAlgebraClassLib.AlgebraicTupleInfrastructure;
+using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework

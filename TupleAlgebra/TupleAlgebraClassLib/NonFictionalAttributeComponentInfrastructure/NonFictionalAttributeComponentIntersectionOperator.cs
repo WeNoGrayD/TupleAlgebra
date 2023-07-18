@@ -4,29 +4,38 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
-    public sealed class NonFictionalAttributeComponentIntersectionOperator<TData>
-        : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+    public abstract class NonFictionalAttributeComponentIntersectionOperator<TData, CTOperand1>
+        : FactoryBinaryAttributeComponentAcceptor<TData, CTOperand1, AttributeComponent<TData>>,
+          IFactoryBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, EmptyAttributeComponent<TData>, AttributeComponent<TData>>,
+          IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand1, NonFictionalAttributeComponent<TData>, AttributeComponent<TData>>,
+          IFactoryBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, FullAttributeComponent<TData>, AttributeComponent<TData>>
+        where CTOperand1 : NonFictionalAttributeComponent<TData>
     {
-        public override AttributeComponent<TData> Accept(
+        public AttributeComponent<TData> Accept(
             NonFictionalAttributeComponent<TData> first,
-            EmptyAttributeComponent<TData> second)
+            EmptyAttributeComponent<TData> second,
+            AttributeComponentFactory factory)
         {
             return second;
         }
 
-        public override AttributeComponent<TData> Accept(
-            NonFictionalAttributeComponent<TData> first,
-            NonFictionalAttributeComponent<TData> second)
+        public AttributeComponent<TData> Accept(
+            CTOperand1 first,
+            NonFictionalAttributeComponent<TData> second,
+            AttributeComponentFactory factory)
         {
-            return first.IntersectWith(second);
+            throw new NotImplementedException();
         }
 
-        public override AttributeComponent<TData> Accept(
+        public AttributeComponent<TData> Accept(
             NonFictionalAttributeComponent<TData> first,
-            FullAttributeComponent<TData> second)
+            FullAttributeComponent<TData> second,
+            AttributeComponentFactory factory)
         {
             return first;
         }
