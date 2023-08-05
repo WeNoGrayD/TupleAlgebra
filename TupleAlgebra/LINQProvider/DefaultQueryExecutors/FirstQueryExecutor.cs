@@ -9,25 +9,37 @@ namespace LINQProvider.DefaultQueryExecutors
 {
     public class FirstStreamingQueryExecutor<TData> : StreamingQueryExecutorWithAggregableResult<TData, TData>
     {
+        #region Instance fields
+
+        private TData _first;
+
+        #endregion
+
+        #region Instance properties
+
+        public override TData Accumulator { get => _first; }
+
+        #endregion
+
+        #region Constructors
+
         public FirstStreamingQueryExecutor()
-            : base(null)
+            : base()
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
         }
 
+        #endregion
+
+        #region Instance methods
+
         protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
         {
+            _first = data;
+
             return (true, false);
         }
 
-        protected override TData ModifyIntermediateQueryResult(TData data)
-        {
-            return data;
-        }
-
-        public override void AccumulateIfDataPassed(ref TData accumulator, TData outputData)
-        {
-            accumulator = outputData;
-        }
+        #endregion
     }
 }

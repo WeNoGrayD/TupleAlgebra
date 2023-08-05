@@ -7,7 +7,8 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    public class AllStreamingQueryExecutor<TData> : StreamingQueryExecutorWithAggregableResult<TData, bool>
+    public class AllStreamingQueryExecutor<TData> 
+        : ConditionBasedStreamingQueryExecutorWithAggregableResult<TData, bool>
     {
         #region Instance fields
         
@@ -15,47 +16,32 @@ namespace LINQProvider.DefaultQueryExecutors
 
         #endregion
 
+        #region Instance properties
+
+        public override bool Accumulator { get => _success; }
+
+        #endregion
+
+        #region Constructors
+
         public AllStreamingQueryExecutor(Func<TData, bool> dataPassingCondition) 
             : base(dataPassingCondition)
         {
-            InitBehavior(ExecuteOverDataInstanceHandlerWithFullCovering);
+            InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
         }
 
-        /*
-        public override bool ExecuteOverDataInstanceHandlerWithFullCovering(TData data)
-        {
-            (bool didDataPass, bool mustGoOn) = ConsumeData(data);
-            if (didDataPass)
-            {
-                OnDataPassed(_success);
-            }
-            else OnDataNotPassed(_success);
+        #endregion
 
-            return mustGoOn;
-        }
-        */
+        #region Instance methods
 
         protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
         {
-            bool didDataPass = DataPassingCondition(data);
+            bool didDataPass = _condition(data);
             _success &= didDataPass;
 
             return (didDataPass, didDataPass);
         }
 
-        protected override bool ModifyIntermediateQueryResult(TData data)
-        {
-            return _success;
-        }
-
-        public override void AccumulateIfDataPassed(ref bool accumulator, bool outputData)
-        {
-            accumulator = outputData;
-        }
-
-        public override void AccumulateIfDataNotPassed(ref bool accumulator, bool outputData)
-        {
-            accumulator = outputData;
-        }
+        #endregion
     }
 }

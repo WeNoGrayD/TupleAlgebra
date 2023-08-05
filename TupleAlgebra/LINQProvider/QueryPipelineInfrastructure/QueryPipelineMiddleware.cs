@@ -12,9 +12,9 @@ namespace LINQProvider.QueryPipelineInfrastructure
     /// <typeparam name="TInnerQueryExecutor"></typeparam>
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TQueryResult"></typeparam>
-    public abstract class QueryPipelineMiddleware<TInnerQueryExecutor, TData, TQueryResult>
+    public abstract class QueryPipelineMiddleware<TData, TQueryResult, TInnerQueryExecutor>
         : IQueryPipelineMiddleware<TData, TQueryResult>,
-          IQueryPipelineMiddlewareWithContinuationAcceptor<TData>
+          IAcceptor<ISingleQueryExecutorVisitor<TData>>
         where TInnerQueryExecutor : SingleQueryExecutor<TData, TQueryResult>
     {
         #region Instance fields
@@ -26,13 +26,9 @@ namespace LINQProvider.QueryPipelineInfrastructure
 
         protected bool _resultProvided;
 
-        protected LinkedListNode<IQueryPipelineMiddleware> _node;
-
         #endregion
 
         #region Instance properties
-
-        public LinkedListNode<IQueryPipelineMiddleware> PipelineScheduleNode { get => _node; }
 
         public SingleQueryExecutor<TData, TQueryResult> InnerExecutor => _innerExecutorImpl;
 
@@ -40,10 +36,6 @@ namespace LINQProvider.QueryPipelineInfrastructure
         {
             get => InnerExecutor.Multiplicity;
         }
-
-        public IQueryPipelineMiddleware PreviousMiddleware { get => _node.Previous!.Value; }
-
-        public IQueryPipelineMiddleware NextMiddleware { get => _node.Next!.Value; }
 
         public virtual bool ResultProvided
         {
@@ -57,18 +49,9 @@ namespace LINQProvider.QueryPipelineInfrastructure
             set => _resultProvided = value;
         }
 
-        public abstract bool MustGoOn { get; protected set; }
+        public abstract bool MustGoOn { get; set; }
 
         public abstract IQueryPipelineEndpoint PipelineEndpoint { get; }
-
-        #endregion
-
-        #region Instance events
-
-        /// <summary>
-        /// Событие пропуска данных на возможный следующий компонент конвейера запросов. 
-        /// </summary>
-        public event Action<TQueryResult> DataPassed;
 
         #endregion
 
@@ -78,31 +61,18 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// Конструктор экземпляра.
         /// </summary>
         /// <param name="innerExecutor"></param>
-        protected QueryPipelineMiddleware(
-            LinkedListNode<IQueryPipelineMiddleware> node, 
-            TInnerQueryExecutor innerExecutor)
+        protected QueryPipelineMiddleware(TInnerQueryExecutor innerExecutor)
         {
-            _node = node;
-            _node.Value = this;
             _innerExecutorImpl = innerExecutor;
+
+            return;
         }
 
         #endregion
 
         #region Instance methods
 
-        /// <summary>
-        /// Вызов события пропуска данных с готовым промежуточным результатом.
-        /// </summary>
-        /// <param name="outputData"></param>
-        protected void OnDataPassed(TQueryResult outputData)
-        {
-            DataPassed?.Invoke(outputData);
-
-            return;
-        }
-
-        public void StepBack(ISingleQueryExecutorVisitor queryPipelineExecutor)
+        public void StepBack(ISingleQueryExecutorResultRequester queryPipelineExecutor)
         {
             //IQueryPipelineMiddleware mid = _node.Previous is not null ?
             //    PreviousMiddleware : queryPipelineExecutor.GotoPreviousPipelineTask();
@@ -114,17 +84,12 @@ namespace LINQProvider.QueryPipelineInfrastructure
 
         #region IQueryPipelineAcceptor implementation
 
-        public TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
-            ISingleQueryExecutorVisitor queryPipeline)
-        {
-            return _innerExecutorImpl.AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(queryPipeline);
-        }
+        public abstract TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+            ISingleQueryExecutorResultRequester resultRequster);
 
-        public IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor queryPipeline)
-        {
-            return _innerExecutorImpl.AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(queryPipeline);
-        }
+        public abstract IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
+            System.Collections.IEnumerable dataSource,
+            ISingleQueryExecutorResultRequester resultRequster);
 
         #endregion
 
@@ -136,7 +101,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="continuingExecutor"></param>
         /// <returns></returns>
         public abstract IQueryPipelineMiddleware ContinueWith(
-            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineEndpoint continuingExecutor,
             IQueryPipelineScheduler scheduler);
 
         /// <summary>
@@ -145,7 +110,8 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// </summary>
         /// <typeparam name="TPipelineQueryResult"></typeparam>
         /// <param name="pipelineQueryExecutor"></param>
-        public abstract void PrepareToAggregableResult<TPipelineQueryResult>(ISingleQueryExecutorVisitor pipelineQueryExecutor);
+        public abstract void PrepareToAggregableResult<TPipelineQueryResult>(
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor);
 
         /// <summary>
         /// Подготовка компонента конвейера к тому, что итоговым результатом конвейера запросов
@@ -153,7 +119,8 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// </summary>
         /// <typeparam name="TPipelineQueryResultData"></typeparam>
         /// <param name="pipelineQueryExecutor"></param>
-        public abstract void PrepareToEnumerableResult<TPipelineQueryResultData>(ISingleQueryExecutorVisitor pipelineQueryExecutor);
+        public abstract void PrepareToEnumerableResult<TPipelineQueryResultData>(
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor);
 
         /// <summary>
         /// Получение агрегируемого результата конвейера запросов.
@@ -162,7 +129,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="pipelineQueryExecutor"></param>
         /// <returns></returns>
         public abstract TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(
-            ISingleQueryExecutorVisitor pipelineQueryExecutor);
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor);
 
         /// <summary>
         /// Получение перечислимого результата конвейера запросов.
@@ -171,29 +138,13 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="pipelineQueryExecutor"></param>
         /// <returns></returns>
         public abstract IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor pipelineQueryExecutor);
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor);
 
         #endregion
 
-        #region IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> implementation
+        #region IAcceptor<ISingleQueryExecutorVisitor<TData>> implementation
 
-        /// <summary>
-        /// Подписка компонента конвейера запросов на событие пропуска промежуточных данных своего исполнителя запросов.
-        /// </summary>
-        /// <param name="queryResultPassingHandler"></param>
-        public virtual void SubscribeOnInnerExecutorEventsOnDataInstanceProcessing(
-            Action<TQueryResult> queryResultPassingHandler)
-        {
-            DataPassed += queryResultPassingHandler;
-
-            return;
-        }
-
-        #endregion
-
-        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TData> implementation
-
-        public abstract void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor);
+        public abstract void Accept(ISingleQueryExecutorVisitor<TData> visitor);
 
         #endregion
     }

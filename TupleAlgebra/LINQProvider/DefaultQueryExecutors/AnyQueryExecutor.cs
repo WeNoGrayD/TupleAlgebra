@@ -7,29 +7,41 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    public class AnyStreamingQueryExecutor<TData> : StreamingQueryExecutorWithAggregableResult<TData, bool>
+    public class AnyStreamingQueryExecutor<TData> 
+        : ConditionBasedStreamingQueryExecutorWithAggregableResult<TData, bool>
     {
+        #region Instance fields
+
+        private bool _success = false;
+
+        #endregion
+
+        #region Instance properties
+
+        public override bool Accumulator { get => _success; }
+
+        #endregion
+
+        #region Constructors
+
         public AnyStreamingQueryExecutor(Func<TData, bool> dataPassingCondition)
             : base(dataPassingCondition)
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
         }
 
+        #endregion
+
+        #region Instance methods
+
         protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
         {
-            bool didDataPass = DataPassingCondition(data);
+            bool didDataPass = _condition(data);
+            _success |= didDataPass;
 
             return (didDataPass, !didDataPass);
         }
 
-        protected override bool ModifyIntermediateQueryResult(TData data)
-        {
-            return false;
-        }
-
-        public override void AccumulateIfDataPassed(ref bool accumulator, bool outputData)
-        {
-            accumulator = true;
-        }
+        #endregion
     }
 }

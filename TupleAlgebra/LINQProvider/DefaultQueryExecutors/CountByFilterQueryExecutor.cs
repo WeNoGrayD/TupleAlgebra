@@ -8,27 +8,22 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    public class CountByFilterBufferingQueryExecutor<TData> :
-        BufferingQueryExecutorWithAggregableResult<TData, int>
-    {
-        public CountByFilterBufferingQueryExecutor(Func<TData, bool> dataPassingCondition)
-            : base(dataPassingCondition)
-        { }
-
-        protected override int TraverseOverDataSource()
-        {
-            int count = 0;
-            foreach (TData data in DataSource)
-                if (DataPassingCondition(data)) count++;
-
-            return count;
-        }
-    }
-
     public class CountByFilterStreamingQueryExecutor<TData> 
-        : StreamingQueryExecutorWithAggregableResult<TData, int>
+        : ConditionTransformBasedStreamingQueryExecutorWithAggregableResult<TData, int>
     {
+        #region Instance fields
+
         private int _count = 0;
+
+        #endregion
+
+        #region Instance properties
+
+        public override int Accumulator { get => _count; }
+
+        #endregion
+
+        #region Constructors
 
         public CountByFilterStreamingQueryExecutor(Func<TData, bool> dataPassingCondition)
             : base(dataPassingCondition)
@@ -36,21 +31,22 @@ namespace LINQProvider.DefaultQueryExecutors
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
         }
 
+        #endregion
+
+        #region Instance methods
+
+        protected override void TransformResult(TData data)
+        {
+            _count++;
+
+            return;
+        }
+
         protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
         {
-            bool didDataPass = DataPassingCondition(data);
-
-            return (didDataPass, true);
+            return (_condition(data), true);
         }
 
-        protected override int ModifyIntermediateQueryResult(TData data)
-        {
-            return ++_count;
-        }
-
-        public override void AccumulateIfDataPassed(ref int accumulator, int outputData)
-        {
-            accumulator = _count;
-        }
+        #endregion
     }
 }

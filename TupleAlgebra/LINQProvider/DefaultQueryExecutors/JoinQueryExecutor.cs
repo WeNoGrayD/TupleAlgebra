@@ -8,43 +8,8 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    public class JoinBufferingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>
-        : BufferingQueryExecutorWithEnumerableResult<TOuterData, TQueryResultData>
-        where TKey : notnull
-    {
-        private IEnumerable<TInnerData> _innerEnumerable;
-
-        private Func<TOuterData, TKey> _outerKeySelector;
-
-        private Func<TInnerData, TKey> _innerKeySelector;
-
-        private Func<TOuterData, TInnerData, TQueryResultData> _transform;
-
-        public JoinBufferingQueryExecutor(
-            IEnumerable<TInnerData> innerEnumerable,
-            Func<TOuterData, TKey> outerKeySelector,
-            Func<TInnerData, TKey> innerKeySelector,
-            Func<TOuterData, TInnerData, TQueryResultData> transform)
-            : base((_) => true)
-        {
-            _innerEnumerable = innerEnumerable;
-            _outerKeySelector = outerKeySelector;
-            _innerKeySelector = innerKeySelector;
-            _transform = transform;
-        }
-
-        protected override IEnumerable<TQueryResultData> TraverseOverDataSource()
-        {
-            ILookup<TKey, TInnerData> phonebook = _innerEnumerable.ToLookup(_innerKeySelector);
-
-            foreach (TOuterData outerData in DataSource)
-                foreach (TInnerData matchedInnerData in phonebook[_outerKeySelector(outerData)])
-                    yield return _transform(outerData, matchedInnerData);
-        }
-    }
-
-    public class JoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>
-        : StreamingQueryExecutorWithEnumerableOneToManyResult<TOuterData, TQueryResultData>
+    public class InnerJoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>
+        : TransformBasedStreamingQueryExecutorWithEnumerableOneToManyResult<TOuterData, TQueryResultData>
         where TKey : notnull
     {
         private IEnumerable<TInnerData> _innerEnumerable;
@@ -57,12 +22,12 @@ namespace LINQProvider.DefaultQueryExecutors
 
         private Func<TOuterData, TInnerData, TQueryResultData> _transform;
 
-        public JoinStreamingQueryExecutor(
+        public InnerJoinStreamingQueryExecutor(
             IEnumerable<TInnerData> innerEnumerable,
             Func<TOuterData, TKey> outerKeySelector,
             Func<TInnerData, TKey> innerKeySelector,
             Func<TOuterData, TInnerData, TQueryResultData> transform)
-            : base((_) => true)
+            : base()
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
             _innerEnumerable = innerEnumerable;
@@ -76,12 +41,198 @@ namespace LINQProvider.DefaultQueryExecutors
             _phonebook = _innerEnumerable.ToLookup(_innerKeySelector);
         }
 
-        protected override IEnumerable<TQueryResultData> Match(TOuterData outerData)
+        protected override IEnumerable<TQueryResultData> Transform(TOuterData outerData)
         {
             foreach (TInnerData matchedInnerData in _phonebook[_outerKeySelector(outerData)])
                 yield return _transform(outerData, matchedInnerData);
         }
 
-        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TOuterData data) => (true, true);
+        /*
+         * Данные считаются переданными, если в лукапе присутствует соответствующий ключ.
+         */
+        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TOuterData outerData) => 
+            (_phonebook.Contains(_outerKeySelector(outerData)), true);
+    }
+
+    public class LeftOuterJoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>
+        : TransformBasedStreamingQueryExecutorWithEnumerableOneToManyResult<TOuterData, TQueryResultData?>
+        where TKey : notnull
+    {
+        private IEnumerable<TInnerData> _innerEnumerable;
+
+        private Func<TOuterData, TKey> _outerKeySelector;
+
+        private Func<TInnerData, TKey> _innerKeySelector;
+
+        private ILookup<TKey, TInnerData> _phonebook;
+
+        private Func<TOuterData, TInnerData, TQueryResultData> _transform;
+
+        public LeftOuterJoinStreamingQueryExecutor(
+            IEnumerable<TInnerData> innerEnumerable,
+            Func<TOuterData, TKey> outerKeySelector,
+            Func<TInnerData, TKey> innerKeySelector,
+            Func<TOuterData, TInnerData?, TQueryResultData> transform)
+            : base()
+        {
+            InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
+            _innerEnumerable = innerEnumerable;
+            _outerKeySelector = outerKeySelector;
+            _innerKeySelector = innerKeySelector;
+            _transform = transform;
+        }
+
+        public override void PrepareToQueryStart()
+        {
+            _phonebook = _innerEnumerable.ToLookup(_innerKeySelector);
+        }
+
+        protected override IEnumerable<TQueryResultData> Transform(TOuterData outerData)
+        {
+            TKey outerKey = _outerKeySelector(outerData);
+            if (_phonebook.Contains(outerKey))
+            {
+                foreach (TInnerData matchedInnerData in _phonebook[outerKey])
+                {
+                    yield return _transform(outerData, matchedInnerData);
+                }
+            }
+            else yield return _transform(outerData, default(TInnerData)!);
+        }
+
+        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TOuterData outerData) => 
+            (true, true);
+    }
+
+    public class RightOuterJoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>
+        : TransformBasedStreamingQueryExecutorWithEnumerableOneToManyResult<TOuterData, TQueryResultData>
+        where TKey : notnull
+    {
+        private IEnumerable<TInnerData> _innerEnumerable;
+
+        private Func<TOuterData, TKey> _outerKeySelector;
+
+        private Func<TInnerData, TKey> _innerKeySelector;
+
+        private ILookup<TKey, TInnerData> _phonebook;
+
+        private Func<TOuterData, TInnerData, TQueryResultData> _transform;
+
+        private HashSet<TKey> _actualOuterKeys;
+
+        public RightOuterJoinStreamingQueryExecutor(
+            IEnumerable<TInnerData> innerEnumerable,
+            Func<TOuterData, TKey> outerKeySelector,
+            Func<TInnerData, TKey> innerKeySelector,
+            Func<TOuterData, TInnerData, TQueryResultData> transform)
+            : base()
+        {
+            InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
+            _innerEnumerable = innerEnumerable;
+            _outerKeySelector = outerKeySelector;
+            _innerKeySelector = innerKeySelector;
+            _transform = transform;
+        }
+
+        public override void PrepareToQueryStart()
+        {
+            _phonebook = _innerEnumerable.ToLookup(_innerKeySelector);
+        }
+
+        protected override IEnumerable<TQueryResultData> Transform(TOuterData outerData)
+        {
+            TKey outerKey = _outerKeySelector(outerData);
+
+            if (_actualOuterKeys is null)
+                _actualOuterKeys = new HashSet<TKey>();
+            _actualOuterKeys.Add(outerKey);
+
+            foreach (TInnerData matchedInnerData in _phonebook[outerKey])
+            {
+                yield return _transform(outerData, matchedInnerData);
+            }
+        }
+
+        public IEnumerable<TQueryResultData> AfterTraversingImpl()
+        {
+            foreach (IGrouping<TKey, TInnerData> group in _phonebook)
+            {
+                if (_actualOuterKeys.Contains(group.Key)) continue;
+
+                foreach (TInnerData innerData in group)
+                    yield return _transform(default(TOuterData)!, innerData);
+            }
+        }
+
+        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TOuterData outerData) =>
+            (_phonebook.Contains(_outerKeySelector(outerData)), true);
+    }
+
+    public class FullOuterJoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>
+        : TransformBasedStreamingQueryExecutorWithEnumerableOneToManyResult<TOuterData, TQueryResultData>
+        where TKey : notnull
+    {
+        private IEnumerable<TInnerData> _innerEnumerable;
+
+        private Func<TOuterData, TKey> _outerKeySelector;
+
+        private Func<TInnerData, TKey> _innerKeySelector;
+
+        private ILookup<TKey, TInnerData> _phonebook;
+
+        private Func<TOuterData, TInnerData, TQueryResultData> _transform;
+
+        private HashSet<TKey> _actualOuterKeys;
+
+        public FullOuterJoinStreamingQueryExecutor(
+            IEnumerable<TInnerData> innerEnumerable,
+            Func<TOuterData, TKey> outerKeySelector,
+            Func<TInnerData, TKey> innerKeySelector,
+            Func<TOuterData, TInnerData, TQueryResultData> transform)
+            : base()
+        {
+            InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
+            _innerEnumerable = innerEnumerable;
+            _outerKeySelector = outerKeySelector;
+            _innerKeySelector = innerKeySelector;
+            _transform = transform;
+        }
+
+        public override void PrepareToQueryStart()
+        {
+            _phonebook = _innerEnumerable.ToLookup(_innerKeySelector);
+        }
+
+        protected override IEnumerable<TQueryResultData> Transform(TOuterData outerData)
+        {
+            TKey outerKey = _outerKeySelector(outerData);
+
+            if (_actualOuterKeys is null)
+                _actualOuterKeys = new HashSet<TKey>();
+            _actualOuterKeys.Add(outerKey);
+
+            if (_phonebook.Contains(outerKey))
+            {
+                foreach (TInnerData matchedInnerData in _phonebook[outerKey])
+                {
+                    yield return _transform(outerData, matchedInnerData);
+                }
+            }
+            else yield return _transform(outerData, default(TInnerData)!);
+        }
+
+        public IEnumerable<TQueryResultData> AfterTraversingImpl()
+        {
+            foreach (IGrouping<TKey, TInnerData> group in _phonebook)
+            {
+                if (_actualOuterKeys.Contains(group.Key)) continue;
+
+                foreach (TInnerData innerData in group)
+                    yield return _transform(default(TOuterData)!, innerData);
+            }
+        }
+
+        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TOuterData outerData) =>
+            (true, true);
     }
 }

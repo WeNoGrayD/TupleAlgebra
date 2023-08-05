@@ -8,7 +8,7 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 namespace LINQProvider.DefaultQueryExecutors
 {
     public class AggregateStreamingQueryExecutor<TData, TQueryResult>
-        : StreamingQueryExecutorWithAggregableResult<TData, TQueryResult>
+        : TransformBasedStreamingQueryExecutorWithAggregableResult<TData, TQueryResult>
     {
         #region Instance fields
 
@@ -24,6 +24,12 @@ namespace LINQProvider.DefaultQueryExecutors
 
         #endregion
 
+        #region Instance properties
+
+        public override TQueryResult Accumulator { get => _queryResult; }
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -33,8 +39,8 @@ namespace LINQProvider.DefaultQueryExecutors
         /// <param name="seed"></param>
         public AggregateStreamingQueryExecutor(
             Func<TQueryResult, TData, TQueryResult> aggregatingFunc,
-            TQueryResult seed = default(TQueryResult))
-            : base((_) => true)
+            TQueryResult seed = default(TQueryResult)!)
+            : base()
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
             _queryResult = seed;
@@ -43,21 +49,17 @@ namespace LINQProvider.DefaultQueryExecutors
 
         #endregion
 
-        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
-        {
-            bool didDataPass = DataPassingCondition(data);
+        #region Instance methods
 
-            return (didDataPass, true);
+        protected override void TransformResult(TData data)
+        {
+            _queryResult = _aggregatingFunc(_queryResult, data);
+
+            return;
         }
 
-        protected override TQueryResult ModifyIntermediateQueryResult(TData data)
-        {
-            return _queryResult = _aggregatingFunc(_queryResult, data);
-        }
+        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data) => (true, true);
 
-        public override void AccumulateIfDataPassed(ref TQueryResult accumulator, TQueryResult outputData)
-        {
-            accumulator = _queryResult;
-        }
+        #endregion
     }
 }

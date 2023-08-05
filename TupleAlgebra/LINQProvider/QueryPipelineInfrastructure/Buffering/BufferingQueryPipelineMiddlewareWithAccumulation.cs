@@ -4,108 +4,140 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LINQProvider.QueryPipelineInfrastructure;
-using LINQProvider.QueryResultAccumulatorInterfaces;
+using LINQProvider.QueryResultAccumulatorInfrastructure;
 
 namespace LINQProvider.QueryPipelineInfrastructure.Buffering
 {
-    public class BufferingQueryPipelineMiddlewareWithAccumulation<TData, TQueryResult, TAccumulator>
-        : QueryPipelineMiddlewareWithAccumulation<BufferingQueryExecutor<TData, TQueryResult>, TData, TQueryResult, TAccumulator>
-        where TAccumulator : TQueryResult
+    public class BufferingQueryPipelineMiddlewareWithAccumulation<TData, TQueryResult>
+        : QueryPipelineMiddlewareWithAccumulation<
+            TData, 
+            TQueryResult, 
+            BufferingQueryExecutor<TData, TQueryResult>>
     {
+        #region Constructors
+
         public BufferingQueryPipelineMiddlewareWithAccumulation(
-            LinkedListNode<IQueryPipelineMiddleware> node,
-            BufferingQueryExecutor<TData, TQueryResult> innerExecutor,
-            IAccumulatePositiveQueryResult<TQueryResult, TAccumulator> innerExecutorAsAccumulating)
-            : base(node, innerExecutor, innerExecutorAsAccumulating)
-        { }
+            BufferingQueryExecutor<TData, TQueryResult> innerExecutor)
+            : base(innerExecutor)
+        {
+            return;
+        }
+
+        #endregion
+
+        #region Instance methods
+
+        public override void InitializeAsQueryPipelineStartupMiddleware()
+        {
+            return;
+        }
 
         public override IQueryPipelineMiddleware<TData, TQueryResult> ContinueWith(
-            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineEndpoint continuingExecutor,
             IQueryPipelineScheduler scheduler)
         {
             throw new NotImplementedException();
         }
 
-        public override TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(ISingleQueryExecutorVisitor pipeline)
+        /// <summary>
+        /// Инициализация компонента в качестве конечного компонента конвейера запросов.
+        /// </summary>
+        public override void InitializeAsQueryPipelineEndpoint()
         {
-            _innerExecutorImpl.GetQueryResult();
-
-            return (TPipelineQueryResult)(object)_accumulator!;
+            return;
         }
 
-        public override IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(ISingleQueryExecutorVisitor pipelineQueryExecutor)
+        public override TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(ISingleQueryExecutorResultRequester pipeline)
         {
-            throw new NotImplementedException();
+            return (_innerExecutorImpl as BufferingQueryExecutor<TData, TPipelineQueryResult >)!.Execute();
         }
 
-        public override void SubscribeOnInnerExecutorEventsOnDataInstanceProcessing(
-            Action<TQueryResult> queryResultPassingHandler)
+        public override IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(
+            ISingleQueryExecutorResultRequester pipeline)
         {
-            InnerExecutor.DataPassed += (outputData) =>
-                queryResultPassingHandler(_innerExecutorImpl.GetQueryResult());
+            return (_innerExecutorImpl.Execute() as IEnumerable<TPipelineQueryResultData>)!;
         }
+
+        #endregion
+
+        #region IQueryPipelineAcceptor implementation
+
+        public override TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+            ISingleQueryExecutorResultRequester resultRequster)
+        {
+            return resultRequster.VisitBufferingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
+                _innerExecutorImpl);
+        }
+
+        public override IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
+            System.Collections.IEnumerable dataSource,
+            ISingleQueryExecutorResultRequester resultRequster)
+        {
+            return resultRequster.VisitBufferingQueryExecutorWithExpectedEnumerableResult<
+                TData, 
+                TQueryResult, 
+                TPipelineQueryResultData>(
+                    dataSource,
+                    this,
+                    _innerExecutorImpl);
+        }
+
+        #endregion
 
         #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
 
-        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
+        public override void Accept(ISingleQueryExecutorVisitor<TData> visitor)
         {
             visitor.VisitBufferingQueryExecutor(_innerExecutorImpl);
+
+            return;
+        }
+
+        public override void Accept(
+            IQueryPipelineScheduler scheduler,
+            IQueryPipelineMiddlewareVisitor<TData> visitor)
+        {
+            visitor.VisitBufferingMiddleware(scheduler, this);
 
             return;
         }
 
         #endregion
-    }
 
-    public class BufferingQueryExecutorWithAccumulationOfEnumerableResult<TData, TQueryResultData>
-        : QueryPipelineMiddlewareWithAccumulation<BufferingQueryExecutorWithEnumerableResult<TData, TQueryResultData>,
-                                              TData,
-                                              IEnumerable<TQueryResultData>,
-                                              IEnumerable<TQueryResultData>>
-    {
-        public BufferingQueryExecutorWithAccumulationOfEnumerableResult(
-            LinkedListNode<IQueryPipelineMiddleware> node,
-            BufferingQueryExecutorWithEnumerableResult<TData, TQueryResultData> innerExecutor,
-            IAccumulatePositiveQueryResult<IEnumerable<TQueryResultData>, IEnumerable<TQueryResultData>> innerExecutorAsAccumulating)
-            : base(node, innerExecutor, innerExecutorAsAccumulating)
+        #region IQueryPipelineMiddleware implementation
+
+        public override void PrepareToAggregableResult<TPipelineQueryResult>(ISingleQueryExecutorResultRequester pipelineQueryExecutor)
         { }
 
+        public override void PrepareToEnumerableResult<TPipelineQueryResultData>(ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        { }
+
+        #endregion
+    }
+
+    public class BufferingQueryPipelineMiddlewareWithAccumulationOfEnumerableResult<TData, TQueryResultData>
+        : BufferingQueryPipelineMiddlewareWithAccumulation<TData, IEnumerable<TQueryResultData>>
+    {
+        #region Constructors
+
+        public BufferingQueryPipelineMiddlewareWithAccumulationOfEnumerableResult(
+            BufferingQueryExecutorWithEnumerableResult<TData, TQueryResultData> innerExecutor)
+            : base(innerExecutor)
+        {
+            return;
+        }
+
+        #endregion
+
+        #region Instance methods
+
         public override IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> ContinueWith(
-            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineEndpoint continuingExecutor,
             IQueryPipelineScheduler scheduler)
         {
             scheduler.PushMiddleware(continuingExecutor);
 
             return this;
-        }
-
-        public override IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor pipeline)
-        {
-            _innerExecutorImpl.GetQueryResult();
-
-            return _accumulator as IEnumerable<TPipelineQueryResultData>;
-        }
-
-        public override TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(ISingleQueryExecutorVisitor pipelineQueryExecutor)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void SubscribeOnInnerExecutorEventsOnDataInstanceProcessing(
-            Action<IEnumerable<TQueryResultData>> queryResultPassingHandler)
-        {
-            InnerExecutor.DataPassed += (outputData) =>
-                queryResultPassingHandler(_innerExecutorImpl.GetQueryResult());
-        }
-
-        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
-
-        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
-        {
-            visitor.VisitBufferingQueryExecutor(_innerExecutorImpl);
-
-            return;
         }
 
         #endregion

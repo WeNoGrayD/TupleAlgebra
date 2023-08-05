@@ -47,9 +47,9 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// в качестве стартового.
         /// </summary>
         /// <param name="startupMiddlewareMiddleware"></param>
-        void PushMiddleware(IQueryPipelineMiddleware startupMiddlewareMiddleware);
+        void PushMiddleware(IQueryPipelineEndpoint startupMiddlewareMiddleware);
 
-        void ContinuePipelineWith(IQueryPipelineMiddleware middleware);
+        //void ContinuePipelineWith(IQueryPipelineMiddleware middleware);
 
         #endregion
     }

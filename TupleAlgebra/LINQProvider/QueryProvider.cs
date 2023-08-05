@@ -393,10 +393,16 @@ namespace LINQProvider
                             break;
                         }
                     case "Skip":
+                        {
+                            reorderer = new SkipAndTakeQueryExpressionTreeReorderer(_dataSource);
+                            reductor = new SkipQueryExpressionTreeReducer();
+
+                            break;
+                        }
                     case "Take":
                         {
                             reorderer = new SkipAndTakeQueryExpressionTreeReorderer(_dataSource);
-                            reductor = new SkipAndTakeQueryExpressionTreeReducer();
+                            reductor = new TakeQueryExpressionTreeReducer();
 
                             break;
                         }
@@ -603,7 +609,7 @@ namespace LINQProvider
 
             private System.Text.RegularExpressions.Regex _queriesLighterInWeight = new
                 System.Text.RegularExpressions.Regex(
-                    "^(Select)|(GroupJoin)$", 
+                    "^((Select)|(GroupJoin))$", 
                     System.Text.RegularExpressions.RegexOptions.Compiled);
 
             #endregion
@@ -686,8 +692,6 @@ namespace LINQProvider
 
             protected override Expression VisitMethodCall(MethodCallExpression node)
             {
-                //if (_targetNode.Method.Name != node.Method.Name ||
-                //    _targetNode.Method.)
                 if (node.Method == _targetMethodNode.Method)
                 {
                     _reducedNodes.Push(node);
@@ -729,24 +733,50 @@ namespace LINQProvider
             #endregion
         }
 
-        protected class SkipAndTakeQueryExpressionTreeReducer : QueryExpressionTreeReducer
+        protected class SkipQueryExpressionTreeReducer : QueryExpressionTreeReducer
         {
             #region Instance methods
 
             protected override Expression ReduceImpl()
             {
-                int processedDataCount = _targetMethodNodeParams[1].AsConstantOfType<int>();
+                int skippedDataCount = _targetMethodNodeParams[1].AsConstantOfType<int>();
                 
                 foreach (MethodCallExpression reducedNode in _reducedNodes)
                 {
-                    processedDataCount += reducedNode.Arguments[1].AsConstantOfType<int>();
+                    skippedDataCount += reducedNode.Arguments[1].AsConstantOfType<int>();
                 }
-                _targetMethodNodeParams[1] = Expression.Constant(processedDataCount);
+                _targetMethodNodeParams[1] = Expression.Constant(skippedDataCount);
 
                 return Expression.Call(
-                    null,//_reducedNodes.Peek().Object,
+                    null,
                     _targetMethodNode.Method, 
                     _targetMethodNodeParams);
+            }
+
+            #endregion
+        }
+
+        protected class TakeQueryExpressionTreeReducer : QueryExpressionTreeReducer
+        {
+            #region Instance methods
+
+            protected override Expression ReduceImpl()
+            {
+                Expression exprWithMinTakenDataCount = _targetMethodNode;
+                int minTakenDataCount = _targetMethodNodeParams[1].AsConstantOfType<int>(),
+                    reducedNodeTakenDataCount;
+
+                foreach (MethodCallExpression reducedNode in _reducedNodes)
+                {
+                    reducedNodeTakenDataCount = reducedNode.Arguments[1].AsConstantOfType<int>();
+                    if (reducedNodeTakenDataCount < minTakenDataCount)
+                    {
+                        minTakenDataCount = reducedNodeTakenDataCount;
+                        exprWithMinTakenDataCount = reducedNode;
+                    }
+                }
+
+                return exprWithMinTakenDataCount;
             }
 
             #endregion

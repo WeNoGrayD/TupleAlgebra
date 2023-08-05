@@ -28,10 +28,21 @@ namespace LINQProvider.QueryPipelineInfrastructure
         public virtual IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> Create<TData, TQueryResultData>(
             LinkedListNode<IQueryPipelineMiddleware> node,
             IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> continuedExecutor,
-            IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData> nextExecutor)
+            IStreamingQueryPipelineMiddleware<TQueryResultData> nextMiddleware)
         {
-            return continuedExecutor.InnerExecutor switch
+            return (continuedExecutor.InnerExecutor, continuedExecutor.InnerExecutor.Multiplicity) switch
             {
+                (StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> streaming, QuerySourceToResultMiltiplicity.OneToOne) =>
+                    new StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult<TData, TQueryResultData>(
+                        node,
+                        streaming,
+                        nextMiddleware),
+                (StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> streaming, QuerySourceToResultMiltiplicity.OneToMany) =>
+                    new StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult<TData, TQueryResultData>(
+                        node,
+                        streaming,
+                        nextMiddleware),
+                /*
                 StreamingQueryExecutorWithEnumerableOneToManyResult<TData, TQueryResultData> streaming =>
                     new StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult<TData, TQueryResultData>(
                         node,
@@ -42,6 +53,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
                         node,
                         streaming, 
                         nextExecutor),
+                */
                 /*
                 BufferingQueryExecutorWithEnumerableResult<TData, TQueryResultData> buffering =>
                     new BufferingQueryPipelineMiddlewareWithContinuation<TData, TQueryResultData, TNextQueryResult>(

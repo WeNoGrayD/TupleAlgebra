@@ -10,14 +10,14 @@ namespace LINQProvider.QueryPipelineInfrastructure
     /// Интерфейс компонента конвейера запросов.
     /// </summary>
     public interface IQueryPipelineMiddleware 
-        : IQueryPipelineAcceptor
+        : IQueryResultProvider
     {
         #region Properties
 
         /// <summary>
-        /// Узел компонента конвейера внутри расписания конвейера.
+        /// Кратность источника данных запроса и его результат.
         /// </summary>
-        LinkedListNode<IQueryPipelineMiddleware> PipelineScheduleNode { get; }
+        QuerySourceToResultMiltiplicity Multiplicity { get; }
 
         /// <summary>
         /// Флаг предоставления результата данным компонентом конвейреа.
@@ -27,12 +27,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <summary>
         /// Флаг продолжения обхода по входным данным.
         /// </summary>
-        bool MustGoOn { get; }
-
-        /// <summary>
-        /// Кратность источника данных запроса и его результат.
-        /// </summary>
-        QuerySourceToResultMiltiplicity Multiplicity { get; }
+        bool MustGoOn { get; set; }
 
         /// <summary>
         /// Конечный компонента конвейера запросов.
@@ -50,7 +45,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="continuingExecutor"></param>
         /// <returns></returns>
         IQueryPipelineMiddleware ContinueWith(
-            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineEndpoint continuingExecutor,
             IQueryPipelineScheduler scheduler);
 
         /// <summary>
@@ -58,14 +53,14 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// </summary>
         /// <typeparam name="TPipelineQueryResult"></typeparam>
         /// <param name="pipelineQueryExecutor"></param>
-        void PrepareToAggregableResult<TPipelineQueryResult>(ISingleQueryExecutorVisitor pipelineQueryExecutor);
+        void PrepareToAggregableResult<TPipelineQueryResult>(ISingleQueryExecutorResultRequester pipelineQueryExecutor);
 
         /// <summary>
         /// Подготовка компонента конвейера к тому, что итоговым результатом конвейера запросов.
         /// </summary>
         /// <typeparam name="TPipelineQueryResultData"></typeparam>
         /// <param name="pipelineQueryExecutor"></param>
-        void PrepareToEnumerableResult<TPipelineQueryResultData>(ISingleQueryExecutorVisitor pipelineQueryExecutor);
+        void PrepareToEnumerableResult<TPipelineQueryResultData>(ISingleQueryExecutorResultRequester pipelineQueryExecutor);
 
         /// <summary>
         /// Получение агрегируемого результата конвейера запросов.
@@ -74,7 +69,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="pipelineQueryExecutor"></param>
         /// <returns></returns>
         TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(
-            ISingleQueryExecutorVisitor pipelineQueryExecutor);
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor);
 
         /// <summary>
         /// Получение перечислимого результата конвейера запросов.
@@ -83,7 +78,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="pipelineQueryExecutor"></param>
         /// <returns></returns>
         IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor pipelineQueryExecutor);
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor);
 
         #endregion
     }

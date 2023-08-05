@@ -8,28 +8,11 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    public class SelectBufferingQueryExecutor<TData, TQueryResultData> 
-        : BufferingQueryExecutorWithEnumerableResult<TData, TQueryResultData>
-    {
-        private Func<TData, TQueryResultData> _transform;
-
-        public SelectBufferingQueryExecutor(Func<TData, TQueryResultData> transform)
-            : base((_) => true)
-        {
-            _transform = transform;
-        }
-
-        protected override IEnumerable<TQueryResultData> TraverseOverDataSource()
-        {
-            foreach (TData data in DataSource)
-                yield return _transform(data);
-        }
-    }
     public class SelectStreamingQueryExecutor<TData, TQueryResultData> 
-        : StreamingQueryExecutorWithEnumerableOneToOneResult<TData, TQueryResultData>
+        : TransformBasedStreamingQueryExecutorWithEnumerableOneToOneResult<TData, TQueryResultData>
     {
         public SelectStreamingQueryExecutor(Func<TData, TQueryResultData> transform)
-            : base(null, (TData data) => transform(data))
+            : base(transform)
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
         }

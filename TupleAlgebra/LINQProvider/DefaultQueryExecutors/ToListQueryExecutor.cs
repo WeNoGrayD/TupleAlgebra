@@ -6,26 +6,20 @@ using System.Threading.Tasks;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    /*
     public class ToListBufferingQueryExecutor<TData> 
-        : BufferingQueryExecutorWithAggregableResult<TData, List<TData>>
+        : QueryPipelineInfrastructure.Buffering
+            .BufferingQueryExecutorWithAggregableResult<TData, List<TData>>
     {
         /// <summary>
         /// Конструктор экземпляра.
         /// </summary>
         public ToListBufferingQueryExecutor()
-            : base((_) => true)
+            : base()
         { }
 
-        protected override List<TData> TraverseOverDataSource()
+        public override List<TData> Execute()
         {
-            List<TData> accumulator = new List<TData>();
-
-            foreach (TData data in DataSource)
-                accumulator.Add(data);
-
-            return accumulator;
+            return new List<TData>(_dataSource);
         }
     }
-    */
 }

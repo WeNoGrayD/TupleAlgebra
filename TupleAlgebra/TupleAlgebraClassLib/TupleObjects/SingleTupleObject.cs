@@ -123,7 +123,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #endregion
 
-        #region IDisposable implemention
+        #region IDisposable implementation
 
         protected override void DisposeImpl()
         {

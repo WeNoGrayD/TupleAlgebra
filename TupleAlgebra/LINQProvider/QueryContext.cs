@@ -5,21 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
-using LINQProvider.DefaultQueryExecutors;
-using System.Collections;
-using LINQProvider.QueryPipelineInfrastructure;
-using System.ComponentModel;
 
 namespace LINQProvider
 {
     public class QueryContext
     {
-        public IQueryPipelineAcceptor BuildSingleQueryExecutor(MethodCallExpression methodExpr)
+        public object BuildSingleQueryExecutor(MethodCallExpression methodExpr)
         {
             int argc = methodExpr.Arguments.Count - 1;
+            object[] arguments = new object[argc];
             if (argc > 0)
             {
-                object[] arguments = new object[argc];
                 Expression argExpr;
                 for (int i = 0; i < argc; i++)
                 {
@@ -31,121 +27,64 @@ namespace LINQProvider
                         _ => throw new NotImplementedException()
                     };
                 }
-
-                return RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(methodExpr, arguments);
             }
 
-            return RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(methodExpr);
+            return RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(methodExpr, arguments);
         }
 
-        /// <summary>
-        /// Метод для построения пользовательских запросов с сигнатурами методов, отличными от нескольких стандартных.
-        /// </summary>
-        /// <param name="methodExpr"></param>
-        /// <param name="info"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        protected virtual IQueryPipelineAcceptor BuildCustomSingleQueryExecutor(
-            MethodCallExpression methodExpr, 
-            (int Argc, System.Collections.ObjectModel.ReadOnlyCollection<Expression> Argv) info) =>
-            throw new NotImplementedException();
-
-        protected IQueryPipelineAcceptor RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
+        protected object RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
             MethodCallExpression methodExpr,
             params object[] methodParams)
         {
-            string queryMethodName = methodExpr.Method.Name;
-            MethodInfo queryBuildingMethod = typeof(QueryContext)
-                .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(method => method.Name == "Build" + queryMethodName + "Query" && 
-                       method.GetParameters().Length == methodParams.Length)
-                .Single()
-                .MakeGenericMethod(methodExpr.Method.GetGenericArguments());
+            MethodInfo queryBuildingMethod = FindQueryBuildingMethod(methodExpr, methodParams);
 
             return BuildSingleQueryExecutorImpl(queryBuildingMethod, methodParams);
         }
 
-        private IQueryPipelineAcceptor BuildSingleQueryExecutorImpl(
+        protected virtual MethodInfo FindQueryBuildingMethod(
+            MethodCallExpression methodExpr,
+            object[] methodParams)
+        {
+            MethodInfo queryMethod = methodExpr.Method;
+            string queryBuildingMethodName = "Build" + queryMethod.Name + "Query";
+
+            return this.GetType()
+                .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+                .Where(method => method.Name == queryBuildingMethodName &&
+                       method.GetParameters().Length == methodParams.Length)
+                .Single()
+                .MakeGenericMethod(methodExpr.Method.GetGenericArguments());
+        }
+
+        private object BuildSingleQueryExecutorImpl(
             MethodInfo queryBuildingMethod,
             params object[] queryBuildingMethodParams)
         {
-            return (queryBuildingMethod.Invoke(this, queryBuildingMethodParams) as IQueryPipelineAcceptor)!;
+            return queryBuildingMethod.Invoke(this, queryBuildingMethodParams)!;
         }
 
-        protected virtual SingleQueryExecutor<TData, TQueryResult> BuildAggregateQuery<TData, TQueryResult>(
-            TQueryResult seed,
-            Func<TQueryResult, TData, TQueryResult> aggregatingFunc) 
-            => new AggregateStreamingQueryExecutor<TData, TQueryResult>(aggregatingFunc, seed);
+        protected bool CheckCompatibilityWithTarget(
+            MethodInfo targetMethod, 
+            object[] providedParams)
+        {
+            ParameterInfo[] declaredParams = targetMethod.GetParameters();
 
-        protected virtual SingleQueryExecutor<TData, bool> BuildAllQuery<TData>(
-            Func<TData, bool> predicate) => new AllStreamingQueryExecutor<TData>(predicate);
+            if (declaredParams.Length != providedParams.Length) return false;
 
-        protected virtual SingleQueryExecutor<TData, bool> BuildAnyQuery<TData>(
-            Func<TData, bool> predicate) => new AnyStreamingQueryExecutor<TData>(predicate);
+            Type providedParamType, declaredParamType;
+            bool parametersMatched = true;
+            
+            for (int j = 0; j < declaredParams.Length; j++)
+            {
+                providedParamType = providedParams[j].GetType();
+                declaredParamType = declaredParams[j].ParameterType;
 
-        protected virtual SingleQueryExecutor<TData, bool> BuildContainsQuery<TData>(
-            TData sampleObj) => new ContainsStreamingQueryExecutor<TData>(sampleObj);
+                parametersMatched = providedParamType.IsAssignableTo(declaredParamType);
 
-        protected virtual SingleQueryExecutor<TData, int> BuildCountQuery<TData>() =>
-            new CountByFilterStreamingQueryExecutor<TData>((_) => true);
+                if (!parametersMatched) break;
+            }
 
-        protected virtual SingleQueryExecutor<TData, int> BuildCountQuery<TData>(
-            Func<TData, bool> predicate) => new CountByFilterStreamingQueryExecutor<TData>(predicate);
-
-        protected virtual SingleQueryExecutor<TData, TData> BuildFirstQuery<TData>(
-            Func<TData, bool> predicate) => new FirstByFilterStreamingQueryExecutor<TData>(predicate);
-
-        protected virtual SingleQueryExecutor<TData, TData> BuildFirstQuery<TData>() => 
-            new FirstStreamingQueryExecutor<TData>();
-        
-
-        protected virtual SingleQueryExecutor<TOuterData, IEnumerable<TQueryResultData>>
-            BuildGroupJoinQuery<TOuterData, TInnerData, TKey, TQueryResultData>(
-                IEnumerable<TInnerData> innerEnumerable,
-                Func<TOuterData, TKey> outerKeySelector,
-                Func<TInnerData, TKey> innerKeySelector,
-                Func<TOuterData, IEnumerable<TInnerData>, TQueryResultData> resultSelector) =>
-            new GroupJoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>(
-                innerEnumerable,
-                outerKeySelector,
-                innerKeySelector,
-                resultSelector);
-
-        protected virtual SingleQueryExecutor<TOuterData, IEnumerable<TQueryResultData>> 
-            BuildJoinQuery<TOuterData, TInnerData, TKey, TQueryResultData>(
-                IEnumerable<TInnerData> innerEnumerable,
-                Func<TOuterData, TKey> outerKeySelector,
-                Func<TInnerData, TKey> innerKeySelector,
-                Func<TOuterData, TInnerData, TQueryResultData> resultSelector) =>
-            new JoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>(
-                innerEnumerable, 
-                outerKeySelector, 
-                innerKeySelector,
-                resultSelector);
-
-        protected virtual SingleQueryExecutor<TData, IEnumerable<TQueryResultData>> BuildSelectQuery<TData, TQueryResultData>(
-            Func<TData, TQueryResultData> func) => new SelectStreamingQueryExecutor<TData, TQueryResultData>(func);
-
-        protected virtual SingleQueryExecutor<TOuterData, IEnumerable<TQueryResultData>>
-            BuildSelectManyQuery<TOuterData, TInnerData, TQueryResultData>(
-            Func<TOuterData, IEnumerable<TInnerData>> innerDataSelector,
-            Func<TOuterData, TInnerData, TQueryResultData> resultSelector) =>
-            new SelectManyStreamingQueryExecutor<TOuterData, TInnerData, TQueryResultData>(
-                innerDataSelector, resultSelector);
-
-        protected virtual SingleQueryExecutor<TData, IEnumerable<TData>> BuildSkipQuery<TData>(
-            int skippingCount) => new SkipStreamingQueryExecutor<TData>(skippingCount);
-
-        protected virtual SingleQueryExecutor<TData, IEnumerable<TData>> BuildSkipWhileQuery<TData>(
-            Func<TData, bool> predicate) => new SkipWhileStreamingQueryExecutor<TData>(predicate);
-
-        protected virtual SingleQueryExecutor<TData, IEnumerable<TData>> BuildTakeQuery<TData>(
-            int takingCount) => new TakeStreamingQueryExecutor<TData>(takingCount);
-
-        protected virtual SingleQueryExecutor<TData, IEnumerable<TData>> BuildTakeWhileQuery<TData>(
-            Func<TData, bool> predicate) => new TakeWhileStreamingQueryExecutor<TData>(predicate);
-
-        protected virtual SingleQueryExecutor<TData, IEnumerable<TData>> BuildWhereQuery<TData>(
-            Func<TData, bool> predicate) => new WhereStreamingQueryExecutor<TData>(predicate);
+            return parametersMatched;
+        }
     }
 }

@@ -1,5 +1,5 @@
-﻿using LINQProvider.QueryPipelineInfrastructure.Streaming;
-using LINQProvider.QueryPipelineInfrastructure.Buffering;
+﻿using LINQProvider.QueryPipelineInfrastructure.Buffering;
+using LINQProvider.QueryPipelineInfrastructure.Streaming;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +15,18 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// потоковым компонентом.
         /// </summary>
         /// <param name="nextStreaming"></param>
-        void VisitStreamingQueryExecutor<TExecutorQueryResult>(
-            StreamingQueryExecutor<TQueryResultData, TExecutorQueryResult> streaming);
+        void VisitStreamingMiddleware<TExecutorQueryResult>(
+            IQueryPipelineScheduler scheduler,
+            StreamingQueryPipelineMiddlewareWithAccumulation<TQueryResultData, TExecutorQueryResult> 
+                streaming);
 
         /// <summary>
         /// Обработка случая, когда следующий компонент конвейера запросов является
         /// буферизирующим компонентов.
         /// </summary>
         /// <param name="nextBuffering"></param>
-        void VisitBufferingQueryExecutor<TExecutorQueryResult>(
-            BufferingQueryExecutor<TQueryResultData, TExecutorQueryResult> buffering);
+        void VisitBufferingMiddleware<TExecutorQueryResult>(
+            IQueryPipelineScheduler scheduler,
+            BufferingQueryPipelineMiddlewareWithAccumulation<TQueryResultData, TExecutorQueryResult> buffering);
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LINQProvider.QueryPipelineInfrastructure.Buffering;
 using LINQProvider.QueryPipelineInfrastructure.Streaming;
-using LINQProvider.QueryResultAccumulatorInterfaces;
+using LINQProvider.QueryResultAccumulatorInfrastructure;
 
 namespace LINQProvider.QueryPipelineInfrastructure
 {
@@ -21,50 +21,51 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <typeparam name="TQueryResult"></typeparam>
         /// <param name="queryExecutor"></param>
         /// <returns></returns>
-        public virtual IQueryPipelineMiddleware Create(
-            LinkedListNode<IQueryPipelineMiddleware> node, 
-            IQueryPipelineAcceptor queryExecutor)
+        public virtual IQueryPipelineEndpoint Create<TData, TQueryResult>(
+            SingleQueryExecutor<TData, TQueryResult> queryExecutor)
         {
-            return CreateSpecific(node, (dynamic)queryExecutor);
+            return CreateSpecific((dynamic)queryExecutor);
+        }
+
+        public virtual IQueryPipelineEndpoint Create(object queryExecutor)
+        {
+            return CreateSpecific((dynamic)queryExecutor);
         }
 
         private static IQueryPipelineMiddleware<TData, TQueryResult> CreateSpecific<TData, TQueryResult>(
-            LinkedListNode<IQueryPipelineMiddleware> node,
             StreamingQueryExecutorWithAggregableResult<TData, TQueryResult> queryExecutor)
         {
-            return new StreamingQueryPipelineMiddlewareWithAccumulationOfAggregableResult<TData, TQueryResult>(
-                node, 
+            // Создаётся новый узел компонента конвейера.
+            LinkedListNode<IQueryPipelineMiddleware> newNode = new LinkedListNode<IQueryPipelineMiddleware>(null!);
+
+            return new StreamingQueryPipelineMiddlewareWithAccumulation<TData, TQueryResult>(
+                newNode, 
                 queryExecutor);
         }
 
         private static IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> CreateSpecific<TData, TQueryResultData>(
-            LinkedListNode<IQueryPipelineMiddleware> node,
-            StreamingQueryExecutorWithEnumerableOneToOneResult<TData, TQueryResultData> queryExecutor)
+            StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> queryExecutor)
         {
-            return new StreamingQueryPipelineMiddlewareWithAccumulationOfEnumerableResult<TData, TQueryResultData>(
-                node,
-                queryExecutor, 
-                queryExecutor);
-        }
+            // Создаётся новый узел компонента конвейера.
+            LinkedListNode<IQueryPipelineMiddleware> newNode = new LinkedListNode<IQueryPipelineMiddleware>(null!);
 
-        private static IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> CreateSpecific<TData, TQueryResultData>(
-            LinkedListNode<IQueryPipelineMiddleware> node,
-            StreamingQueryExecutorWithEnumerableOneToManyResult<TData, TQueryResultData> queryExecutor)
-        {
-            return new StreamingQueryPipelineMiddlewareWithAccumulationOfEnumerableResult<TData, TQueryResultData>(
-                node,
-                queryExecutor, 
+            return new StreamingQueryPipelineMiddlewareWithEnumerableResultAccumulation<TData, TQueryResultData>(
+                newNode,
                 queryExecutor);
         }
 
         private static IQueryPipelineMiddleware<TData, TQueryResult> CreateSpecific<TData, TQueryResult>(
-            LinkedListNode<IQueryPipelineMiddleware> node,
-            BufferingQueryExecutor<TData, TQueryResult> queryExecutor)
+            BufferingQueryExecutorWithAggregableResult<TData, TQueryResult> queryExecutor)
         {
-            return new BufferingQueryPipelineMiddlewareWithAccumulation<TData, TQueryResult, TQueryResult>(
-                node,
-                queryExecutor,
-                queryExecutor as IAccumulatePositiveQueryResult<TQueryResult, TQueryResult>);
+            return new BufferingQueryPipelineMiddlewareWithAccumulation<TData, TQueryResult>(
+                queryExecutor);
+        }
+
+        private static IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> CreateSpecific<TData, TQueryResultData>(
+            BufferingQueryExecutorWithEnumerableResult<TData, TQueryResultData> queryExecutor)
+        {
+            return new BufferingQueryPipelineMiddlewareWithAccumulationOfEnumerableResult<TData, TQueryResultData>(
+                queryExecutor);
         }
     }
 }

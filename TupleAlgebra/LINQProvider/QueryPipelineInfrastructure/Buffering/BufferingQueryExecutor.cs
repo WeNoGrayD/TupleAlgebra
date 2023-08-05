@@ -5,71 +5,38 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LINQProvider.QueryPipelineInfrastructure;
-using LINQProvider.QueryResultAccumulatorInterfaces;
+using LINQProvider.QueryResultAccumulatorInfrastructure;
 
 namespace LINQProvider.QueryPipelineInfrastructure.Buffering
 {
     public abstract class BufferingQueryExecutor<TData, TQueryResult> : SingleQueryExecutor<TData, TQueryResult>
     {
-        public Func<TData, bool> DataPassingCondition { get; private set; }
+        #region Instance fields
 
-        private List<TData> _dataSource;
+        protected IEnumerable<TData> _dataSource;
 
-        protected IEnumerable<TData> DataSource { get; private set; }
+        #endregion
 
-        public Action<TData> ExecuteOverDataInstance { get; private set; }
+        #region Constructors
 
-        public BufferingQueryExecutor(Func<TData, bool> dataPassingCondition)
+        public BufferingQueryExecutor()
         {
-            DataPassingCondition = dataPassingCondition;
-            InitBehavior();
+            return;
         }
 
-        protected void InitBehavior() => InitBehavior(ExecuteOverDataInstanceHandler);
+        #endregion
 
-        public void InitBehavior(Action<TData> executeOnDataInstanceHandler)
-        {
-            ExecuteOverDataInstance = executeOnDataInstanceHandler;
-        }
+        #region Instance methods
 
-        public void ExecuteOverDataInstanceHandler(TData data) => _dataSource.Add(data);
+        public void LoadDataSource(IEnumerable<TData> preparedDataSource) => _dataSource = preparedDataSource;
 
-        public void InitDataSource() => DataSource = _dataSource = new List<TData>();
+        public abstract TQueryResult Execute();
 
-        public void LoadDataSource(IEnumerable<TData> preparedDataSource) => DataSource = preparedDataSource;
-
-        public TQueryResult GetQueryResult()
-        {
-            TQueryResult queryResult = TraverseOverDataSource();
-            OnDataPassed(queryResult);
-
-            return queryResult;
-        }
-
-        protected abstract TQueryResult TraverseOverDataSource();
-
-        public override TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
-            ISingleQueryExecutorVisitor queryPipeline)
-        {
-            return queryPipeline.VisitBufferingQueryExecutorWithExpectedAggregableResult<
-                TData,
-                TQueryResult,
-                TPipelineQueryResult>(this);
-        }
-
-        public override IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor queryPipeline)
-        {
-            return queryPipeline.VisitBufferingQueryExecutorWithExpectedEnumerableResult<
-                TData,
-                TQueryResult,
-                TPipelineQueryResultData>(this);
-        }
+        #endregion
     }
 
     public abstract class BufferingQueryExecutorWithAggregableResult<TData, TQueryResult>
-        : BufferingQueryExecutor<TData, TQueryResult>,
-          IAccumulatePositiveAggregableQueryResult<TQueryResult>
+        : BufferingQueryExecutor<TData, TQueryResult>
     {
         #region Instance properties
 
@@ -80,27 +47,17 @@ namespace LINQProvider.QueryPipelineInfrastructure.Buffering
 
         #endregion
 
-        public BufferingQueryExecutorWithAggregableResult(Func<TData, bool> dataPassingCondition)
-            : base(dataPassingCondition)
+        #region Constructors
+
+        public BufferingQueryExecutorWithAggregableResult()
+            : base()
         { }
 
-        public TQueryResult InitAccumulator(TQueryResult initialAccumulatorValue) => initialAccumulatorValue;
-
-        /// <summary>
-        /// "Аккумулирование" результата запроса у BufferingQueryExecutor происходит в конце выполнения запроса,
-        /// поэтому резонно просто перекопировать результаты в аккумулятор.
-        /// </summary>
-        /// <param name="accumulator"></param>
-        /// <param name="outputData"></param>
-        public virtual void AccumulateIfDataPassed(ref TQueryResult accumulator, TQueryResult outputData)
-        {
-            accumulator = outputData;
-        }
+        #endregion
     }
 
     public abstract class BufferingQueryExecutorWithEnumerableResult<TData, TQueryResultData>
-        : BufferingQueryExecutor<TData, IEnumerable<TQueryResultData>>,
-          IAccumulatePositiveEnumerableQueryResult<TQueryResultData>
+        : BufferingQueryExecutor<TData, IEnumerable<TQueryResultData>>
     {
         #region Instance properties
 
@@ -111,19 +68,12 @@ namespace LINQProvider.QueryPipelineInfrastructure.Buffering
 
         #endregion
 
-        public BufferingQueryExecutorWithEnumerableResult(Func<TData, bool> dataPassingCondition)
-            : base(dataPassingCondition)
+        #region Constructors
+
+        public BufferingQueryExecutorWithEnumerableResult()
+            : base()
         { }
 
-        /// <summary>
-        /// "Аккумулирование" результата запроса у BufferingQueryExecutor происходит в конце выполнения запроса,
-        /// поэтому резонно просто перекопировать результаты в аккумулятор.
-        /// </summary>
-        /// <param name="accumulator"></param>
-        /// <param name="outputData"></param>
-        public void AccumulateIfDataPassed(ref IEnumerable<TQueryResultData> accumulator, IEnumerable<TQueryResultData> outputData)
-        {
-            accumulator = (this as IAccumulatePositiveEnumerableQueryResult<TQueryResultData>).InitAccumulator(outputData);
-        }
+        #endregion
     }
 }

@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 namespace LINQProvider.QueryPipelineInfrastructure
 {
     /// <summary>
-    /// Интерфейс конечного компонента конвейера запросов.
+    /// Интерфейс необобщённого конечного компонента конвейера запросов.
     /// </summary>
     public interface IQueryPipelineEndpoint : IQueryPipelineMiddleware
     {
         #region Methods
+
+        void InitializeAsQueryPipelineStartupMiddleware();
 
         /// <summary>
         /// Инициализация компонента в качестве конечного компонента конвейера запросов.
@@ -20,4 +22,13 @@ namespace LINQProvider.QueryPipelineInfrastructure
 
         #endregion
     }
+
+    /// <summary>
+    /// Интерфейс обобщённого конечного компонента конвейера запросов.
+    /// </summary>
+    public interface IQueryPipelineEndpoint<TData, TQueryResult> 
+        : IQueryPipelineMiddleware<TData, TQueryResult>,
+          IQueryPipelineEndpoint,
+          IQueryPipelineMiddlewareAcceptor<TData>
+    { }
 }

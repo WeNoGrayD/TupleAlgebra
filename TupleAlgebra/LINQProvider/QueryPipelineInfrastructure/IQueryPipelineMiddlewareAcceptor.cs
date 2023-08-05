@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace LINQProvider.QueryPipelineInfrastructure
 {
-    public interface IQueryPipelineMiddlewareWithContinuationAcceptor<TData> : IQueryPipelineMiddleware
+    public interface IQueryPipelineMiddlewareAcceptor<TData>
     {
         /// <summary>
         /// Приём визитёра.
         /// </summary>
-        void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor);
+        void Accept(
+            IQueryPipelineScheduler scheduler,
+            IQueryPipelineMiddlewareVisitor<TData> visitor);
     }
 }

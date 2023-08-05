@@ -7,12 +7,13 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    public class TakeStreamingQueryExecutor<TData> : StreamingQueryExecutorWithEnumerableOneToOneResult<TData, TData>
+    public class TakeStreamingQueryExecutor<TData> 
+        : StreamingQueryExecutorWithDirectEnumerableOneToOneResult<TData>
     {
         private int _tookCount;
 
         public TakeStreamingQueryExecutor(int takingCount)
-            : base(null, (TData data) => data)
+            : base()
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
             _tookCount = takingCount;

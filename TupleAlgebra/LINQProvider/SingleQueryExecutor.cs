@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LINQProvider.QueryPipelineInfrastructure;
+using LINQProvider.QueryResultAccumulatorInfrastructure;
 
 namespace LINQProvider
 {
@@ -21,7 +22,7 @@ namespace LINQProvider
     /// </summary>
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TQueryResult"></typeparam>
-    public abstract class SingleQueryExecutor<TData, TQueryResult> : IQueryPipelineAcceptor
+    public abstract class SingleQueryExecutor<TData, TQueryResult>
     {
         #region Instance properties
 
@@ -32,53 +33,12 @@ namespace LINQProvider
 
         #endregion
 
-        #region Instance events
+        #region Constructors
 
-        /// <summary>
-        /// Событие пропуска данных на возможный следующий компонент конвейера запросов. 
-        /// </summary>
-        public event Action<TQueryResult> DataPassed;
-
-        #endregion
-
-        #region Instance methods
-
-        /// <summary>
-        /// Вызов события пропуска данных с готовым промежуточным результатом.
-        /// </summary>
-        /// <param name="outputData"></param>
-        protected void OnDataPassed(TQueryResult outputData)
+        public SingleQueryExecutor()
         {
-            DataPassed?.Invoke(outputData);
-
             return;
         }
-
-        /// <summary>
-        /// Вызов события пропуска данных с отложенным преобразованим данных в промежуточный результат.
-        /// </summary>
-        /// <param name="outputDataSelector"></param>
-        /// <param name="data"></param>
-        /*
-         * Отложенное преобразование данных используется для того, чтобы оно не выполнялось в том случае,
-         * если данные не прошли.
-         */
-        protected void OnDataPassed(Func<TData, TQueryResult> outputDataSelector, TData data)
-        {
-            DataPassed?.Invoke(outputDataSelector(data));
-
-            return;
-        }
-
-        #endregion
-
-        #region IQueryPipelineAcceptor implementation
-
-        public abstract TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
-            ISingleQueryExecutorVisitor queryPipeline);
-
-        public abstract IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor queryPipeline);
 
         #endregion
     }

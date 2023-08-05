@@ -9,7 +9,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
     /// <summary>
     /// Приниматель конвейера запросов.
     /// </summary>
-    public interface IQueryPipelineAcceptor
+    public interface IQueryResultProvider
     {
         #region Methods
 
@@ -25,10 +25,11 @@ namespace LINQProvider.QueryPipelineInfrastructure
         //    bool isResultEnumerable, ISingleQueryExecutorVisitor queryPipeline);
 
         TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
-            ISingleQueryExecutorVisitor queryPipeline);
+            ISingleQueryExecutorResultRequester resultRequster);
 
         IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor queryPipeline);
+            System.Collections.IEnumerable dataSource,
+            ISingleQueryExecutorResultRequester resultRequster);
 
         #endregion
     }

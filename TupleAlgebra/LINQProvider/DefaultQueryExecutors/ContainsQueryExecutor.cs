@@ -8,10 +8,16 @@ namespace LINQProvider.DefaultQueryExecutors
 {
     public class ContainsStreamingQueryExecutor<TData> : AnyStreamingQueryExecutor<TData>
     {
+        #region Constructors
+
         public ContainsStreamingQueryExecutor(TData sampleObj)
-            : base((TData data) => sampleObj?.Equals(data) ?? data is null)
+            : base(sampleObj is null ? 
+                   (TData data) => data is null : 
+                   (TData data) => sampleObj.Equals(data))
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
         }
+
+        #endregion
     }
 }

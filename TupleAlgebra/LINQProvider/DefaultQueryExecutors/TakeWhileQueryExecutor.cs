@@ -7,17 +7,18 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    public class TakeWhileStreamingQueryExecutor<TData> : StreamingQueryExecutorWithEnumerableOneToOneResult<TData, TData>
+    public class TakeWhileStreamingQueryExecutor<TData> 
+        : ConditionBasedStreamingQueryExecutorWithEnumerableOneToOneResult<TData>
     {
         public TakeWhileStreamingQueryExecutor(Func<TData, bool> dataPassingCondition)
-            : base(dataPassingCondition, (TData data) => data)
+            : base(dataPassingCondition)
         {
             InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
         }
 
         protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TData data)
         {
-            bool didDataPass = DataPassingCondition(data);
+            bool didDataPass = _condition(data);
 
             return (didDataPass, didDataPass);
         }

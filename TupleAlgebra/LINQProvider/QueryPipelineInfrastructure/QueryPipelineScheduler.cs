@@ -90,8 +90,8 @@ namespace LINQProvider.QueryPipelineInfrastructure
             QueryContext queryContext, 
             IEnumerable<MethodCallExpression> methodCallChain)
         {
-            IQueryPipelineAcceptor singleQueryExecutor;
-            IQueryPipelineMiddleware middleware;
+            object singleQueryExecutor;
+            IQueryPipelineEndpoint middleware;
 
             /*
              * 1) Создаётся исполнитель запроса.
@@ -112,18 +112,18 @@ namespace LINQProvider.QueryPipelineInfrastructure
             return;
         }
 
-        protected IQueryPipelineMiddleware CoverQueryExecutorWithMiddleware(
-            IQueryPipelineAcceptor singleQueryExecutor)
+        protected IQueryPipelineEndpoint CoverQueryExecutorWithMiddleware(
+            object singleQueryExecutor)
         {
-            // Создаётся новый узел компонента конвейера.
-            LinkedListNode<IQueryPipelineMiddleware> newNode = new LinkedListNode<IQueryPipelineMiddleware>(null!);
-
             // Создаётся аккумулирующий компонент конвейера.
-            return MiddlewareWithAccumulationFactory.Create(newNode, singleQueryExecutor);
+            return MiddlewareWithAccumulationFactory.Create(singleQueryExecutor);
         }
 
-        public void ContinuePipelineWith(IQueryPipelineMiddleware middleware)
+        public void ContinuePipelineWith(IQueryPipelineEndpoint middleware)
         {
+            LinkedListNode<IQueryPipelineMiddleware> lastPipelineTask =
+                PipelineTaskSchedule.Last!;
+
             /*
              * Если расписание задач вообще не содержит ни одной задачи, то
              * добавляется новая.
@@ -132,7 +132,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
             if (PipelineTaskSchedule.Count == 0)
                 PushMiddleware(middleware);
             else
-                LastPipelineTask = LastPipelineTask.ContinueWith(middleware, this);
+                lastPipelineTask.Value = LastPipelineTask.ContinueWith(middleware, this);
 
             return;
         }
@@ -198,7 +198,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// Вставка нового компонента конвейера как начала новой задачи.
         /// </summary>
         /// <param name="startupMiddleware"></param>
-        public void PushMiddleware(IQueryPipelineMiddleware startupMiddleware)
+        public void PushMiddleware(IQueryPipelineEndpoint startupMiddleware)
         {
             if (PipelineTaskSchedule.Count > 0)
             {
@@ -207,12 +207,9 @@ namespace LINQProvider.QueryPipelineInfrastructure
             }
 
             /*
-             * 1) Создаётся новая задача.
-             * 2) В новую задачу добавляется первым звеном звено-продолжение конвейера.
-             * 3) Это самое первое звено новой задачи добавляется в конец расписания конвейера.
+             * Компонент инициализируется как начало задачи, в конвейер добавляется новая задача.
              */
-            LinkedList<IQueryPipelineMiddleware> newPipelineTask = new LinkedList<IQueryPipelineMiddleware>();
-            newPipelineTask.AddFirst(startupMiddleware.PipelineScheduleNode);
+            startupMiddleware.InitializeAsQueryPipelineStartupMiddleware();
             PipelineTaskSchedule.AddLast(startupMiddleware);
 
             return;

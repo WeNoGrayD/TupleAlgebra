@@ -8,24 +8,101 @@ using LINQProvider.QueryPipelineInfrastructure.Buffering;
 
 namespace LINQProvider.QueryPipelineInfrastructure.Streaming
 {
-    /// <summary>
-    /// Компонент конвейера запросов с аккумулированием результата вида "один к одному" потокового исполнителя.
-    /// </summary>
-    /// <typeparam name="TData"></typeparam>
-    /// <typeparam name="TQueryResultData"></typeparam>
-    /// <typeparam name="TNextQueryResult"></typeparam>
-    public class StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult<TData, TQueryResultData>
-        : QueryPipelineMiddlewareWithContinuation<
-            StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>>,
-            TData,
-            TQueryResultData>
+    public abstract class StreamingQueryPipelineMiddlewareWithContinuation<TData, TQueryResultData>
+        : QueryPipelineMiddleware<
+            TData, 
+            IEnumerable<TQueryResultData>,
+            StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>>>,
+          IStreamingQueryPipelineMiddleware<TData>
     {
+        #region Instance fields
+
+        protected LinkedListNode<IQueryPipelineMiddleware> _node;
+
+        public IStreamingQueryExecutor<TQueryResultData> _nextExecutor;
+
+        /// <summary>
+        /// Флаг продолжения обхода по входным данным.
+        /// </summary>
+        protected bool _mustGoOn = true;
+
+        #endregion
+
+        #region Instance properties
+
+        public LinkedListNode<IQueryPipelineMiddleware> PipelineScheduleNode { get => _node; }
+
+        public IQueryPipelineMiddleware PreviousMiddleware { get => (_node.Previous?.Value)!; }
+
+        /// <summary>
+        /// Следующий компонент в конвейере.
+        /// </summary>
+        public IQueryPipelineMiddleware NextMiddleware 
+        { 
+            get => _node.Next!.Value;
+            /*
+             * При явном изменении ссылки на следующий компонент конвейера 
+             * также обновляется ссылка на исполнитель запроса следующего компонента.
+             */
+            set
+            {
+                _node.Next!.Value = value;
+                _nextExecutor = (value as IStreamingQueryPipelineMiddleware<TQueryResultData>)!.Executor;
+            }
+        }
+
+        public IStreamingQueryExecutor<TData> Executor { get => _innerExecutorImpl; }
+
+        public override bool ResultProvided
+        {
+            get => base.ResultProvided;
+            set
+            {
+                _resultProvided = value;
+            }
+        }
+
+        public override bool MustGoOn
+        {
+            get => _mustGoOn;
+            set
+            {
+                if (value != _mustGoOn)
+                {
+                    _mustGoOn = value;
+                    /*
+                     * Оповещенеи предыдущего компонент конвейера, при его наличии,
+                     * об изменении параметра MustGoOn.
+                     * Необходимо для корректной работы конвейера в случае присутствия в нём
+                     * потокового компонента со множестеенными выходами к одному входу,
+                     * поскольку расчёт параметра MustGoOn от последующих компонентов
+                     * производится в отложенном режиме.
+                     */
+                    if (PreviousMiddleware is not null)
+                        PreviousMiddleware.MustGoOn &= value;
+                    //if (!value) OnFailingQuery();
+                }
+            }
+        }
+
+        public override IQueryPipelineEndpoint PipelineEndpoint
+        { get => NextMiddleware.PipelineEndpoint; }//(_node.List!.Last!.Value as IQueryPipelineEndpoint)!; }
+
+        #endregion
+
         #region Instance events
+
+        /// <summary>
+        /// Событие пропуска данных на возможный следующий компонент конвейера запросов. 
+        /// </summary>
+        public event Action<IEnumerable<TQueryResultData>> DataPassed;
 
         /// <summary>
         /// Событие данных, которые на следующий компонент конвейера запросов не должны быть пропущены.
         /// </summary>
-        private event Action<IEnumerable<TQueryResultData>>? DataNotPassed;
+        public event Action<IEnumerable<TQueryResultData>>? DataNotPassed;
+
+        public event Action FailingQuery;
 
         #endregion
 
@@ -36,13 +113,21 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         /// </summary>
         /// <param name="innerExecutor"></param>
         /// <param name="nextExecutor"></param>
-        public StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult(
+        public StreamingQueryPipelineMiddlewareWithContinuation(
             LinkedListNode<IQueryPipelineMiddleware> node,
             StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> innerExecutor,
-            IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData> nextExecutor)
-            : base(node, innerExecutor, nextExecutor)
+            IStreamingQueryPipelineMiddleware<TQueryResultData> nextMiddleware)
+            : base(innerExecutor)
         {
+            node.Value = this;
+            node.List!.AddAfter(node, nextMiddleware.PipelineScheduleNode);
+            _node = node;
+            _nextExecutor = nextMiddleware.Executor;
+
+            innerExecutor.DataPassed += OnDataPassed;
             innerExecutor.DataNotPassed += OnDataNotPassed;
+
+            DataPassed += DataPassedHandler;
 
             return;
         }
@@ -50,6 +135,17 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         #endregion
 
         #region Instance methods
+
+        /// <summary>
+        /// Вызов события пропуска данных с готовым промежуточным результатом.
+        /// </summary>
+        /// <param name="outputData"></param>
+        protected void OnDataPassed(IEnumerable<TQueryResultData> outputData)
+        {
+            DataPassed?.Invoke(outputData);
+
+            return;
+        }
 
         /// <summary>
         /// Вызов события непропуска данных с готовым промежуточным результатом.
@@ -60,26 +156,140 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
             DataNotPassed?.Invoke(outputData);
         }
 
-        #endregion
-
-        #region IQueryPipelineModdleware<TData, TQueryResult> methods implementation
-
         /// <summary>
-        /// Подписка компонента конвейера запросов на событие пропуска промежуточных данных своего исполнителя запросов.
+        /// Обработчик события пропуска промежуточных данных внутренним исполнителем запроса.
         /// </summary>
-        /// <param name="queryResultPassingHandler"></param>
-        public override void SubscribeOnInnerExecutorEventsOnDataInstanceProcessing(
-            Action<IEnumerable<TQueryResultData>> queryResultPassingHandler)
+        /// <param name="outputData"></param>
+        protected virtual void DataPassedHandler(IEnumerable<TQueryResultData> outputData)
         {
-            base.SubscribeOnInnerExecutorEventsOnDataInstanceProcessing(queryResultPassingHandler);
-            //DataNotPassed += queryResultPassingHandler;
+            ResultProvided = true;
+
+            return;
         }
 
         #endregion
 
-        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
+        #region IQueryPipelineMiddleware implementation
 
-        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
+        /// <summary>
+        /// Подготовка компонента конвейера к тому, что итоговым результатом конвейера запросов.
+        /// будет какое-либо агрегируемое значение. 
+        /// </summary>
+        /// <typeparam name="TPipelineQueryResult"></typeparam>
+        /// <param name="pipelineQueryExecutor"></param>
+        public override void PrepareToAggregableResult<TPipelineQueryResult>(ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        {
+            _innerExecutorImpl.PrepareToQueryStart();
+            NextMiddleware.PrepareToAggregableResult<TPipelineQueryResult>(pipelineQueryExecutor);
+
+            return;
+        }
+
+        /// <summary>
+        /// Подготовка компонента конвейера к тому, что итоговым результатом конвейера запросов.
+        /// будет какое-либо перечислимое значение. 
+        /// </summary>
+        /// <typeparam name="TPipelineQueryResultData"></typeparam>
+        /// <param name="pipelineQueryExecutor"></param>
+        public override void PrepareToEnumerableResult<TPipelineQueryResultData>(
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        {
+            _innerExecutorImpl.PrepareToQueryStart();
+            NextMiddleware.PrepareToEnumerableResult<TPipelineQueryResultData>(pipelineQueryExecutor);
+
+            return;
+        }
+
+        public virtual void PreparePipelineResultProvider()
+        {
+            (NextMiddleware as IStreamingQueryPipelineMiddleware<TQueryResultData>)!
+                .PreparePipelineResultProvider();
+
+            return;
+        }
+
+        /// <summary>
+        /// Получение агрегируемого результата конвейера запросов.
+        /// </summary>
+        /// <typeparam name="TPipelineQueryResult"></typeparam>
+        /// <param name="pipelineQueryExecutor"></param>
+        /// <returns></returns>
+        public override TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        {
+            return NextMiddleware.GetAggregablePipelineQueryResult<TPipelineQueryResult>(pipelineQueryExecutor);
+        }
+
+        /// <summary>
+        /// Получение перечислимого результата конвейера запросов.
+        /// </summary>
+        /// <typeparam name="TPipelineQueryResultData"></typeparam>
+        /// <param name="pipelineQueryExecutor"></param>
+        /// <returns></returns>
+        public override IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        {
+            return NextMiddleware.GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(pipelineQueryExecutor);
+        }
+
+        #endregion
+
+        #region IQueryPipelineAcceptor implementation
+
+        public override TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+            ISingleQueryExecutorResultRequester resultRequster)
+        {
+            return resultRequster.VisitStreamingQueryExecutorWithExpectedAggregableResult<
+                TData, 
+                IEnumerable<TQueryResultData>, 
+                TPipelineQueryResult>(
+                    _innerExecutorImpl);
+        }
+
+        public override IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
+            System.Collections.IEnumerable dataSource,
+            ISingleQueryExecutorResultRequester resultRequster)
+        {
+            return resultRequster.VisitStreamingQueryExecutorWithExpectedEnumerableResult<
+                TData,
+                IEnumerable<TQueryResultData>,
+                TPipelineQueryResultData>(
+                    dataSource,
+                    this,
+                    _innerExecutorImpl);
+        }
+
+        #endregion
+
+        #region IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> implementation
+
+        /// <summary>
+        /// Продолжение компонента конвейера следующим.
+        /// </summary>
+        /// <param name="continuingExecutor"></param>
+        /// <param name="scheduler"></param>
+        /// <returns></returns>
+        public override IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> ContinueWith(
+            IQueryPipelineEndpoint continuingExecutor,
+            IQueryPipelineScheduler scheduler)
+        {
+            NextMiddleware.ContinueWith(continuingExecutor, scheduler);
+
+            return this;
+        }
+
+        public void OnFailingQuery()
+        {
+            FailingQuery?.Invoke();
+
+            return;
+        }
+
+        #endregion
+
+        #region IAcceptor<ISingleQueryExecutorVisitor<TData>> implementation
+
+        public override void Accept(ISingleQueryExecutorVisitor<TData> visitor)
         {
             visitor.VisitStreamingQueryExecutor(_innerExecutorImpl);
 
@@ -87,41 +297,43 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         }
 
         #endregion
+    }
 
-        #region IQueryPipelineMiddlewareVisitor<TData> implemention
+    /// <summary>
+    /// Компонент конвейера запросов с аккумулированием результата вида "один к одному" потокового исполнителя.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <typeparam name="TQueryResultData"></typeparam>
+    /// <typeparam name="TNextQueryResult"></typeparam>
+    public class StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult<TData, TQueryResultData>
+        : StreamingQueryPipelineMiddlewareWithContinuation<TData, TQueryResultData>
+    {
+        #region Constructors
 
-        public override void VisitStreamingQueryExecutor<TNextQueryResult>(
-            StreamingQueryExecutor<TQueryResultData, TNextQueryResult> nextStreaming)
+        /// <summary>
+        /// Конструктор экземпляра.
+        /// </summary>
+        /// <param name="innerExecutor"></param>
+        /// <param name="nextExecutor"></param>
+        public StreamingQueryPipelineMiddlewareWithContinuationAndOneToOneResult(
+            LinkedListNode<IQueryPipelineMiddleware> node,
+            StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> innerExecutor,
+            IStreamingQueryPipelineMiddleware<TQueryResultData> nextMiddleware)
+            : base(node, innerExecutor, nextMiddleware)
         {
-            nextStreaming.PrepareToQueryStart();
-            SubscribeOnInnerExecutorEventsOnDataInstanceProcessing((intermediateResult) =>
-            {
-                (NextExecutor.ResultProvided, MustGoOn) = nextStreaming.ExecuteOverDataInstance(intermediateResult.First());
-                MustGoOn &= NextExecutor.MustGoOn;
-            });
-        }
-
-        public override void VisitBufferingQueryExecutor<TNextQueryResult>(
-            BufferingQueryExecutor<TQueryResultData, TNextQueryResult> nextBuffering)
-        {
-            /*
-            Type nextQueryResultType = typeof(TNextQueryResult);
-            string ienumerableName = nameof(System.Collections.IEnumerable);
-            if (nextQueryResultType.Name.StartsWith(ienumerableName) ||
-                nextQueryResultType.GetInterface(ienumerableName) is not null)
-            {
-                throw new InvalidOperationException("Потоковой исполнитель запроса не поддерживает продолжение " +
-                                                    "буферизированным исполнителем запроса с ожидаемым " +
-                                                    "перечислимым результатом.");
-            }
-
-            base.VisitNextBufferingQueryExecutorOnInit(nextBuffering);
-            InnerExecutor.DataPassed += (intermediateResult) =>
-                nextBuffering.ExecuteOverDataInstance(intermediateResult.First());
-            */
+            return;
         }
 
         #endregion
+        protected override void DataPassedHandler(IEnumerable<TQueryResultData> outputData)
+        {
+            base.DataPassedHandler(outputData);
+
+            (NextMiddleware.ResultProvided, MustGoOn) = _nextExecutor.ExecuteOverDataInstance(outputData.First());
+            MustGoOn &= NextMiddleware.MustGoOn;
+
+            return;
+        }
     }
 
     /// <summary>
@@ -132,31 +344,20 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
     /// <typeparam name="TQueryResultData"></typeparam>
     /// <typeparam name="TNextQueryResult"></typeparam>
     public class StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult<TData, TQueryResultData>
-    : QueryPipelineMiddlewareWithContinuation<
-        StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>>,
-        TData,
-        TQueryResultData>
+    : StreamingQueryPipelineMiddlewareWithContinuation<TData, TQueryResultData>
     {
         #region Instance fields
 
         IQueryPipelineEndpoint _queryPipelineEndpoint;
 
         /// <summary>
-        /// Делегат передачи данных на следующий компонент конвейера запросов.
-        /// </summary>
-        private Action<TQueryResultData> _nextExecuteOverResultDataInstance;
-
-        /// <summary>
         /// Перечисление промежуточных результатов выполнения запроса.
         /// </summary>
-        private IEnumerable<TQueryResultData> _intermediateQueryResult;
+        private IEnumerable<TQueryResultData> _queryResult;
 
-        /// <summary>
-        /// Ссылка на конвейер, который использует данный компонент.
-        /// </summary>
-        private ISingleQueryExecutorVisitor _pipelineQueryExecutor;
+        private IQueryPipelineExecutor _queryPipelineExecutor;
 
-        protected bool _resultsProvided;
+        private Func<bool> _pipelineResultProvided;
 
         #endregion
 
@@ -179,14 +380,22 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
             }
         }
 
-        #endregion
-
-        #region Instance events
-
-        /// <summary>
-        /// Событие данных, которые на следующий компонент конвейера запросов не должны быть пропущены.
-        /// </summary>
-        private event Action<IEnumerable<TQueryResultData>> DataNotPassed;
+        /*
+        public override bool MustGoOn
+        {
+            get => _mustGoOn;
+            set
+            {
+                if (value != _mustGoOn)
+                {
+                    _mustGoOn = value;
+                    if (PreviousMiddleware is not null)
+                        PreviousMiddleware.MustGoOn &= value;
+                    //if (!value) OnFailingQuery();
+                }
+            }
+        }
+        */
 
         #endregion
 
@@ -200,11 +409,9 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         public StreamingQueryPipelineMiddlewareWithContinuationAndOneToManyResult(
             LinkedListNode<IQueryPipelineMiddleware> node,
             StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> innerExecutor,
-            IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData> nextExecutor)
-            : base(node, innerExecutor, nextExecutor)
+            IStreamingQueryPipelineMiddleware<TQueryResultData> nextMiddleware)
+            : base(node, innerExecutor, nextMiddleware)
         {
-            innerExecutor.DataNotPassed += OnDataNotPassed;
-
             return;
         }
 
@@ -213,22 +420,40 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         #region Instance methods
 
         /// <summary>
-        /// Вызов события непропуска данных с готовым промежуточным результатом.
-        /// </summary>
-        /// <param name="outputData"></param>
-        protected void OnDataNotPassed(IEnumerable<TQueryResultData> outputData)
-        {
-            DataNotPassed?.Invoke(outputData);
-        }
-
-        /// <summary>
         /// Обработчик события пропуска промежуточных данных внутренним исполнителем запроса.
         /// </summary>
         /// <param name="outputData"></param>
         protected override void DataPassedHandler(IEnumerable<TQueryResultData> outputData)
         {
             base.DataPassedHandler(outputData);
-            _intermediateQueryResult = outputData;
+            _queryResult = outputData;
+
+            return;
+        }
+
+        public override void PrepareToEnumerableResult<TPipelineQueryResultData>(
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        {
+            base.PrepareToEnumerableResult<IEnumerable<TPipelineQueryResultData>>(pipelineQueryExecutor);
+            InterruptPipelineResultProviding(pipelineQueryExecutor);
+
+            return;
+        }
+
+        private void InterruptPipelineResultProviding(ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        {
+            _queryPipelineExecutor = (pipelineQueryExecutor as IQueryPipelineExecutor)!;
+            _queryPipelineExecutor.PutPipelineResultProvider(() => ResultProvided);
+
+            return;
+        }
+
+        public override void PreparePipelineResultProvider()
+        {
+            _queryPipelineExecutor.PipelineResultProviders.MoveNext();
+            _pipelineResultProvided = _queryPipelineExecutor.PipelineResultProviders.Current;
+
+            base.PreparePipelineResultProvider();
 
             return;
         }
@@ -238,47 +463,22 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         #region IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> implementation
 
         /// <summary>
-        /// Подготовка компонента конвейера к тому, что итоговым результатом конвейера запросов
-        /// будет какое-либо агрегируемое значение. 
-        /// </summary>
-        /// <typeparam name="TPipelineQueryResult"></typeparam>
-        /// <param name="pipelineQueryExecutor"></param>
-        public override void PrepareToAggregableResult<TPipelineQueryResult>(ISingleQueryExecutorVisitor pipelineQueryExecutor)
-        {
-            base.PrepareToAggregableResult<TPipelineQueryResult>(pipelineQueryExecutor);
-            _pipelineQueryExecutor = pipelineQueryExecutor;
-            //DataPassed += DataPassedWithExpectedAggregableResultHandler<TPipelineQueryResult>;
-        }
-
-        /// <summary>
-        /// Подготовка компонента конвейера к тому, что итоговым результатом конвейера запросов
-        /// будет какое-либо перечислимое значение. 
-        /// </summary>
-        /// <typeparam name="TPipelineQueryResultData"></typeparam>
-        /// <param name="pipelineQueryExecutor"></param>
-        public override void PrepareToEnumerableResult<TPipelineQueryResultData>(ISingleQueryExecutorVisitor pipelineQueryExecutor)
-        {
-            base.PrepareToEnumerableResult<TPipelineQueryResultData>(pipelineQueryExecutor);
-            _pipelineQueryExecutor = pipelineQueryExecutor;
-            //DataPassed += DataPassedWithExpectedEnumerableResultHandler;
-        }
-
-        /// <summary>
         /// Получение агрегируемого результата конвейера запросов.
         /// </summary>
         /// <typeparam name="TPipelineQueryResult"></typeparam>
         /// <param name="pipelineQueryExecutor"></param>
         /// <returns></returns>
         public override TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(
-            ISingleQueryExecutorVisitor pipelineQueryExecutor)
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor)
         {
-            foreach (TQueryResultData intermediateResultData in _intermediateQueryResult)
+            foreach (TQueryResultData intermediateResultData in _queryResult)
             {
-                _nextExecuteOverResultDataInstance(intermediateResultData);
+                (NextMiddleware.ResultProvided, MustGoOn) = 
+                    _nextExecutor.ExecuteOverDataInstance(intermediateResultData);
                 if (!MustGoOn) break;
             }
 
-            return NextExecutor.GetAggregablePipelineQueryResult<TPipelineQueryResult>(pipelineQueryExecutor);
+            return NextMiddleware.GetAggregablePipelineQueryResult<TPipelineQueryResult>(pipelineQueryExecutor);
         }
 
         /// <summary>
@@ -288,69 +488,25 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         /// <param name="pipelineQueryExecutor"></param>
         /// <returns></returns>
         public override IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor pipelineQueryExecutor)
+            ISingleQueryExecutorResultRequester pipelineQueryExecutor)
         {
-            foreach (TQueryResultData intermediateResultData in _intermediateQueryResult)
+            foreach (TQueryResultData intermediateResultData in _queryResult)
             {
-                _nextExecuteOverResultDataInstance(intermediateResultData);
-                if (_queryPipelineEndpoint.ResultProvided)
+                (NextMiddleware.ResultProvided, MustGoOn) =
+                    _nextExecutor.ExecuteOverDataInstance(intermediateResultData);
+                if (_pipelineResultProvided())
                 {
                     foreach (TPipelineQueryResultData queryResultData
-                         in NextExecutor.GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(pipelineQueryExecutor))
+                     in NextMiddleware.GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(pipelineQueryExecutor))
                     {
                         yield return queryResultData;
-                        if (!(MustGoOn &= NextExecutor.MustGoOn)) yield break;
+                        if (!(MustGoOn &= NextMiddleware.MustGoOn)) yield break;
+                        //if (!MustGoOn) yield break;
                     }
                 }
-                if (!(MustGoOn &= NextExecutor.MustGoOn)) yield break;
+                if (!(MustGoOn &= NextMiddleware.MustGoOn)) yield break;
+                //if (!MustGoOn) yield break;
             }
-        }
-
-        #endregion
-
-        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
-
-        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
-        {
-            visitor.VisitStreamingQueryExecutor(_innerExecutorImpl);
-
-            return;
-        }
-
-        #endregion
-
-        #region IQueryPipelineMiddlewareVisitor<TData> implemention
-
-        public override void VisitStreamingQueryExecutor<TNextQueryResult>(
-            StreamingQueryExecutor<TQueryResultData, TNextQueryResult> nextStreaming)
-        {
-            _nextExecuteOverResultDataInstance = (outputDataInstance) =>
-                (NextExecutor.ResultProvided, MustGoOn) = nextStreaming.ExecuteOverDataInstance(outputDataInstance);
-
-            return;
-        }
-
-        public override void VisitBufferingQueryExecutor<TNextQueryResult>(
-            BufferingQueryExecutor<TQueryResultData, TNextQueryResult> nextBuffering)
-        {
-            /*
-            Type nextQueryResultType = typeof(TNextQueryResult);
-            string ienumerableName = nameof(IEnumerable);
-            if (nextQueryResultType.Name.StartsWith(ienumerableName) ||
-                nextQueryResultType.GetInterface(ienumerableName) is not null)
-            {
-                throw new InvalidOperationException("Потоковой исполнитель запроса не поддерживает продолжение " +
-                                                    "буферизированным исполнителем запроса с ожидаемым " +
-                                                    "перечислимым результатом.");
-            }
-
-            _nextExecuteOverResultDataInstance = (outputDataInstance) => 
-                nextBuffering.ExecuteOverDataInstance(outputDataInstance);
-            
-            base.VisitNextBufferingQueryExecutorOnInit(nextBuffering);
-            InnerExecutor.DataPassed += (intermediateResult) =>
-                nextBuffering.ExecuteOverDataInstance(intermediateResult.First());
-            */
         }
 
         #endregion

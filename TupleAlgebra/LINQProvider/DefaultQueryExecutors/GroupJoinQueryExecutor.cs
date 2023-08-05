@@ -8,42 +8,8 @@ using LINQProvider.QueryPipelineInfrastructure.Streaming;
 
 namespace LINQProvider.DefaultQueryExecutors
 {
-    public class GroupJoinBufferingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>
-        : BufferingQueryExecutorWithEnumerableResult<TOuterData, TQueryResultData>
-        where TKey : notnull
-    {
-        private IEnumerable<TInnerData> _innerEnumerable;
-
-        private Func<TOuterData, TKey> _outerKeySelector;
-
-        private Func<TInnerData, TKey> _innerKeySelector;
-
-        private Func<TOuterData, IEnumerable<TInnerData>, TQueryResultData> _transform;
-
-        public GroupJoinBufferingQueryExecutor(
-            IEnumerable<TInnerData> innerEnumerable,
-            Func<TOuterData, TKey> outerKeySelector,
-            Func<TInnerData, TKey> innerKeySelector,
-            Func<TOuterData, IEnumerable<TInnerData>, TQueryResultData> transform)
-            : base((_) => true)
-        {
-            _innerEnumerable = innerEnumerable;
-            _outerKeySelector = outerKeySelector;
-            _innerKeySelector = innerKeySelector;
-            _transform = transform;
-        }
-
-        protected override IEnumerable<TQueryResultData> TraverseOverDataSource()
-        {
-            ILookup<TKey, TInnerData> phonebook = _innerEnumerable.ToLookup(_innerKeySelector);
-
-            foreach (TOuterData outerData in DataSource)
-                yield return _transform(outerData, phonebook[_outerKeySelector(outerData)]);
-        }
-    }
-
     public class GroupJoinStreamingQueryExecutor<TOuterData, TInnerData, TKey, TQueryResultData>
-        : StreamingQueryExecutorWithEnumerableOneToOneResult<TOuterData, TQueryResultData>
+        : TransformBasedStreamingQueryExecutorWithEnumerableOneToOneResult<TOuterData, TQueryResultData>
         where TKey : notnull
     {
         private IEnumerable<TInnerData> _innerEnumerable;
@@ -59,9 +25,10 @@ namespace LINQProvider.DefaultQueryExecutors
             Func<TOuterData, TKey> outerKeySelector,
             Func<TInnerData, TKey> innerKeySelector,
             Func<TOuterData, IEnumerable<TInnerData>, TQueryResultData> transform)
-            : base((_) => true, null)
+            : base()
         {
-            InitBehavior(ExecuteOverDataInstanceHandlerWithFullCovering);
+            InitBehavior(ExecuteOverDataInstanceHandlerWithPositiveCovering);
+
             _innerEnumerable = innerEnumerable;
             _outerKeySelector = outerKeySelector;
             _innerKeySelector = innerKeySelector;
@@ -73,7 +40,7 @@ namespace LINQProvider.DefaultQueryExecutors
             _phonebook = _innerEnumerable.ToLookup(_innerKeySelector);
         }
 
-        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TOuterData data) =>
-            (DataPassingCondition(data), true);
+        protected override (bool DidDataPass, bool MustGoOn) ConsumeData(TOuterData outerData) => 
+            (_phonebook.Contains(_outerKeySelector(outerData)), true);
     }
 }

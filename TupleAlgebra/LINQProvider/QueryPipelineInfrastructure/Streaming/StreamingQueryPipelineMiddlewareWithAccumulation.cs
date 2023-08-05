@@ -4,22 +4,39 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LINQProvider.QueryPipelineInfrastructure;
-using LINQProvider.QueryResultAccumulatorInterfaces;
+using LINQProvider.QueryPipelineInfrastructure.Buffering;
+using LINQProvider.QueryResultAccumulatorInfrastructure;
 
 namespace LINQProvider.QueryPipelineInfrastructure.Streaming
 {
     /// <summary>
-    /// Компонент конвейера запросов с аккумулированием результата потокового исполнителя.
+    /// Компонент конвейера запросов с аккумулированием  результата потокового исполнителя.
     /// </summary>
     /// <typeparam name="TData"></typeparam>
-    /// <typeparam name="TQueryResult"></typeparam>
-    public abstract class StreamingQueryPipelineMiddlewareWithAccumulation<TData, TQueryResult>
+    /// <typeparam name="TQueryResultData"></typeparam>
+    public class StreamingQueryPipelineMiddlewareWithAccumulation<TData, TQueryResult>
         : QueryPipelineMiddlewareWithAccumulation<
-            StreamingQueryExecutor<TData, TQueryResult>,
             TData,
             TQueryResult,
-            TQueryResult>
+            StreamingQueryExecutor<TData, TQueryResult>>,
+          IStreamingQueryPipelineMiddleware<TData>
     {
+        #region Instance fields
+
+        protected LinkedListNode<IQueryPipelineMiddleware> _node;
+
+        #endregion
+
+        #region Instance properties
+
+        public LinkedListNode<IQueryPipelineMiddleware> PipelineScheduleNode { get => _node; }
+
+        public IQueryPipelineMiddleware PreviousMiddleware { get => _node.Previous!.Value; }
+
+        public IStreamingQueryExecutor<TData> Executor { get => _innerExecutorImpl; }
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -29,99 +46,141 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         /// <param name="innerExecutorAsAccumulating"></param>
         public StreamingQueryPipelineMiddlewareWithAccumulation(
             LinkedListNode<IQueryPipelineMiddleware> node,
-            StreamingQueryExecutor<TData, TQueryResult> innerExecutor,
-            IAccumulatePositiveQueryResult<TQueryResult, TQueryResult> innerExecutorAsAccumulating)
-            : base(node, innerExecutor, innerExecutorAsAccumulating)
+            StreamingQueryExecutor<TData, TQueryResult> innerExecutor)
+            : base(innerExecutor)
         {
-            return;
-        }
-
-        #endregion
-
-        #region IQueryPipelineMiddleware<TData, TQueryResult> implementation
-
-        /// <summary>
-        /// Подписка компонента конвейера запросов на событие пропуска промежуточных данных своего исполнителя запросов.
-        /// </summary>
-        /// <param name="queryResultPassingHandler"></param>
-        public override void SubscribeOnInnerExecutorEventsOnDataInstanceProcessing(
-            Action<TQueryResult> queryResultPassingHandler)
-        {
-            base.SubscribeOnInnerExecutorEventsOnDataInstanceProcessing(queryResultPassingHandler);
-            //_innerExecutorImpl.DataNotPassed += queryResultPassingHandler;
+            node.Value = this;
+            _node = node;
 
             return;
         }
 
         #endregion
 
-        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
-
-        public override void Accept(IQueryPipelineMiddlewareVisitor<TData> visitor)
-        {
-            visitor.VisitStreamingQueryExecutor(_innerExecutorImpl);
-
-            return;
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// Компонент конвейера запросов с аккумулированием агрегируемого результата потокового исполнителя.
-    /// </summary>
-    /// <typeparam name="TData"></typeparam>
-    /// <typeparam name="TQueryResult"></typeparam>
-    public class StreamingQueryPipelineMiddlewareWithAccumulationOfAggregableResult<TData, TQueryResult>
-        : StreamingQueryPipelineMiddlewareWithAccumulation<TData, TQueryResult>
-    {
-        #region Constructors
-
-        /// <summary>
-        /// Конструктор экземпляра.
-        /// </summary>
-        /// <param name="innerExecutor"></param>
-        public StreamingQueryPipelineMiddlewareWithAccumulationOfAggregableResult(
-            LinkedListNode<IQueryPipelineMiddleware> node,
-            StreamingQueryExecutorWithAggregableResult<TData, TQueryResult> innerExecutor)
-            : base(node, innerExecutor, innerExecutor)
-        {
-            return;
-        }
-
-        #endregion
-
-        public override IQueryPipelineMiddleware<TData, TQueryResult> ContinueWith(
-            IQueryPipelineMiddleware continuingExecutor,
-            IQueryPipelineScheduler scheduler)
-        {
-            throw new NotImplementedException();
-        }
-
-        #region IQueryPipelineMiddleware implementation
+        #region IQueryPipelineEndpoint implementation
 
         /// <summary>
         /// Получение агрегируемого результата конвейера запросов.
         /// </summary>
         /// <typeparam name="TPipelineQueryResult"></typeparam>
-        /// <param name="pipeline"></param>
+        /// <param name="pipelineQueryExecutor"></param>
         /// <returns></returns>
-        public override TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(
-            ISingleQueryExecutorVisitor pipeline)
+        /// <exception cref="NotImplementedException"></exception>
+        public override TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(ISingleQueryExecutorResultRequester pipelineQueryExecutor)
         {
-            return (this as StreamingQueryPipelineMiddlewareWithAccumulationOfAggregableResult<TData, TPipelineQueryResult>)._accumulator;
+            return (_innerExecutorImpl as StreamingQueryExecutor<TData, TPipelineQueryResult>)!
+                .Accumulator;
         }
 
         /// <summary>
         /// Получение перечислимого результата конвейера запросов.
         /// </summary>
         /// <typeparam name="TPipelineQueryResultData"></typeparam>
-        /// <param name="pipelineQueryExecutor"></param>
+        /// <param name="pipeline"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public override IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(ISingleQueryExecutorVisitor pipelineQueryExecutor)
+        public override IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(
+            ISingleQueryExecutorResultRequester pipeline)
+        {
+            return (_innerExecutorImpl.Accumulator as IEnumerable<TPipelineQueryResultData>)!;
+        }
+
+        #endregion
+        public override void InitializeAsQueryPipelineStartupMiddleware()
+        {
+            /*
+             * Создаётся новая задача, в эту задачу добавляется первым звеном звено-продолжение конвейера.
+             */
+            LinkedList<IQueryPipelineMiddleware> newPipelineTask = new LinkedList<IQueryPipelineMiddleware>();
+            newPipelineTask.AddFirst(_node);
+
+            return;
+        }
+
+        /// <summary>
+        /// Продолжение компонента конвейера следующим.
+        /// </summary>
+        /// <typeparam name="TContinuingQueryData"></typeparam>
+        /// <typeparam name="TContinuingQueryResult"></typeparam>
+        /// <param name="continuingExecutor"></param>
+        /// <returns></returns>
+        public override IQueryPipelineMiddleware<TData, TQueryResult> ContinueWith(
+            IQueryPipelineEndpoint continuingExecutor,
+            IQueryPipelineScheduler scheduler)
         {
             throw new NotImplementedException();
+        }
+
+        public void PreparePipelineResultProvider()
+        {
+            return;
+        }
+
+        /// <summary>
+        /// Инициализация компонента в качестве конечного компонента конвейера запросов.
+        /// </summary>
+        public override void InitializeAsQueryPipelineEndpoint()
+        {
+            _innerExecutorImpl.AccumulateQueryResult();
+        }
+
+        #region IQueryPipelineAcceptor implementation
+
+        public override TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+            ISingleQueryExecutorResultRequester resultRequster)
+        {
+            return resultRequster.VisitStreamingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
+                _innerExecutorImpl);
+        }
+
+        public override IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
+            System.Collections.IEnumerable dataSource,
+            ISingleQueryExecutorResultRequester resultRequster)
+        {
+            return resultRequster.VisitStreamingQueryExecutorWithExpectedEnumerableResult<
+                TData,
+                TQueryResult,
+                TPipelineQueryResultData>(
+                    dataSource,
+                    this,
+                    _innerExecutorImpl);
+        }
+
+        #endregion
+
+        #region IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>
+
+        public override void Accept(ISingleQueryExecutorVisitor<TData> visitor)
+        {
+            visitor.VisitStreamingQueryExecutor(_innerExecutorImpl);
+
+            return;
+        }
+
+        public override void Accept(
+            IQueryPipelineScheduler scheduler,
+            IQueryPipelineMiddlewareVisitor<TData> visitor)
+        {
+            visitor.VisitStreamingMiddleware(scheduler, this);
+
+            return;
+        }
+
+        #endregion
+
+        #region IQueryPipelineMiddleware implementation
+
+        public override void PrepareToAggregableResult<TPipelineQueryResult>(ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        {
+            _innerExecutorImpl.PrepareToQueryStart();
+
+            return;
+        }
+
+        public override void PrepareToEnumerableResult<TPipelineQueryResultData>(ISingleQueryExecutorResultRequester pipelineQueryExecutor)
+        {
+            _innerExecutorImpl.PrepareToQueryStart();
+
+            return;
         }
 
         #endregion
@@ -132,8 +191,9 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
     /// </summary>
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TQueryResultData"></typeparam>
-    public class StreamingQueryPipelineMiddlewareWithAccumulationOfEnumerableResult<TData, TQueryResultData>
-        : StreamingQueryPipelineMiddlewareWithAccumulation<TData, IEnumerable<TQueryResultData>>
+    public class StreamingQueryPipelineMiddlewareWithEnumerableResultAccumulation<TData, TQueryResultData>
+        : StreamingQueryPipelineMiddlewareWithAccumulation<TData, IEnumerable<TQueryResultData>>,
+          IQueryPipelineMiddlewareVisitor<TQueryResultData>
     {
         #region Constructors
 
@@ -142,11 +202,10 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         /// </summary>
         /// <param name="innerExecutor"></param>
         /// <param name="innerExecutorAsAccumulating"></param>
-        public StreamingQueryPipelineMiddlewareWithAccumulationOfEnumerableResult(
+        public StreamingQueryPipelineMiddlewareWithEnumerableResultAccumulation(
             LinkedListNode<IQueryPipelineMiddleware> node,
-            StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> innerExecutor,
-            IAccumulatePositiveQueryResult<IEnumerable<TQueryResultData>, IEnumerable<TQueryResultData>> innerExecutorAsAccumulating)
-            : base(node, innerExecutor, innerExecutorAsAccumulating)
+            StreamingQueryExecutor<TData, IEnumerable<TQueryResultData>> innerExecutor)
+            : base(node, innerExecutor)
         {
             return;
         }
@@ -156,46 +215,63 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         /// <summary>
         /// Продолжение компонента конвейера следующим.
         /// </summary>
-        /// <typeparam name="TContinuingQueryData"></typeparam>
-        /// <typeparam name="TContinuingQueryResult"></typeparam>
         /// <param name="continuingExecutor"></param>
+        /// <param name="scheduler"></param>
         /// <returns></returns>
         public override IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>> ContinueWith(
-            IQueryPipelineMiddleware continuingExecutor,
+            IQueryPipelineEndpoint continuingExecutor,
             IQueryPipelineScheduler scheduler)
         {
-            return scheduler.MiddlewareWithContinuationFactory.Create(
+            /*
+             * Происходит посещение присоединяемого к конвейеру компонента.
+             * В результате в ассоциируемом с данным (this) компонентом узле задачи конвейера
+             * _node свойство Value содержит ссылку на компонент в той же позиции внутри задачи. 
+             */
+            (continuingExecutor as IQueryPipelineMiddlewareAcceptor<TQueryResultData>)!
+                .Accept(scheduler, this);
+
+            return (_node.Value as IQueryPipelineMiddleware<TData, IEnumerable<TQueryResultData>>)!;
+        }
+
+        /// <summary>
+        /// Посещение потокового компонента конвейера для продолжения им данного.
+        /// </summary>
+        /// <typeparam name="TExecutorQueryResult"></typeparam>
+        /// <param name="scheduler"></param>
+        /// <param name="nextExecutor"></param>
+        public void VisitStreamingMiddleware<TExecutorQueryResult>(
+            IQueryPipelineScheduler scheduler,
+            StreamingQueryPipelineMiddlewareWithAccumulation<TQueryResultData, TExecutorQueryResult> 
+                nextExecutor)
+        {
+            /*
+             * В свойстве _node.Value сохраняется новый компонент с продолжением.
+             */
+            _node.Value = scheduler.MiddlewareWithContinuationFactory.Create(
                 _node,
                 this,
-                (continuingExecutor as IQueryPipelineMiddlewareWithContinuationAcceptor<TQueryResultData>)!);
-        }
+                nextExecutor);
 
-        #region IQueryPipelineMiddleware implementation
-
-        /// <summary>
-        /// Получение агрегируемого результата конвейера запросов.
-        /// </summary>
-        /// <typeparam name="TPipelineQueryResult"></typeparam>
-        /// <param name="pipelineQueryExecutor"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public override TPipelineQueryResult GetAggregablePipelineQueryResult<TPipelineQueryResult>(ISingleQueryExecutorVisitor pipelineQueryExecutor)
-        {
-            throw new NotImplementedException();
+            return;
         }
 
         /// <summary>
-        /// Получение перечислимого результата конвейера запросов.
+        /// Посещение буферизирующего компонента конвейера для продолжения им данного.
         /// </summary>
-        /// <typeparam name="TPipelineQueryResultData"></typeparam>
-        /// <param name="pipeline"></param>
-        /// <returns></returns>
-        public override IEnumerable<TPipelineQueryResultData> GetEnumerablePipelineQueryResult<TPipelineQueryResultData>(
-            ISingleQueryExecutorVisitor pipeline)
+        /// <typeparam name="TExecutorQueryResult"></typeparam>
+        /// <param name="scheduler"></param>
+        /// <param name="nextExecutor"></param>
+        public void VisitBufferingMiddleware<TExecutorQueryResult>(
+            IQueryPipelineScheduler scheduler,
+            BufferingQueryPipelineMiddlewareWithAccumulation<TQueryResultData, TExecutorQueryResult>
+                nextExecutor)
         {
-            return (this as StreamingQueryPipelineMiddlewareWithAccumulationOfEnumerableResult<TData, TPipelineQueryResultData>)._accumulator;
-        }
+            /*
+             * В конвейер добавляется новая задача с continuingExecutor в качестве первого компонента.
+             */
+            scheduler.PushMiddleware(scheduler.MiddlewareWithAccumulationFactory.Create(nextExecutor.InnerExecutor));
 
-        #endregion
+            return;
+        }
     }
 }

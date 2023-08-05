@@ -4,21 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LINQProvider.QueryResultAccumulatorInterfaces
+namespace LINQProvider.QueryResultAccumulatorInfrastructure
 {
     /// <summary>
     /// Интерфейс исполнителя запросов, который аккумулирует выходные данные
-    /// при их пропуске.
     /// </summary>
     /// <typeparam name="TQueryResult"></typeparam>
     /// <typeparam name="TAccumulator"></typeparam>
-    public interface IAccumulatePositiveQueryResult<TQueryResult, TAccumulator> //: IQueryPipelineMiddleware
+    public interface IAccumulateQueryResult<TQueryResult, out TAccumulator> 
+        : QueryPipelineInfrastructure.IQueryMultiplicityFactor
         where TAccumulator : TQueryResult
     {
-        /// <summary>
-        /// Событие пропуска выходных данных.
-        /// </summary>
-        event Action<TQueryResult> DataPassed;
+        TAccumulator Acc { get; }
+
+        public delegate TAccumulator AccumulateHandler(TQueryResult data);
 
         /// <summary>
         /// Инициализация аккумулятора значением по умолчанию.
@@ -33,11 +32,6 @@ namespace LINQProvider.QueryResultAccumulatorInterfaces
         /// <returns></returns>
         TAccumulator InitAccumulator(TQueryResult outputData);
 
-        /// <summary>
-        /// Аккумулирование выходных данных при их пропуске.
-        /// </summary>
-        /// <param name="accumulator"></param>
-        /// <param name="outputData"></param>
-        void AccumulateIfDataPassed(ref TAccumulator accumulator, TQueryResult outputData);
+        void Accumulate(TQueryResult outputData);
     }
 }
