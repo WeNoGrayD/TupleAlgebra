@@ -70,12 +70,12 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public bool ContainsEmptyAttributeComponent()
         {
-            return _components.Values.Any(component => component.IsEmpty());
+            return false;// return _components.Values.Any(component => component.IsEmpty());
         }
 
         public bool ContainsFullAttributeComponent()
         {
-            return _components.Values.Any(component => component.IsFull());
+            return false;// return _components.Values.Any(component => component.IsFull());
         }
 
         public void InitAttributes(IDictionary<AttributeName, IAlgebraicSetObject> components)

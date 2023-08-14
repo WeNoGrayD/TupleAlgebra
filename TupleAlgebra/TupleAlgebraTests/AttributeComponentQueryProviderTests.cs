@@ -7,18 +7,27 @@ using System.Linq.Expressions;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraTests
 {
     [TestClass]
     public class AttributeComponentQueryProviderTests
     {
+        private OrderedFiniteEnumerableAttributeComponentFactory _nonFictionalACFactory =
+            new OrderedFiniteEnumerableAttributeComponentFactory();
+
         protected IEnumerable<TData> CreateAttributeComponent<TData>(
             AttributeDomain<TData> domain,
             Dictionary<string, object> constructorParameters)
         {
-            return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(
-                constructorParameters["values"] as IEnumerable<TData>);
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
+                OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(
+                    values: constructorParameters["values"] as IEnumerable<TData>);
+
+            return _nonFictionalACFactory.CreateNonFictional<TData>(factoryArgs);
+            //return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(null,
+            //    constructorParameters["values"] as IEnumerable<TData>);
         }
 
         [TestMethod]

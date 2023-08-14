@@ -29,8 +29,8 @@ namespace TupleAlgebraTests
 
             public EmptyAttributeComponent<TData> CreateEmpty()
             {
-                AttributeComponentFactoryArgs factoryArgs = new AttributeComponentFactoryArgs();
-                factoryArgs.SetAttributeDomainGetter(FactoryDomain.UniversumDomainGetter);
+                AttributeComponentFactoryArgs factoryArgs = new EmptyAttributeComponentFactoryArgs();
+                factoryArgs.SetDomainGetter(FactoryDomain.UniversumDomainGetter);
                 return CreateEmpty<TData>(factoryArgs);
             }
 
@@ -39,14 +39,14 @@ namespace TupleAlgebraTests
             {
                 OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
                     OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(null, values);
-                factoryArgs.SetAttributeDomainGetter(FactoryDomain.UniversumDomainGetter);
+                factoryArgs.SetDomainGetter(FactoryDomain.UniversumDomainGetter);
                 return CreateNonFictional<TData>(factoryArgs);
             }
 
             public FullAttributeComponent<TData> CreateFull()
             {
-                AttributeComponentFactoryArgs factoryArgs = new AttributeComponentFactoryArgs();
-                factoryArgs.SetAttributeDomainGetter(FactoryDomain.UniversumDomainGetter);
+                AttributeComponentFactoryArgs factoryArgs = new FullAttributeComponentFactoryArgs();
+                factoryArgs.SetDomainGetter(FactoryDomain.UniversumDomainGetter);
                 return CreateFull<TData>(factoryArgs);
             }
         }
@@ -68,7 +68,7 @@ namespace TupleAlgebraTests
             where T : IComparable<T>
         {
             MockAttributeComponentFactory<T> factory =
-                factories[typeof(T)] as MockAttributeComponentFactory<T>;
+                (factories[typeof(T)] as MockAttributeComponentFactory<T>)!;
             first.SymmetricExceptWith(factory.FactoryDomain);
             List<T> resultValuesList = new List<T>(first);
             resultValuesList.Sort();

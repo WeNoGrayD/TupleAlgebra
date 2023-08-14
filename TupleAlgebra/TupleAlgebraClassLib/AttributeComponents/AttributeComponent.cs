@@ -9,9 +9,12 @@ using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
+using System.Numerics;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
+    using static AttributeComponentHelper;
+
     /// <summary>
     /// Параметризированная компонента атрибута.
     /// Определяет операторы и методы для операций пересечения, объединения,
@@ -23,41 +26,31 @@ namespace TupleAlgebraClassLib.AttributeComponents
           IQueryable<TData>,
           IReproducingQueryable<TData>,
           IReproducingQueryable<AttributeComponentFactoryArgs, TData>,
-          IAlgebraicSetObject
+          IAlgebraicSetObject,
+          IBitwiseOperators<AttributeComponent<TData>, AttributeComponent<TData>, AttributeComponent<TData>>,
+          IDivisionOperators<AttributeComponent<TData>, AttributeComponent<TData>, AttributeComponent<TData>>,
+          IEqualityOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>,
+          IComparisonOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>
     {
+        #region Instance properties
+
+        public AttributeComponentPower Power { get; private set; }
+
+        public AttributeDomain<TData> Domain { get => GetDomain(); }
+
+        public Func<AttributeDomain<TData>> GetDomain { get;  set; }
+
+        #endregion
+
+        #region IQueryable implemented properties
+
         public virtual Expression Expression { get; protected set; }
 
         public virtual Type ElementType { get => typeof(TData); }
 
         public virtual IQueryProvider Provider { get; protected set; }
 
-        public AttributeComponentPower Power { get; private set; }
-
-        protected abstract AttributeComponentContentType ContentType { get; }
-
-        public AttributeDomain<TData> Domain { get => _getDomain(); }
-
-        public static readonly AttributeComponentFactory FictionalAttributeComponentFactory
-            = new AttributeComponentFactory();
-
-        private event Func<AttributeDomain<TData>> _getDomain;
-
-        public event Func<AttributeDomain<TData>> GetDomain
-        {
-            add
-            {
-                if (_getDomain is null)
-                    _getDomain += value;
-                else
-                {
-                    throw new InvalidOperationException("К событию получения домента атрибута нельзя подключить больше одного обработчика.");
-                }
-            }
-            remove
-            {
-                throw new InvalidOperationException("От события получения домента атрибута нельзя отключить обработчик.");
-            }
-        }
+        #endregion
 
         #region Constructors
 
@@ -65,7 +58,13 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// Статический конструктор.
         /// </summary>
         static AttributeComponent()
-        { }
+        {
+            RegisterType<TData>(
+                typeof(AttributeComponent<TData>),
+                acFactory: new AttributeComponentFactory());
+
+            return;
+        }
 
         /// <summary>
         /// Конструктор.
@@ -77,7 +76,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
             Expression queryExpression)
         {
             Power = power;
-            Power.InitAttributeComponent(this);
             Provider = queryProvider;
             Expression = queryExpression ?? Expression.Constant(this);
         }
@@ -96,14 +94,12 @@ namespace TupleAlgebraClassLib.AttributeComponents
             return factoryArgs;
         }
 
-        public virtual AttributeComponentFactoryArgs ZipInfoImpl<TReproducedData>(IEnumerable<TReproducedData> populatingData)
-        {
-            return new AttributeComponentFactoryArgs();
-        }
+        public abstract AttributeComponentFactoryArgs ZipInfoImpl<TReproducedData>(
+            IEnumerable<TReproducedData> populatingData);
 
         public void IncludeDomain(AttributeComponentFactoryArgs factoryArgs)
         {
-            factoryArgs.SetAttributeDomainGetter(_getDomain.GetInvocationList()[0] as Func<AttributeDomain<TData>>);
+            factoryArgs.SetDomainGetter(GetDomain);
         }
 
         protected abstract AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
@@ -216,15 +212,11 @@ namespace TupleAlgebraClassLib.AttributeComponents
             return this.IncludesOrEqualsTo(second as AttributeComponent<TData>);
         }
 
-        public abstract bool IsEmpty();
-
-        public abstract bool IsFull();
-
         #endregion
 
         #region Operators
 
-        public static AttributeComponent<TData> operator !(AttributeComponent<TData> first)
+        public static AttributeComponent<TData> operator ~(AttributeComponent<TData> first)
         {
             return first.ComplementThe();
         }
@@ -288,116 +280,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
         }
 
         #endregion
-
-        #region InnerTypes
-
-        /// <summary>
-        /// Перечисление типов содержимого компоненты атрибута.
-        /// </summary>
-        protected internal enum AttributeComponentContentType : byte
-        {
-            /// <summary>
-            /// Пустая фиктивная компонента.
-            /// </summary>
-            Empty = 0,
-            /// <summary>
-            /// Непустая компонента.
-            /// </summary>
-            NonFictional = 1,
-            /// <summary>
-            /// Полная фиктивная компонента.
-            /// </summary>
-            Full = 2
-        }
-
-        /// <summary>
-        /// Абстрактный тип мощности компоненты атрибута.
-        /// </summary>
-        public abstract class AttributeComponentPower : IComparable<AttributeComponentPower>
-        {
-            internal abstract AttributeComponentContentType ContentType { get; }
-
-            public abstract void InitAttributeComponent(AttributeComponent<TData> component);
-
-            public abstract bool IsZero();
-
-            public virtual int CompareTo(AttributeComponentPower second)
-            {
-                return ContentType.CompareTo(second.ContentType);
-            }
-
-            #region Operators
-
-            /// <summary>
-            /// Оператор сравнения на равенство двух мощностей.
-            /// </summary>
-            /// <param name="first"></param>
-            /// <param name="second"></param>
-            /// <returns></returns>
-            public static bool operator ==(AttributeComponentPower first, AttributeComponentPower second)
-            {
-                return first.CompareTo(second) == 0;
-            }
-
-            /// <summary>
-            /// Оператор сравнения на неравенство двух мощностей.
-            /// </summary>
-            /// <param name="first"></param>
-            /// <param name="second"></param>
-            /// <returns></returns>
-            public static bool operator !=(AttributeComponentPower first, AttributeComponentPower second)
-            {
-                return first.CompareTo(second) != 0;
-            }
-
-            /// <summary>
-            /// Оператор сравнения "больше" двух мощностей.
-            /// </summary>
-            /// <param name="first"></param>
-            /// <param name="second"></param>
-            /// <returns></returns>
-            public static bool operator >(AttributeComponentPower first, AttributeComponentPower second)
-            {
-                return first.CompareTo(second) == 1;
-            }
-
-            /// <summary>
-            /// Оператор сравнения "больше или равно" двух мощностей.
-            /// </summary>
-            /// <param name="first"></param>
-            /// <param name="second"></param>
-            /// <returns></returns>
-            public static bool operator >=(AttributeComponentPower first, AttributeComponentPower second)
-            {
-                return first.CompareTo(second) > -1;
-            }
-
-            /// <summary>
-            /// Оператор сравнения "меньше" двух мощностей.
-            /// </summary>
-            /// <param name="first"></param>
-            /// <param name="second"></param>
-            /// <returns></returns>
-            public static bool operator <(AttributeComponentPower first, AttributeComponentPower second)
-            {
-                return first.CompareTo(second) == -1;
-            }
-
-            /// <summary>
-            /// Оператор сравнения "меньше или равно" двух мощностей.
-            /// </summary>
-            /// <param name="first"></param>
-            /// <param name="second"></param>
-            /// <returns></returns>
-            public static bool operator <=(AttributeComponentPower first, AttributeComponentPower second)
-            {
-                return first.CompareTo(second) < 1;
-            }
-
-            #endregion
-        }
-
-        #endregion
     }
 
     /*
@@ -427,7 +309,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
     public abstract class AttributeComponent<TData, CTAttributeComponent> : AttributeComponent<TData>
         where CTAttributeComponent : AttributeComponent<TData>
     {
-        protected abstract ISetOperationExecutersContainer<AttributeComponent<TData>, CTAttributeComponent> _setOperations
+        protected abstract ISetOperationExecutersContainer<AttributeComponent<TData>, CTAttributeComponent> SetOperations
         { get; }
 
         public AttributeComponent(
@@ -441,42 +323,42 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         protected override AttributeComponent<TData> ComplementThe()
         {
-            return _setOperations.Complement(this as CTAttributeComponent);
+            return SetOperations.Complement(this as CTAttributeComponent);
         }
 
         protected override AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second)
         {
-            return _setOperations.Intersect(this as CTAttributeComponent, second);
+            return SetOperations.Intersect(this as CTAttributeComponent, second);
         }
 
         protected override AttributeComponent<TData> UnionWith(AttributeComponent<TData> second)
         {
-            return _setOperations.Union(this as CTAttributeComponent, second);
+            return SetOperations.Union(this as CTAttributeComponent, second);
         }
 
         protected override AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second)
         {
-            return _setOperations.Except(this as CTAttributeComponent, second);
+            return SetOperations.Except(this as CTAttributeComponent, second);
         }
 
         protected override AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second)
         {
-            return _setOperations.SymmetricExcept(this as CTAttributeComponent, second);
+            return SetOperations.SymmetricExcept(this as CTAttributeComponent, second);
         }
 
         protected override bool Includes(AttributeComponent<TData> second)
         {
-            return _setOperations.Include(this as CTAttributeComponent, second);
+            return SetOperations.Include(this as CTAttributeComponent, second);
         }
 
         protected override bool EqualsTo(AttributeComponent<TData> second)
         {
-            return _setOperations.Equal(this as CTAttributeComponent, second);
+            return SetOperations.Equal(this as CTAttributeComponent, second);
         }
 
         protected override bool IncludesOrEqualsTo(AttributeComponent<TData> second)
         {
-            return _setOperations.IncludeOrEqual(this as CTAttributeComponent, second);
+            return SetOperations.IncludeOrEqual(this as CTAttributeComponent, second);
         }
     }
 }

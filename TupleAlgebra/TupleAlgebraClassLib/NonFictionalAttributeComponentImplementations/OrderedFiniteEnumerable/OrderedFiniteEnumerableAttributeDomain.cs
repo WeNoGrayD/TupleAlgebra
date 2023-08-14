@@ -3,36 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponents;
+
+/* WARNING!!! ИСПРАВИТЬ new CONSTRAINT! */
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
+
     public class OrderedFiniteEnumerableAttributeDomain<TAttributeComponent, TData>
         : AttributeDomain<TData>
-        where TAttributeComponent : OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, new()
+        where TAttributeComponent : OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>//, new()
     {
-        public OrderedFiniteEnumerableAttributeDomain(IEnumerable<TData> universum)
-            : base(BuildUniversum(universum))
+        public OrderedFiniteEnumerableAttributeDomain(
+            IEnumerable<TData> universum,
+            System.Linq.Expressions.Expression queryExpression = null)
+            : base(queryExpression)
         {
+            Universum = BuildUniversum(universum);
+
             return;
         }
 
-        protected static OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> BuildUniversum(
+        protected OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> BuildUniversum(
             IEnumerable<TData> universum)
         {
-            TAttributeComponent universumComponent = new TAttributeComponent();
-            universumComponent.InitValues(universum);
+            AttributeComponentFactoryArgs factoryArgs = 
+                OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(
+                    values: universum,
+                    domainGetter: UniversumDomainGetter);
+            factoryArgs.Power = new AttributeUniversumPower(
+                (factoryArgs.Power as NonFictionalAttributeComponentInfrastructure.NonFictionalAttributeComponentPower<TData>)!);
 
-            return universumComponent;
+            return BuildUniversum<TAttributeComponent>(factoryArgs);
         }
-
-        /*
-        public override IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
-            IEnumerable<TReproducedData> reproducedData)
-        {
-            return new OrderedFiniteEnumerableAttributeDomain<TReproducedData>(reproducedData);
-        }
-        */
     }
 
     public class OrderedFiniteEnumerableAttributeDomain<TData> 

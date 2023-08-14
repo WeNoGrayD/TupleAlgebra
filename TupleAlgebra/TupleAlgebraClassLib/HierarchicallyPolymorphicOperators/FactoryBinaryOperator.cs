@@ -7,6 +7,8 @@ using System.Reflection;
 
 namespace TupleAlgebraClassLib.HierarchicallyPolymorphicOperators
 {
+    using static OperatorHelper;
+
     public abstract class FactoryBinaryOperator<TOperand1, TOperand2, TOperationResultFactory, TOperationResult>
     {
         #region Methods
@@ -24,23 +26,13 @@ namespace TupleAlgebraClassLib.HierarchicallyPolymorphicOperators
             TOperand2 second,
             TOperationResultFactory factory)
         {
-            //return AcceptImpl(first, (dynamic)second, factory);
-
-            return (TOperationResult)typeof(FactoryBinaryOperator<TOperand1, TOperand2, TOperationResultFactory, TOperationResult>)
-                .GetMethod(nameof(FactoryBinaryOperator<TOperand1, TOperand2, TOperationResultFactory, TOperationResult>.AcceptImpl), 
-                           BindingFlags.NonPublic | BindingFlags.Instance)
-                .MakeGenericMethod(second.GetType())
-                .Invoke(this, new object[] { first, second, factory });
-        }
-
-        protected TOperationResult AcceptImpl<DTOperand2>(
-            TOperand1 first,
-            DTOperand2 second,
-            TOperationResultFactory factory)
-        {
-            var data = (this as IFactoryBinaryOperator<TOperand1, DTOperand2, TOperationResultFactory, TOperationResult>)
-                .Accept(first, second, factory);
-            return data;
+            return (TOperationResult)FactoryBinaryOperatorAcceptImplMIPattern
+                .MakeGenericMethod(
+                    typeof(TOperand1), 
+                    second.GetType(), 
+                    typeof(TOperationResultFactory),
+                    typeof(TOperationResult))
+                .Invoke(null, new object[] { this, first, second, factory });
         }
 
         #endregion

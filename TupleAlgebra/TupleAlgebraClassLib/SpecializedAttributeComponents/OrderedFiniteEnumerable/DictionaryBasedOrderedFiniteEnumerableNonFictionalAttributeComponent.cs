@@ -23,7 +23,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         /// <summary>
         /// труктор экземпляра.
         /// </summary>
-        public DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent() : base()
+        public DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent() : base(null, null)
         { 
             return;
         }
@@ -35,7 +35,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         /// <param name="values"></param>
         public DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(
             IDictionary<TKey, TData> values)
-            : base(values)
+            : base(null, values)
         {
             return;
         }

@@ -54,6 +54,8 @@ namespace TupleAlgebraTests
         internal class OrderedAttributeComponentOfDataWithKnownHashCode 
             : OrderedFiniteEnumerableNonFictionalAttributeComponent<DataWithKnownHashCode>
         {
+            public OrderedAttributeComponentOfDataWithKnownHashCode() : base(null, null) { }
+
             protected override IComparer<DataWithKnownHashCode> InitOrderingComparerImpl()
             {
                 Comparison<DataWithKnownHashCode> comparison = (x1, x2) =>

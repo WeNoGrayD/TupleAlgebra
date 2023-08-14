@@ -7,7 +7,7 @@ using LINQProvider;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableAttributeComponentQueryContext : QueryContext
+    public class OrderedFiniteEnumerableAttributeComponentQueryContext : LinqQueryContext
     {
     }
 }

@@ -23,9 +23,5 @@ namespace TupleAlgebraClassLib
         bool EqualsTo(IAlgebraicSetObject second);
 
         bool IncludesOrEqualsTo(IAlgebraicSetObject second);
-
-        bool IsEmpty();
-
-        bool IsFull();
     }
 }

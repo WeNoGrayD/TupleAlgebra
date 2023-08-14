@@ -6,26 +6,17 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.SetOperationExecutersContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.DecidableNonFictionalAttributeComponent
 {
     public abstract class DecidableNonFictionalAttributeComponent<TData> : NonFictionalAttributeComponent<TData>
     {
-        public DecidableNonFictionalAttributeComponent(NonFictionalAttributeComponentPower power)
+        public DecidableNonFictionalAttributeComponent(NonFictionalAttributeComponentPower<TData> power)
             : base(power, null)
         { }
 
         public abstract bool Decide(TData value);
-
-        public override bool IsEmpty()
-        {
-            return (Domain & this) is EmptyAttributeComponent<TData>;
-        }
-
-        public override bool IsFull()
-        {
-            return this.Domain == this;
-        }
 
         /*
         public override IEnumerator<TData> GetEnumerator()
@@ -42,7 +33,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
 
         public GeneratingDecidableNonFictionalAttributeComponent(
             DecidableNonFictionalAttributeComponent<TData> slave)
-            : base(slave.Power as NonFictionalAttributeComponentPower)
+            : base(slave.Power as NonFictionalAttributeComponentPower<TData>)
         { }
 
         public override IEnumerator<TData> GetEnumeratorImpl()
@@ -102,9 +93,13 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         }
         */
 
-        public class PredicateBasedDecidableNonFictionalAttributeComponentPower : NonFictionalAttributeComponentPower
+        public class PredicateBasedDecidableNonFictionalAttributeComponentPower : NonFictionalAttributeComponentPower<TData>
         {
+            private PredicateBasedDecidableNonFictionalAttributeComponent<TData> _component;
+
             private IEnumerable<Predicate<TData>> _componentRules;
+
+            protected override NonFictionalAttributeComponent<TData> Component { get => _component; }
 
             public int Value { get => _componentRules.Count(); }
 
@@ -114,14 +109,16 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
                 _componentRules = componentRules;
             }
 
-            public override void InitAttributeComponent(AttributeComponent<TData> component)
+            public override void InitAttributeComponent(NonFictionalAttributeComponent<TData> component)
             {
+                _component = (component as PredicateBasedDecidableNonFictionalAttributeComponent<TData>)!;
+
                 return;
             }
 
-            public override bool IsZero()
+            public override bool EqualsZero()
             {
-                return false;
+                return (_component.Domain & _component).Power.EqualsZero();
             }
 
             protected override int CompareToSame(dynamic second)

@@ -15,6 +15,8 @@ using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
+    using static AttributeComponentHelper;
+
     /// <summary>
     /// Тип непустой компоненты атрибута.
     /// </summary>
@@ -22,21 +24,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
     public abstract class NonFictionalAttributeComponent<TData>
         : AttributeComponent<TData>, IQueryable<TData>
     {
-        #region Constants
-
-        /// <summary>
-        /// Константное значение типа наполнения компоненты атрибута - нефиктивный.
-        /// </summary>
-        private const AttributeComponentContentType CONTENT_TYPE = AttributeComponentContentType.NonFictional;
-
-        #endregion
-
         #region Instance properties
-
-        /// <summary>
-        /// Тип наполнения компоненты атрибута.
-        /// </summary>
-        protected override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
 
         #endregion
 
@@ -50,11 +38,18 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="queryExpression"></param>
         /// <param name="queryProvider"></param>
         public NonFictionalAttributeComponent(
-            NonFictionalAttributeComponentPower power,
+            AttributeComponentPower power,
             IQueryProvider queryProvider,
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {
+            /*
+             * Нефиктивная компонента допускает приём как мощности нефиктивной компоненты,
+             * так и мощности фиктивной полной. Последняя используется доменами атрибутов
+             * для создания универсумов.
+             */
+            power.As<NonFictionalAttributeComponentPower<TData>>().InitAttributeComponent(this);
+
             return;
         }
 
@@ -62,22 +57,10 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Instance methods
 
-        /// <summary>
-        /// Проверка компоненты на пустоту.
-        /// </summary>
-        /// <returns></returns>
-        public override bool IsEmpty()
+        protected override AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
+            AttributeComponentFactoryArgs factoryArgs)
         {
-            return Power.IsZero();
-        }
-
-        /// <summary>
-        /// Проверка компоненты на полноту.
-        /// </summary>
-        /// <returns></returns>
-        public override bool IsFull()
-        {
-            return Domain == this;
+            return GetFactory(this).CreateNonFictional<TReproducedData>(factoryArgs);
         }
 
         #endregion
@@ -87,9 +70,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Контейнер исполнителей операций над нефиктивными компонентами.
         /// </summary>
-        protected class NonFictionalAttributeComponentOperationExecutersContainer<CTOperand1>
-            : FactoryAttributeComponentOperationExecutersContainer<TData, CTOperand1>
-            where CTOperand1 : NonFictionalAttributeComponent<TData>
+        protected class NonFictionalAttributeComponentOperationExecutersContainer<CTOperand>
+            : FactoryAttributeComponentOperationExecutersContainer<TData, CTOperand>
+            where CTOperand : NonFictionalAttributeComponent<TData>
         {
             #region Constructors
 
@@ -97,17 +80,24 @@ namespace TupleAlgebraClassLib.AttributeComponents
             /// Конструктор экземпляра.
             /// </summary>
             public NonFictionalAttributeComponentOperationExecutersContainer(
-                AttributeComponentFactory componentFactory,
-                IFactoryBinaryOperator<CTOperand1, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>> intersectionOperator,
-                IFactoryBinaryOperator<CTOperand1, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>> unionOperator,
-                IFactoryBinaryOperator<CTOperand1, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>> differenceOperator,
-                IFactoryBinaryOperator<CTOperand1, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>> symmetricExceptionOperator,
-                IInstantBinaryOperator<CTOperand1, AttributeComponent<TData>, bool> inclusionComparer,
-                IInstantBinaryOperator<CTOperand1, AttributeComponent<TData>, bool> equalityComparer,
-                IInstantBinaryOperator<CTOperand1, AttributeComponent<TData>, bool> inclusionOrEquationComparer)
+                Func<AttributeComponentFactory> componentFactory,
+                Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
+                    intersectionOperator,
+                Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
+                    unionOperator,
+                Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
+                    differenceOperator,
+                Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
+                    symmetricExceptionOperator,
+                Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>>
+                    inclusionComparer,
+                Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>>
+                    equalityComparer,
+                Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>>
+                    inclusionOrEquationComparer)
                 : base(
                       componentFactory,
-                      new NonFictionalAttributeComponentComplementionOperator<TData, CTOperand1>(),
+                      () => new NonFictionalAttributeComponentComplementionOperator<TData, CTOperand>(),
                       intersectionOperator,
                       unionOperator,
                       differenceOperator,
@@ -119,33 +109,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
             #endregion
         }
-
-        /// <summary>
-        /// Мощность нефиктивной компоненты.
-        /// </summary>
-        public abstract class NonFictionalAttributeComponentPower : AttributeComponentPower
-        {
-            #region Constants
-
-            /// <summary>
-            /// Константное значение типа наполнения компоненты - нефиктивный.
-            /// </summary>
-            internal override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
-
-            #endregion
-
-            protected abstract int CompareToSame(dynamic second);
-
-            public override sealed int CompareTo(AttributeComponentPower second)
-            {
-                int comparisonResult = base.CompareTo(second);
-                if (comparisonResult == 0)
-                    comparisonResult = CompareToSame(second);
-
-                return comparisonResult;
-            }
-        }
-
 
         protected class AttributeComponentQueryContext
         {

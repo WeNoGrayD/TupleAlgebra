@@ -21,15 +21,15 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             AttributeComponentFactory factory)
         {
             IEnumerable<TData> remainedElements = ExceptComponentsElements();
-            AttributeComponentFactoryArgs factoryArgs = first.ZipInfo(remainedElements, true);
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs = 
+                first.ZipInfo(remainedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
+            factoryArgs.ValuesAreOrdered = true;
             AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
             return resultComponent;
 
             IEnumerable<TData> ExceptComponentsElements()
             {
-                int firstPower = (first.Power as OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>.OrderedFiniteEnumerableNonFictionalAttributeComponentPower).Value;
-                List<TData> remained = new List<TData>(firstPower);
                 IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
                                    secondEnumerator = second.GetEnumerator(),
                                    withLowerBoundEnumerator = firstEnumerator,
@@ -39,13 +39,17 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                      enumeratorsHadSwapped = false; 
                 TData firstElement = default(TData), secondElement = default(TData);
 
-                ReadComponentsUntilAtLeastOneIsOver();
-                FinishReadingIfAnyComponentRemains();
+                foreach (TData resultData in ReadComponentsUntilAtLeastOneIsOver())
+                    yield return resultData;
+
+                foreach (TData resultData in FinishReadingIfAnyComponentRemains())
+                    yield return resultData;
+
                 DisposeEnumerators();
 
-                return remained;
+                yield break;
 
-                void ReadComponentsUntilAtLeastOneIsOver()
+                IEnumerable<TData> ReadComponentsUntilAtLeastOneIsOver()
                 {
                     IComparer<TData> orderingComparer = first.OrderingComparer;
                     int elementsComparisonResult;
@@ -61,7 +65,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                             case -1:
                                 {
                                     if (!enumeratorsHadSwapped)
-                                        remained.Add(firstElement);
+                                        yield return firstElement;
                                     break;
                                 }
                             case 0:
@@ -73,7 +77,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                                 {
                                     SwapEnumeratorsAndCurrentElements();
                                     if (!enumeratorsHadSwapped)
-                                        remained.Add(firstElement);
+                                        yield return firstElement;
                                     break;
                                 }
                         }
@@ -81,32 +85,32 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
 
-                    return;
+                    yield break;
                 }
 
-                void FinishReadingIfAnyComponentRemains()
+                IEnumerable<TData> FinishReadingIfAnyComponentRemains()
                 {
-                    if ((isContinuesWithLowerBoundEnumerator && firstEnumerator.Equals(withLowerBoundEnumerator)) ||
-                        (isContinuesWithGreaterBoundEnumerator && firstEnumerator.Equals(withGreaterBoundEnumerator)))
+                    if ((isContinuesWithLowerBoundEnumerator && !enumeratorsHadSwapped) ||
+                        (isContinuesWithGreaterBoundEnumerator && enumeratorsHadSwapped))
                     {
                         if (isContinuesWithGreaterBoundEnumerator)
                             SwapEnumeratorsAndCurrentElements();
-                        FinishReadingRemainingComponent();
+                        return FinishReadingRemainingComponent();
                     }
 
-                    return;
+                    return Enumerable.Empty<TData>();
                 }
 
-                void FinishReadingRemainingComponent()
+                IEnumerable<TData> FinishReadingRemainingComponent()
                 {
                     do
                     {
-                        remained.Add(firstElement);
+                        yield return firstElement;
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
                     while (isContinuesWithLowerBoundEnumerator);
-
-                    return;
+                    
+                    yield break;
                 }
 
                 void SwapEnumeratorsAndCurrentElements()

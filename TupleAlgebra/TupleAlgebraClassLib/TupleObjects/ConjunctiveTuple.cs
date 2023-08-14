@@ -22,10 +22,10 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         protected override AttributeComponent<TData> GetDefaultFictionalAttributeComponentImpl<TData>(AttributeInfo attribute)
         {
-            var factoryArgs = new AttributeComponentFactoryInfrastructure.AttributeComponentFactoryArgs();
-            factoryArgs.SetAttributeDomainGetter(() => attribute.GetDomain<TData>());
-
-            return AttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull<TData>(factoryArgs);
+            //var factoryArgs = new AttributeComponentFactoryInfrastructure.AttributeComponentFactoryArgs();
+            //factoryArgs.SetAttributeDomainGetter(() => attribute.GetDomain<TData>());
+            return null;
+            //return AttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull<TData>(factoryArgs);
         }
 
         #endregion

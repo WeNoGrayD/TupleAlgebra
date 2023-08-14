@@ -37,7 +37,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
             FullAttributeComponent<TData> second,
             AttributeComponentFactory factory)
         {
-            return factory.CreateEmpty<TData>(new AttributeComponentFactoryArgs());
+            return factory.CreateEmpty(first.GetDomain);
         }
     }
 }

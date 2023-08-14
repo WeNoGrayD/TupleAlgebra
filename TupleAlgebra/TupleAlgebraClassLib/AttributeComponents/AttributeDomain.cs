@@ -10,9 +10,13 @@ using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using LINQProvider;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
+    using static AttributeComponentHelper;
+
     /// <summary>
     /// Домен атрибута.
     /// </summary>
@@ -44,6 +48,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Static fields
 
+        private NonFictionalAttributeComponent<TData> _universum;
+
         protected static Action<AttributeDomain<TData>> _setDomainCallback;
 
         #endregion
@@ -53,7 +59,16 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Универсум домена.
         /// </summary>
-        public readonly NonFictionalAttributeComponent<TData> Universum;
+        public NonFictionalAttributeComponent<TData> Universum 
+        { 
+            get => _universum;
+            protected set
+            {
+                _universum = value;
+                Provider = value.Provider;
+                if (Expression is null) Expression = Expression.Constant(value);
+            }
+        }
 
         #endregion
 
@@ -62,16 +77,20 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Конструктор экземпляра.
         /// </summary>
-        /// <param name="universum"></param>
         /// <param name="queryExpression"></param>
         protected AttributeDomain(
-            NonFictionalAttributeComponent<TData> universum,
             Expression queryExpression = null)
         {
+            Expression = queryExpression;
+
+            return;
+        }
+        protected AttributeDomain(
+            NonFictionalAttributeComponent<TData> universum)
+        {
             Universum = universum;
-            universum.GetDomain += UniversumDomainGetter;
-            Provider = universum.Provider;
-            Expression = queryExpression ?? Expression.Constant(Universum);
+
+            return;
         }
 
         #endregion
@@ -79,9 +98,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
         #region Instance methods
 
         public AttributeDomain<TData> UniversumDomainGetter() => this;
-
-        //public abstract IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
-        //    IEnumerable<TReproducedData> reproducedData);
 
         /// <summary>
         /// Преобразование домена с отношением 1-к-1.
@@ -155,7 +171,22 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #endregion
 
-        #region IAttributeComponentProvider
+        #region Static methods
+
+        protected TAttributeComponent BuildUniversum<TAttributeComponent>(
+            AttributeComponentFactoryArgs factoryArgs)
+            where TAttributeComponent : NonFictionalAttributeComponent<TData>
+        {
+            TAttributeComponent universumComponent =
+                GetFactory(typeof(OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>))
+                .CreateNonFictional<TData>(factoryArgs) as TAttributeComponent;
+
+            return universumComponent;
+        }
+
+        #endregion
+
+        #region IAttributeComponentProvider implementation
 
         public IAlgebraicSetObject CreateAttributeComponent<TEntity>(AttributeInfo attribute, IEnumerable<TEntity> entitySource)
         {
@@ -237,6 +268,58 @@ namespace TupleAlgebraClassLib.AttributeComponents
         #endregion
 
         #region Nested types
+
+        /// <summary>
+        /// Мощность полной фиктивной компоненты атрибута.
+        /// </summary>
+        public class AttributeUniversumPower : AttributeComponentPower
+        {
+            #region Instance fields
+
+            public override AttributeComponentContentType ContentType
+            { get => AttributeComponentContentType.Full; }
+
+            #endregion
+
+            #region Instance properties
+
+            protected NonFictionalAttributeComponentPower<TData> NonFictionalPower { get; private set; }
+
+            #endregion
+
+            #region Constructors
+
+            public AttributeUniversumPower(NonFictionalAttributeComponentPower<TData> nonFictionalPower)
+            {
+                NonFictionalPower = nonFictionalPower;
+
+                return;
+            }
+
+            #endregion
+
+            #region IAttributeComponentPower implementation
+
+            public override bool EqualsZero() => false;
+
+            public override bool EqualsContinuum() => false;
+
+            /*
+             * Переопределять метод сравнения нет необходимости.
+             * Поскольку сравнение производится при помощи ContentType, то всегда this > second.
+             * Для доступа к необходимым полям нефиктивной мощности требуется приводить эту к нужному типу.
+             */
+            //public override int CompareTo(AttributeComponent second);
+
+            /// <summary>
+            /// Подменяет в необходимом контексте себя сохранённой мощнойстью нефиктивной компоненты.
+            /// </summary>
+            /// <typeparam name="TConverting"></typeparam>
+            /// <returns></returns>
+            public override TConverting As<TConverting>() => (NonFictionalPower as TConverting)!;
+
+            #endregion
+        }
 
         /// <summary>
         /// Провайдер запросов к домену атрибута.

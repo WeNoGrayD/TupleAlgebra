@@ -24,7 +24,7 @@ namespace TupleAlgebraTests
         {
             component1 = intFactory.CreateEmpty();
 
-            AttributeComponent<int> result = !component1;
+            AttributeComponent<int> result = ~component1;
             Assert.IsInstanceOfType(result, typeof(FullAttributeComponent<int>));
         }
 

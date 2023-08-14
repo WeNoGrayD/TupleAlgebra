@@ -79,7 +79,8 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
              */
             if (_isResultEnumerable && !_queryIsFiction)
                 return (TQueryResult)WrapEnumerableResultWithAttributeComponent((dynamic)_queryDataSource, queryResult);
-            else return queryResult;
+            
+            return queryResult;
         }
 
         #endregion

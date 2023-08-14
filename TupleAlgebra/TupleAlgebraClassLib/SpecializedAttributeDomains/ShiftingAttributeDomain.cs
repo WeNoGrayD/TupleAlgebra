@@ -18,8 +18,10 @@ namespace TupleAlgebraClassLib.SpecializedAttributeDomains
     public class ShiftingAttributeDomain<TData, TShiftedData> : AttributeDomain<TData>
     {
         public ShiftingAttributeDomain(AttributeDomain<TData> content)
-            : base(content.Universum, content.Expression)
+            : base(content.Expression)
         {
+            Universum = content.Universum;
+
             return;
         }
 

@@ -11,8 +11,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableNonFictionalAttributeComponentUnionOperator<TData>
-        : NonFictionalAttributeComponentUnionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
+    public class OrderedFiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TData>
+        : NonFictionalAttributeComponentIntersectionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
           IFactoryBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(
@@ -20,17 +20,16 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
             AttributeComponentFactory factory)
         {
-            IEnumerable<TData> unitedElements = UnionComponentsElements();
-            AttributeComponentFactoryArgs factoryArgs = first.ZipInfo(unitedElements, true);
+            IEnumerable<TData> intersectedElements = IntersectComponentsElements();
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
+                first.ZipInfo(intersectedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
+            factoryArgs.ValuesAreOrdered = true;
             AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
             return resultComponent;
 
-            IEnumerable<TData> UnionComponentsElements()
+            IEnumerable<TData> IntersectComponentsElements()
             {
-                int summaryPower = (first.Power as OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>.OrderedFiniteEnumerableNonFictionalAttributeComponentPower).Value +
-                    (second.Power as OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>.OrderedFiniteEnumerableNonFictionalAttributeComponentPower).Value;
-                List<TData> united = new List<TData>(summaryPower);
                 IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
                                    secondEnumerator = second.GetEnumerator(),
                                    withLowerBoundEnumerator = firstEnumerator,
@@ -41,13 +40,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                 IComparer<TData> orderingComparer = first.OrderingComparer;
                 int elementsComparisonResult;
 
-                ReadComponentsUntilAtLeastOneIsOver();
-                FinishReadingIfAnyComponentRemains();
-                DisposeEnumerators();
+                return ReadComponentsUntilAtLeastOneIsOver();
 
-                return united;
-
-                void ReadComponentsUntilAtLeastOneIsOver()
+                IEnumerable<TData> ReadComponentsUntilAtLeastOneIsOver()
                 {
                     WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
@@ -60,6 +55,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                             case -1: break;
                             case 0:
                                 {
+                                    yield return firstElement;
                                     WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
                                     break;
                                 }
@@ -69,35 +65,12 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                                     break;
                                 }
                         }
-                        united.Add(firstElement);
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
 
-                    return;
-                }
+                    DisposeEnumerators();
 
-                void FinishReadingIfAnyComponentRemains()
-                {
-                    if (isContinuesWithLowerBoundEnumerator || isContinuesWithGreaterBoundEnumerator)
-                    {
-                        if (isContinuesWithGreaterBoundEnumerator)
-                            SwapEnumeratorsAndCurrentElements();
-                        FinishReadingRemainingComponent();
-                    }
-
-                    return;
-                }
-
-                void FinishReadingRemainingComponent()
-                {
-                    do
-                    {
-                        united.Add(firstElement);
-                        WithLowerBoundEnumeratorMoveNextAndReadCurrent();
-                    }
-                    while (isContinuesWithLowerBoundEnumerator);
-
-                    return;
+                    yield break;
                 }
 
                 void SwapEnumeratorsAndCurrentElements()

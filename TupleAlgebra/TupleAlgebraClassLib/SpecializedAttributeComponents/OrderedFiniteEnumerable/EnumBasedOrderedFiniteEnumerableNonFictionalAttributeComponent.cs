@@ -17,13 +17,13 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         where TData : Enum
     {
         public EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent()
-            : base()
+            : base(null, null)
         {
             return;
         }
 
         public EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(IEnumerable<TData> values)
-            : base(values)
+            : base(null, values)
         {
             return;
         }

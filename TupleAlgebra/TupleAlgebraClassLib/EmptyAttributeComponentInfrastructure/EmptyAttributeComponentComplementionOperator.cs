@@ -9,13 +9,15 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 {
+    using static AttributeComponentHelper;
+
     public sealed class EmptyAttributeComponentComplementionOperator<TData>
         : InstantUnaryAttributeComponentAcceptor<TData, EmptyAttributeComponent<TData>, AttributeComponent<TData>>,
           IInstantUnaryAttributeComponentAcceptor<TData, EmptyAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public override AttributeComponent<TData> Accept(EmptyAttributeComponent<TData> first)
         {
-            return AttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull<TData>(first.ZipInfo<TData>(null));
+            return GetFactory(first).CreateFull<TData>(first.ZipInfo<TData>(null));
         }
     }
 }

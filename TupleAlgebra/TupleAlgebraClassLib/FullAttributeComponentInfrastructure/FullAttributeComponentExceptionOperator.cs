@@ -9,6 +9,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
 {
+    using static AttributeComponentHelper;
+
     public sealed class FullAttributeComponentExceptionOperator<TData>
         : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, FullAttributeComponent<TData>, AttributeComponent<TData>>
     {
@@ -23,14 +25,14 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
             FullAttributeComponent<TData> first,
             NonFictionalAttributeComponent<TData> second)
         {
-            return !second;
+            return ~second;
         }
 
         public override AttributeComponent<TData> Accept(
             FullAttributeComponent<TData> first,
             FullAttributeComponent<TData> second)
         {
-            return EmptyAttributeComponent<TData>.FictionalAttributeComponentFactory.CreateEmpty<TData>(new AttributeComponentFactoryArgs());
+            return GetFactory(first).CreateEmpty<TData>(first.GetDomain);
         }
     }
 }

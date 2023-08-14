@@ -13,13 +13,13 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         where TKey : IComparable<TKey>
     {
         public LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent() 
-            : base()
+            : base(null, null)
         {
             return;
         }
 
         public LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent(ILookup<TKey, TData> values)
-            : base(values)
+            : base(null, values)
         {
             return;
         }

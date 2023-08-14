@@ -39,7 +39,7 @@ namespace TupleAlgebraTests
             HashSet<int> component1Values = new HashSet<int>() { 0, 1, 2 };
             component1 = intFactory.CreateNonFictional(component1Values);
 
-            AttributeComponent<int> result = !component1;
+            AttributeComponent<int> result = ~component1;
             IEnumerable<int> resultValuesPredefined = SortedComplement(component1Values);
             Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
             Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
@@ -47,7 +47,7 @@ namespace TupleAlgebraTests
             component1Values = new HashSet<int>() { 7, 8, 9 };
             component1 = intFactory.CreateNonFictional(component1Values);
 
-            result = !component1;
+            result = ~component1;
             resultValuesPredefined = SortedComplement(component1Values);
             Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
             Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
@@ -55,7 +55,7 @@ namespace TupleAlgebraTests
             component1Values = new HashSet<int>() { 1, 2, 3, 5, 6, 7, 8 };
             component1 = intFactory.CreateNonFictional(component1Values);
 
-            result = !component1;
+            result = ~component1;
             resultValuesPredefined = SortedComplement(component1Values);
             Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
             Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
@@ -63,7 +63,7 @@ namespace TupleAlgebraTests
             component1Values = new HashSet<int>() { 0, 3, 4, 6, 7, 9 };
             component1 = intFactory.CreateNonFictional(component1Values);
 
-            result = !component1;
+            result = ~component1;
             resultValuesPredefined = SortedComplement(component1Values);
             Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
             Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
@@ -71,7 +71,7 @@ namespace TupleAlgebraTests
             component1Values = new HashSet<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
             component1 = intFactory.CreateNonFictional(component1Values);
 
-            result = !component1;
+            result = ~component1;
             resultValuesPredefined = SortedComplement(component1Values);
             Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
             Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
@@ -79,7 +79,7 @@ namespace TupleAlgebraTests
             component1Values = new HashSet<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
             component1 = intFactory.CreateNonFictional(component1Values);
 
-            result = !component1;
+            result = ~component1;
             resultValuesPredefined = SortedComplement(component1Values);
             Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
             Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
@@ -87,7 +87,7 @@ namespace TupleAlgebraTests
             component1Values = new HashSet<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             component1 = intFactory.CreateNonFictional(component1Values);
 
-            result = !component1;
+            result = ~component1;
             resultValuesPredefined = SortedComplement(component1Values);
             Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
             Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));

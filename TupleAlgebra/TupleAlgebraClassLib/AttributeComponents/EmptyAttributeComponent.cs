@@ -13,126 +13,134 @@ using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
-    public sealed class EmptyAttributeComponent<TData> : AttributeComponent<TData>
+    using static AttributeComponentHelper;
+
+    public sealed class EmptyAttributeComponent<TData> : AttributeComponent<TData, EmptyAttributeComponent<TData>>
     {
-        private const AttributeComponentContentType CONTENT_TYPE = AttributeComponentContentType.Empty;
+        #region Static fields
 
-        protected override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
+        private static Lazy<ISetOperationExecutersContainer<AttributeComponent<TData>, EmptyAttributeComponent<TData>>>
+            _setOperations;
 
-        private static ISetOperationExecutersContainer<AttributeComponent<TData>, EmptyAttributeComponent<TData>>
-            _setOperations = new EmptyAttributeComponentOperationExecutersContainer();
+        #endregion
 
+        #region Instance properties
+
+        protected override ISetOperationExecutersContainer<AttributeComponent<TData>, EmptyAttributeComponent<TData>> SetOperations
+        { get => _setOperations.Value; }
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Статический конструктор.
+        /// </summary>
         static EmptyAttributeComponent()
         {
-            //AttributeComponent<TData>.InitSetOperations(
-            //    CONTENT_TYPE, new EmptyAttributeComponentOperationExecutersContainer());
+            RegisterType<TData>(
+                typeof(EmptyAttributeComponent<TData>));
+
+            return;
         }
 
         public EmptyAttributeComponent(
+            EmptyAttributeComponentPower power,
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(new EmptyAttributeComponentPower(), queryProvider, queryExpression)
-        { }
+            : base(power, queryProvider, queryExpression)
+        {
+            _setOperations = new Lazy<ISetOperationExecutersContainer<AttributeComponent<TData>, EmptyAttributeComponent<TData>>>(
+                () => new EmptyAttributeComponentOperationExecutersContainer());
+
+            return;
+        }
+
+        #endregion
+
+        #region Instance methods
+
+        public override AttributeComponentFactoryArgs ZipInfoImpl<TReproducedData>(IEnumerable<TReproducedData> populatingData)
+        {
+            return new EmptyAttributeComponentFactoryArgs();
+        }
 
         public override IEnumerator<TData> GetEnumeratorImpl()
         {
             yield break;
         }
 
-        #region Instance methods
-
         protected override AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return new EmptyAttributeComponent<TReproducedData>(
-                factoryArgs.QueryProvider,
-                factoryArgs.QueryExpression);
+            return GetFactory(this).CreateEmpty<TReproducedData>(factoryArgs);//new EmptyAttributeComponent<TReproducedData>(
+                //factoryArgs.QueryProvider,
+                //factoryArgs.QueryExpression);
         }
 
         #endregion
-
-        public override bool IsEmpty()
-        {
-            return true;
-        }
-
-        public override bool IsFull()
-        {
-            return false;
-        }
 
         #region Operators
 
         protected override AttributeComponent<TData> ComplementThe()
         {
-            return _setOperations.Complement(this);
+            return SetOperations.Complement(this);
         }
 
         protected override AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second)
         {
-            return _setOperations.Intersect(this, second);
+            return SetOperations.Intersect(this, second);
         }
 
         protected override AttributeComponent<TData> UnionWith(AttributeComponent<TData> second)
         {
-            return _setOperations.Union(this, second);
+            return SetOperations.Union(this, second);
         }
 
         protected override AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second)
         {
-            return _setOperations.Except(this, second);
+            return SetOperations.Except(this, second);
         }
 
         protected override AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second)
         {
-            return _setOperations.SymmetricExcept(this, second);
+            return SetOperations.SymmetricExcept(this, second);
         }
 
         protected override bool Includes(AttributeComponent<TData> second)
         {
-            return _setOperations.Include(this, second);
+            return SetOperations.Include(this, second);
         }
 
         protected override bool EqualsTo(AttributeComponent<TData> second)
         {
-            return _setOperations.Equal(this, second);
+            return SetOperations.Equal(this, second);
         }
 
         protected override bool IncludesOrEqualsTo(AttributeComponent<TData> second)
         {
-            return _setOperations.IncludeOrEqual(this, second);
+            return SetOperations.IncludeOrEqual(this, second);
         }
 
         #endregion
+
+        #region Nested types
 
         private class EmptyAttributeComponentOperationExecutersContainer
             : InstantAttributeComponentOperationExecutersContainer<TData, EmptyAttributeComponent<TData>>
         {
             public EmptyAttributeComponentOperationExecutersContainer() : base(
-                new EmptyAttributeComponentComplementionOperator<TData>(),
-                new EmptyAttributeComponentIntersectionOperator<TData>(),
-                new EmptyAttributeComponentUnionOperator<TData>(),
-                new EmptyAttributeComponentExceptionOperator<TData>(),
-                new EmptyAttributeComponentSymmetricExceptionOperator<TData>(),
-                new EmptyAttributeComponentInclusionComparer<TData>(),
-                new EmptyAttributeComponentEqualityComparer<TData>(),
-                new EmptyAttributeComponentInclusionOrEqualityComparer<TData>())
+                () => new EmptyAttributeComponentComplementionOperator<TData>(),
+                () => new EmptyAttributeComponentIntersectionOperator<TData>(),
+                () => new EmptyAttributeComponentUnionOperator<TData>(),
+                () => new EmptyAttributeComponentExceptionOperator<TData>(),
+                () => new EmptyAttributeComponentSymmetricExceptionOperator<TData>(),
+                () => new EmptyAttributeComponentInclusionComparer<TData>(),
+                () => new EmptyAttributeComponentEqualityComparer<TData>(),
+                () => new EmptyAttributeComponentInclusionOrEqualityComparer<TData>())
             { }
         }
 
-        private class EmptyAttributeComponentPower : AttributeComponentPower
-        {
-            internal override AttributeComponentContentType ContentType { get => CONTENT_TYPE; }
-
-            public override void InitAttributeComponent(AttributeComponent<TData> component)
-            {
-                return;
-            }
-
-            public override bool IsZero()
-            {
-                return true;
-            }
-        }
+        #endregion
     }
 }

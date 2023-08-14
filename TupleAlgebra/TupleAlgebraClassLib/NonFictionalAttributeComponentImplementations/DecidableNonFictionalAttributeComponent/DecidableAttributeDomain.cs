@@ -10,7 +10,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
     public abstract class DecidableAttributeDomain<TData> : AttributeDomain<TData>
     {
         public DecidableAttributeDomain()
-            : base(null)
+            : base((System.Linq.Expressions.Expression)null)
         { }
     }
 }

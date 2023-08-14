@@ -7,10 +7,12 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.SpecializedAttributeDomains
 {
-    public sealed class BooleanAttributeDomain : OrderedFiniteEnumerableAttributeDomain<bool>
+    /*
+    public sealed class BooleanAttributeDomain : AttributeDomain<bool>
     {
         public BooleanAttributeDomain()
             : base(new bool[2] { true, false })
         { }
     }
+    */
 }
