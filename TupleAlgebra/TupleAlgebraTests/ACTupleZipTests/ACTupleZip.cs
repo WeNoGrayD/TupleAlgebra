@@ -54,6 +54,8 @@ namespace TupleAlgebraTests.ACTupleZipTests
 
         public NodeState State { get; set; }
 
+        private Dictionary<TEntity, EntitySiblingNode<TEntity>> _siblingsMatches;
+
         public AttributeInfoNode(AttributeInfo<TData> attrInfo)
         {
             _attrInfo = attrInfo;
@@ -326,7 +328,7 @@ namespace TupleAlgebraTests.ACTupleZipTests
                 {
                     attributeValueCount = _attributeSchema[ai].ChildrenCount;
 
-                    foreach (
+                    //foreach (
                 }
             }
 
