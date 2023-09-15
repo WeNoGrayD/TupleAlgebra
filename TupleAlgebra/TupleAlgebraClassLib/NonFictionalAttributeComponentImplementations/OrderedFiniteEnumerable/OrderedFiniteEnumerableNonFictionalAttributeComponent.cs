@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
@@ -29,8 +29,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         /// </summary>
         protected static IComparer<TData> _defaultOrderingComparer;
 
-        private static IFactoryAttributeComponentOperationExecutersContainer<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>
-            _setOperations = new OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutersContainer();
+        #endregion
+
+        #region Static properties
+
+        public static IComparer<TData> DefaultOrderingComparer { get => _defaultOrderingComparer; }
 
         #endregion
 
@@ -69,9 +72,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         {
             _defaultOrderingComparer = InitDefaultOrderingComparer();
 
-            RegisterType<TData>(
-                typeof(OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>),
-                acFactory: new OrderedFiniteEnumerableAttributeComponentFactory());
+            Helper.RegisterType<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>(
+                acFactory: new OrderedFiniteEnumerableAttributeComponentFactory(),
+                setOperations: new OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer());
 
             return;
         }
@@ -184,7 +187,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         private void InitOrderingComparer(IComparer<TData> orderingComparer)
         {
             _orderingComparer = orderingComparer ?? InitOrderingComparerImpl();
-            //OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutersContainer
+            //OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer
             //    .InitAcceptorsComparer(_orderingComparer);
 
             return;
@@ -223,78 +226,29 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
         #endregion
 
-        #region Operators
-
-        protected override AttributeComponent<TData> ComplementThe()
-        {
-            return _setOperations.Complement(this);
-        }
-
-        protected override AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second)
-        {
-            return _setOperations.Intersect(this, second);
-        }
-
-        protected override AttributeComponent<TData> UnionWith(AttributeComponent<TData> second)
-        {
-            return _setOperations.Union(this, second);
-        }
-
-        protected override AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second)
-        {
-            return _setOperations.Except(this, second);
-        }
-
-        protected override AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second)
-        {
-            return _setOperations.SymmetricExcept(this, second);
-        }
-
-        protected override bool Includes(AttributeComponent<TData> second)
-        {
-            return _setOperations.Include(this, second);
-        }
-
-        protected override bool EqualsTo(AttributeComponent<TData> second)
-        {
-            return _setOperations.Equal(this, second);
-        }
-
-        protected override bool IncludesOrEqualsTo(AttributeComponent<TData> second)
-        {
-            return _setOperations.IncludeOrEqual(this, second);
-        }
-
-        #endregion
-
         #region Nested types
 
         /// <summary>
         /// Контейнер исполнителей операций над упорядоченной конечной перечислимой компонентой аттрибута.
         /// </summary>
-        private class OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutersContainer 
-            : NonFictionalAttributeComponentOperationExecutersContainer<OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>
+        private class OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer 
+            : NonFictionalAttributeComponentOperationExecutorsContainer<OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>
         {
-            public OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutersContainer() : base(
-                () => new OrderedFiniteEnumerableAttributeComponentFactory(),
-                () => new OrderedFiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TData>(),
-                () => new OrderedFiniteEnumerableNonFictionalAttributeComponentUnionOperator<TData>(),
-                () => new OrderedFiniteEnumerableNonFictionalAttributeComponentExceptionOperator<TData>(),
-                () => new OrderedFiniteEnumerableNonFictionalAttributeComponentSymmetricExceptionOperator<TData>(),
-                () => new OrderedFiniteEnumerableNonFictionalAttributeComponentInclusionComparer<TData>(),
-                () => new OrderedFiniteEnumerableNonFictionalAttributeComponentEqualityComparer<TData>(),
-                () => new OrderedFiniteEnumerableNonFictionalAttributeComponentInclusionOrEqualityComparer<TData>())
-            { }
+            #region Constructors
 
-            /*
-            public static void InitAcceptorsComparer(IComparer<TData> orderingComparer)
+            public OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer() : base(
+                () => new IntersectionOperator<TData>(),
+                () => new UnionOperator<TData>(),
+                () => new ExceptionOperator<TData>(),
+                () => new SymmetricExceptionOperator<TData>(),
+                () => new InclusionComparer<TData>(),
+                () => new EqualityComparer<TData>(),
+                () => new InclusionOrEqualityComparer<TData>())
             {
-                FactoryBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>
-                    .InitOrderingComparer(orderingComparer);
-                InstantBinaryOrderedFiniteEnumerableNonFictionalAttributeComponentAcceptor<TData>
-                    .InitOrderingComparer(orderingComparer);
+                return;
             }
-            */
+
+            #endregion
         }
 
         #endregion

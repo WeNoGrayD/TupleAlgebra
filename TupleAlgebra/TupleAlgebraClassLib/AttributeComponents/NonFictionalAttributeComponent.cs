@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Diagnostics;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
-using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using System.Reflection;
@@ -22,7 +22,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
     /// </summary>
     /// <typeparam name="TData"></typeparam>
     public abstract class NonFictionalAttributeComponent<TData>
-        : AttributeComponent<TData>, IQueryable<TData>
+        : AttributeComponent<TData>
     {
         #region Instance properties
 
@@ -60,7 +60,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         protected override AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return GetFactory(this).CreateNonFictional<TReproducedData>(factoryArgs);
+            return Factory.CreateNonFictional<TReproducedData>(factoryArgs);
         }
 
         #endregion
@@ -70,33 +70,89 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Контейнер исполнителей операций над нефиктивными компонентами.
         /// </summary>
-        protected class NonFictionalAttributeComponentOperationExecutersContainer<CTOperand>
-            : FactoryAttributeComponentOperationExecutersContainer<TData, CTOperand>
+        protected class NonFictionalAttributeComponentOperationExecutorsContainer<CTOperand>
+            : FactorySetOperationExecutorsContainer<
+                AttributeComponent<TData>,
+                CTOperand,
+                AttributeComponentFactory>
             where CTOperand : NonFictionalAttributeComponent<TData>
         {
+            #region Instance properties
+
+            protected override AttributeComponentFactory Factory
+            { get => Helper.GetFactory(typeof(CTOperand)); }
+
+            #endregion
+
             #region Constructors
 
             /// <summary>
             /// Конструктор экземпляра.
             /// </summary>
-            public NonFictionalAttributeComponentOperationExecutersContainer(
-                Func<AttributeComponentFactory> componentFactory,
-                Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
+            /// <param name="complementionOperator"></param>
+            /// <param name="intersectionOperator"></param>
+            /// <param name="unionOperator"></param>
+            /// <param name="differenceOperator"></param>
+            /// <param name="symmetricExceptionOperator"></param>
+            /// <param name="inclusionComparer"></param>
+            /// <param name="equalityComparer"></param>
+            /// <param name="inclusionOrEquationComparer"></param>
+            public NonFictionalAttributeComponentOperationExecutorsContainer(
+                Func<IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>>> 
+                    complementionOperator,
+                Func<IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
                     intersectionOperator,
-                Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
+                Func<IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
                     unionOperator,
-                Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
+                Func<IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
                     differenceOperator,
-                Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
+                Func<IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
                     symmetricExceptionOperator,
-                Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>>
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
                     inclusionComparer,
-                Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>>
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
                     equalityComparer,
-                Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>>
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
                     inclusionOrEquationComparer)
                 : base(
-                      componentFactory,
+                      complementionOperator,
+                      intersectionOperator,
+                      unionOperator,
+                      differenceOperator,
+                      symmetricExceptionOperator,
+                      inclusionComparer,
+                      equalityComparer,
+                      inclusionOrEquationComparer)
+            {
+                return;
+            }
+
+            /// <summary>
+            /// Конструктор экземпляра.
+            /// </summary>
+            /// <param name="intersectionOperator"></param>
+            /// <param name="unionOperator"></param>
+            /// <param name="differenceOperator"></param>
+            /// <param name="symmetricExceptionOperator"></param>
+            /// <param name="inclusionComparer"></param>
+            /// <param name="equalityComparer"></param>
+            /// <param name="inclusionOrEquationComparer"></param>
+            public NonFictionalAttributeComponentOperationExecutorsContainer(
+                Func<IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                    intersectionOperator,
+                Func<IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                    unionOperator,
+                Func<IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                    differenceOperator,
+                Func<IFactoryBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                    symmetricExceptionOperator,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                    inclusionComparer,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                    equalityComparer,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                    inclusionOrEquationComparer)
+                : this(
                       () => new NonFictionalAttributeComponentComplementionOperator<TData, CTOperand>(),
                       intersectionOperator,
                       unionOperator,
@@ -105,7 +161,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
                       inclusionComparer,
                       equalityComparer,
                       inclusionOrEquationComparer)
-            { }
+            { 
+                return;
+            }
 
             #endregion
         }

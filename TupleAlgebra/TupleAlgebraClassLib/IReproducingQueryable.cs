@@ -10,7 +10,8 @@ namespace TupleAlgebraClassLib
     public interface IReproducingQueryable<TData> : IQueryable<TData>
     {
         IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
-            IEnumerable<TReproducedData> reproducedData);
+            IEnumerable<TReproducedData> reproducedData,
+            bool includeDomain = false);
     }
 
     public interface IReproducingQueryable<TFactoryArgs, TData> : IQueryable<TData>

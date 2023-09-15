@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TupleAlgebraFrameworkTests"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TupleAlgebraTests", "TupleAlgebraTests\TupleAlgebraTests.csproj", "{9EAF873C-1B93-4052-859D-A20622526CA1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LINQProvider", "LINQProvider\LINQProvider.csproj", "{D3DF62D0-E177-4863-9DF6-E2BC47E8EE0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LINQProvider", "LINQProvider\LINQProvider.csproj", "{D3DF62D0-E177-4863-9DF6-E2BC47E8EE0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniversalClassLib", "UniversalClassLib\UniversalClassLib.csproj", "{C9DB588D-6DA1-4734-A3E9-3D53587DB690}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{D3DF62D0-E177-4863-9DF6-E2BC47E8EE0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3DF62D0-E177-4863-9DF6-E2BC47E8EE0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3DF62D0-E177-4863-9DF6-E2BC47E8EE0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9DB588D-6DA1-4734-A3E9-3D53587DB690}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9DB588D-6DA1-4734-A3E9-3D53587DB690}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9DB588D-6DA1-4734-A3E9-3D53587DB690}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9DB588D-6DA1-4734-A3E9-3D53587DB690}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

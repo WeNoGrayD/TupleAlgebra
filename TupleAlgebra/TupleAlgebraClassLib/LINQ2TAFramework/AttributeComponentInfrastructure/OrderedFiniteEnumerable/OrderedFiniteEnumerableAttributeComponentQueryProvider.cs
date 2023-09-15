@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Diagnostics;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
-using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using System.Reflection;
 using LINQProvider;

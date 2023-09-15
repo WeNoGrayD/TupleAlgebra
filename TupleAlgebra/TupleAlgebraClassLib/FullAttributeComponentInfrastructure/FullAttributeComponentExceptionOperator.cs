@@ -32,7 +32,7 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
             FullAttributeComponent<TData> first,
             FullAttributeComponent<TData> second)
         {
-            return GetFactory(first).CreateEmpty<TData>(first.GetDomain);
+            return Helper.GetFactory(first).CreateEmpty<TData>(first.GetDomain);
         }
     }
 }

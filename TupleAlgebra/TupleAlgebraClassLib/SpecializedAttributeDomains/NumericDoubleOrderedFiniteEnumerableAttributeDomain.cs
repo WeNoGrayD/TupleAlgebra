@@ -7,31 +7,26 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.SpecializedAttributeDomains
 {
-    public sealed class NumericDoubleOrderedFiniteEnumerableAttributeDomain : OrderedFiniteEnumerableAttributeDomain<double>
+    public sealed class NumericDoubleOrderedFiniteEnumerableAttributeDomain 
+        : NumericOrderedFiniteEnumerableAttributeDomain<double>
     {
         public NumericDoubleOrderedFiniteEnumerableAttributeDomain(IEnumerable<double> universum)
             : base(universum)
         { }
 
-        public NumericDoubleOrderedFiniteEnumerableAttributeDomain((double Start, double End, double Stride) range)
-            : base(BuildDomain(range))
+        public NumericDoubleOrderedFiniteEnumerableAttributeDomain(
+            (double Start, double End, double Stride) range)
+            : base(range)
         { }
 
-        public NumericDoubleOrderedFiniteEnumerableAttributeDomain(params (double Start, double End, double Stride)[] ranges)
-            : base(BuildDomain(ranges))
+        public NumericDoubleOrderedFiniteEnumerableAttributeDomain(
+            (double Start, double End) range)
+            : base(range)
         { }
 
-        private static IEnumerable<double> BuildDomain((double Start, double End, double Stride) range)
-        {
-            for (double i = range.Start; i < range.End; i += range.Stride)
-                yield return i;
-        }
-
-        private static IEnumerable<double> BuildDomain(IEnumerable<(double, double, double)> ranges)
-        {
-            foreach (var range in ranges)
-                foreach (var sample in BuildDomain(range))
-                    yield return sample;
-        }
+        public NumericDoubleOrderedFiniteEnumerableAttributeDomain(
+            params (double Start, double End, double Stride)[] ranges)
+            : base(ranges)
+        { }
     }
 }

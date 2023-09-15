@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 using System.Numerics;
+using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
@@ -40,6 +42,11 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public Func<AttributeDomain<TData>> GetDomain { get;  set; }
 
+        public AttributeComponentFactory Factory { get => Helper.GetFactory(this); }
+
+        public ISetOperationExecutorsContainer<AttributeComponent<TData>> SetOperations
+            { get => Helper.GetSetOperations<TData>(this); }
+
         #endregion
 
         #region IQueryable implemented properties
@@ -59,8 +66,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// </summary>
         static AttributeComponent()
         {
-            RegisterType<TData>(
-                typeof(AttributeComponent<TData>),
+            Helper.RegisterType<TData, AttributeComponent<TData>>(
                 acFactory: new AttributeComponentFactory());
 
             return;
@@ -100,6 +106,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
         public void IncludeDomain(AttributeComponentFactoryArgs factoryArgs)
         {
             factoryArgs.SetDomainGetter(GetDomain);
+
+            return;
         }
 
         protected abstract AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
@@ -112,7 +120,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
         }
 
         public IReproducingQueryable<TReproducedData> Reproduce<TReproducedData>(
-            IEnumerable<TReproducedData> reproducedData)
+            IEnumerable<TReproducedData> reproducedData,
+            bool includeDomain = false)
         {
             /*
             if (typeof(TData) != typeof(TReproducedData))
@@ -123,20 +132,11 @@ namespace TupleAlgebraClassLib.AttributeComponents
             }
             */
 
-            return ReproduceImpl<TReproducedData>(ZipInfo(reproducedData));// as IEnumerable<TData>))
+            return ReproduceImpl<TReproducedData>(ZipInfo(reproducedData, includeDomain));// as IEnumerable<TData>))
                                                                            //as IReproducingQueryable<TReproducedData>;
         }
 
         #endregion
-
-        /*
-        protected static void InitSetOperations(
-            AttributeComponentContentType contentType,
-            InstantAttributeComponentOperationExecutersContainer<TData> setOperations)
-        {
-            _setOperations[contentType] = setOperations;
-        }
-        */
 
         public IEnumerator<TData> GetEnumerator()
         {
@@ -152,21 +152,45 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Set operations
 
-        protected abstract AttributeComponent<TData> ComplementThe();
+        protected AttributeComponent<TData> ComplementThe()
+        {
+            return SetOperations.Complement(this);
+        }
 
-        protected abstract AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second);
+        protected AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second)
+        {
+            return SetOperations.Intersect(this, second);
+        }
 
-        protected abstract AttributeComponent<TData> UnionWith(AttributeComponent<TData> second);
+        protected AttributeComponent<TData> UnionWith(AttributeComponent<TData> second)
+        {
+            return SetOperations.Union(this, second);
+        }
 
-        protected abstract AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second);
+        protected AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second)
+        {
+            return SetOperations.Except(this, second);
+        }
 
-        protected abstract AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second);
+        protected AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second)
+        {
+            return SetOperations.SymmetricExcept(this, second);
+        }
 
-        protected abstract bool Includes(AttributeComponent<TData> second);
+        protected bool Includes(AttributeComponent<TData> second)
+        {
+            return SetOperations.Include(this, second);
+        }
 
-        protected abstract bool EqualsTo(AttributeComponent<TData> second);
+        protected bool EqualsTo(AttributeComponent<TData> second)
+        {
+            return SetOperations.Equal(this, second);
+        }
 
-        protected abstract bool IncludesOrEqualsTo(AttributeComponent<TData> second);
+        protected bool IncludesOrEqualsTo(AttributeComponent<TData> second)
+        {
+            return SetOperations.IncludeOrEqual(this, second);
+        }
 
         #endregion
 
@@ -280,85 +304,54 @@ namespace TupleAlgebraClassLib.AttributeComponents
         }
 
         #endregion
-    }
 
-    /*
-    public interface ISetOperationApplicable<BTOperand>
-    {
-        public TOperationResult MakeOp<TOperand1, TOperand2, TOperationResult>(
-            TOperand1 op1, TOperand2 op2)
-            where TOperand1 : BTOperand
-            where TOperand2 : BTOperand
+        #region Nested types
+
+        public abstract class InstantAttributeComponentOperationExecutorsContainer<CTOperand>
+            : InstantSetOperationExecutorsContainer<AttributeComponent<TData>, CTOperand, AttributeComponentFactory>
+            where CTOperand : AttributeComponent<TData>
         {
-            return (this as ISetOperationApplicable<BTOperand, TOperand1>).MakeOp<TOperand2, TOperationResult>(op1, op2);
-        }
-    }
+            #region Instance properties
 
-    public interface ISetOperationApplicable<BTOperand, CTOperand1>
-        where CTOperand1 : BTOperand
-    {
-        public TOperationResult MakeOp<TOperand2, TOperationResult>(
-            CTOperand1 op1, TOperand2 op2)
-            where TOperand2 : BTOperand
-        {
+            protected override AttributeComponentFactory Factory
+            { get => Helper.GetFactory(typeof(CTOperand)); }
 
-        }
-    }
-    */
+            #endregion
 
-    public abstract class AttributeComponent<TData, CTAttributeComponent> : AttributeComponent<TData>
-        where CTAttributeComponent : AttributeComponent<TData>
-    {
-        protected abstract ISetOperationExecutersContainer<AttributeComponent<TData>, CTAttributeComponent> SetOperations
-        { get; }
+            #region Constructors
 
-        public AttributeComponent(
-            AttributeComponentPower power,
-            IQueryProvider queryProvider,
-            Expression queryExpression)
-            : base(power, queryProvider, queryExpression)
-        {
-            return;
-        }
+            public InstantAttributeComponentOperationExecutorsContainer(
+                Func<IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>>>
+                    complementionOperator,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                    intersectionOperator,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                    unionOperator,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                    differenceOperator,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                    symmetricExceptionOperator,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                    inclusionComparer,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                    equalityComparer,
+                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                    inclusionOrEquationComparer)
+                : base(complementionOperator,
+                       intersectionOperator,
+                       unionOperator,
+                       differenceOperator,
+                       symmetricExceptionOperator,
+                       inclusionComparer,
+                       equalityComparer,
+                       inclusionOrEquationComparer)
+            {
+                return;
+            }
 
-        protected override AttributeComponent<TData> ComplementThe()
-        {
-            return SetOperations.Complement(this as CTAttributeComponent);
-        }
-
-        protected override AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second)
-        {
-            return SetOperations.Intersect(this as CTAttributeComponent, second);
+            #endregion
         }
 
-        protected override AttributeComponent<TData> UnionWith(AttributeComponent<TData> second)
-        {
-            return SetOperations.Union(this as CTAttributeComponent, second);
-        }
-
-        protected override AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second)
-        {
-            return SetOperations.Except(this as CTAttributeComponent, second);
-        }
-
-        protected override AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second)
-        {
-            return SetOperations.SymmetricExcept(this as CTAttributeComponent, second);
-        }
-
-        protected override bool Includes(AttributeComponent<TData> second)
-        {
-            return SetOperations.Include(this as CTAttributeComponent, second);
-        }
-
-        protected override bool EqualsTo(AttributeComponent<TData> second)
-        {
-            return SetOperations.Equal(this as CTAttributeComponent, second);
-        }
-
-        protected override bool IncludesOrEqualsTo(AttributeComponent<TData> second)
-        {
-            return SetOperations.IncludeOrEqual(this as CTAttributeComponent, second);
-        }
+        #endregion
     }
 }

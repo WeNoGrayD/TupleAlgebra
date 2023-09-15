@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace TupleAlgebraClassLib.HierarchicallyPolymorphicOperators
 {
     public abstract class FactoryUnaryOperator<TOperand, TOperationResultFactory, TOperationResult>
+        : IFactoryUnaryOperator<TOperand, TOperationResultFactory, TOperationResult>
     {
         public abstract TOperationResult Accept(TOperand first, TOperationResultFactory factory);
     }

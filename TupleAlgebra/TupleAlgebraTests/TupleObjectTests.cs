@@ -20,7 +20,7 @@ namespace TupleAlgebraTests
     {
         protected List<ForumUser> _forumUsers = ForumDatabase.Domain;
 
-        private bool _forumUsersAreConfigured = false;
+        private static bool _forumUsersAreConfigured = false;
 
         [TestMethod]
         public void TestMethod1()
@@ -38,14 +38,19 @@ namespace TupleAlgebraTests
             //Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.GainedAchievments)].IsPlugged);
             //Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LatestComments)].IsPlugged);
 
-            bool attributeCheck = likedPersons - nameof(ForumUser.LikeCount);
+            //bool attributeCheck = likedPersons - nameof(ForumUser.LikeCount);
+            likedPersons -= nameof(ForumUser.LikeCount);
             Assert.IsFalse(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
-            attributeCheck = likedPersons + nameof(ForumUser.LikeCount);
+            //attributeCheck = likedPersons + nameof(ForumUser.LikeCount);
+            likedPersons += nameof(ForumUser.LikeCount);
             Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
         }
 
         public void CustomLikedUsers(TupleObjectBuilder<ForumUser> builder)
         {
+            if (_forumUsersAreConfigured) return;
+            _forumUsersAreConfigured = true;
+
             builder.Attribute(user => user.Id).Ignore();
             AttributeDomain<string> nicknames = 
                 new OrderedFiniteEnumerableAttributeDomain<string>(_forumUsers.Select(user => user.Nickname));

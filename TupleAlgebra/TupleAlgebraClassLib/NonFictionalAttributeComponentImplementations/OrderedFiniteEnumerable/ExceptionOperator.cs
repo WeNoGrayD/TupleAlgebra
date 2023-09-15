@@ -11,8 +11,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableNonFictionalAttributeComponentIntersectionOperator<TData>
-        : NonFictionalAttributeComponentIntersectionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
+    public sealed class ExceptionOperator<TData>
+        : NonFictionalAttributeComponentExceptionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
           IFactoryBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(
@@ -20,30 +20,40 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
             AttributeComponentFactory factory)
         {
-            IEnumerable<TData> intersectedElements = IntersectComponentsElements();
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
-                first.ZipInfo(intersectedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
+            IEnumerable<TData> remainedElements = ExceptComponentsElements();
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs = 
+                first.ZipInfo(remainedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
             factoryArgs.ValuesAreOrdered = true;
             AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
             return resultComponent;
 
-            IEnumerable<TData> IntersectComponentsElements()
+            IEnumerable<TData> ExceptComponentsElements()
             {
                 IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
                                    secondEnumerator = second.GetEnumerator(),
                                    withLowerBoundEnumerator = firstEnumerator,
                                    withGreaterBoundEnumerator = secondEnumerator;
                 bool isContinuesWithLowerBoundEnumerator = true,
-                     isContinuesWithGreaterBoundEnumerator = true;
+                     isContinuesWithGreaterBoundEnumerator = true,
+                     enumeratorsHadSwapped = false; 
                 TData firstElement = default(TData), secondElement = default(TData);
-                IComparer<TData> orderingComparer = first.OrderingComparer;
-                int elementsComparisonResult;
 
-                return ReadComponentsUntilAtLeastOneIsOver();
+                foreach (TData resultData in ReadComponentsUntilAtLeastOneIsOver())
+                    yield return resultData;
+
+                foreach (TData resultData in FinishReadingIfAnyComponentRemains())
+                    yield return resultData;
+
+                DisposeEnumerators();
+
+                yield break;
 
                 IEnumerable<TData> ReadComponentsUntilAtLeastOneIsOver()
                 {
+                    IComparer<TData> orderingComparer = first.OrderingComparer;
+                    int elementsComparisonResult;
+
                     WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
 
@@ -52,24 +62,54 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                         elementsComparisonResult = orderingComparer.Compare(firstElement, secondElement);
                         switch (elementsComparisonResult)
                         {
-                            case -1: break;
+                            case -1:
+                                {
+                                    if (!enumeratorsHadSwapped)
+                                        yield return firstElement;
+                                    break;
+                                }
                             case 0:
                                 {
-                                    yield return firstElement;
                                     WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
                                     break;
                                 }
                             case 1:
                                 {
                                     SwapEnumeratorsAndCurrentElements();
+                                    if (!enumeratorsHadSwapped)
+                                        yield return firstElement;
                                     break;
                                 }
                         }
+
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
 
-                    DisposeEnumerators();
+                    yield break;
+                }
 
+                IEnumerable<TData> FinishReadingIfAnyComponentRemains()
+                {
+                    if ((isContinuesWithLowerBoundEnumerator && !enumeratorsHadSwapped) ||
+                        (isContinuesWithGreaterBoundEnumerator && enumeratorsHadSwapped))
+                    {
+                        if (isContinuesWithGreaterBoundEnumerator)
+                            SwapEnumeratorsAndCurrentElements();
+                        return FinishReadingRemainingComponent();
+                    }
+
+                    return Enumerable.Empty<TData>();
+                }
+
+                IEnumerable<TData> FinishReadingRemainingComponent()
+                {
+                    do
+                    {
+                        yield return firstElement;
+                        WithLowerBoundEnumeratorMoveNextAndReadCurrent();
+                    }
+                    while (isContinuesWithLowerBoundEnumerator);
+                    
                     yield break;
                 }
 
@@ -78,6 +118,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                     (withLowerBoundEnumerator, withGreaterBoundEnumerator) =
                         (withGreaterBoundEnumerator, withLowerBoundEnumerator);
                     (firstElement, secondElement) = (secondElement, firstElement);
+                    enumeratorsHadSwapped = !enumeratorsHadSwapped;
 
                     return;
                 }

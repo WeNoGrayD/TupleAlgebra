@@ -11,8 +11,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public sealed class OrderedFiniteEnumerableNonFictionalAttributeComponentExceptionOperator<TData>
-        : NonFictionalAttributeComponentExceptionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
+    public class UnionOperator<TData>
+        : NonFictionalAttributeComponentUnionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
           IFactoryBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(
@@ -20,24 +20,25 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
             AttributeComponentFactory factory)
         {
-            IEnumerable<TData> remainedElements = ExceptComponentsElements();
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs = 
-                first.ZipInfo(remainedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
+            IEnumerable<TData> unitedElements = UnionComponentsElements();
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
+                first.ZipInfo(unitedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
             factoryArgs.ValuesAreOrdered = true;
             AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
             return resultComponent;
 
-            IEnumerable<TData> ExceptComponentsElements()
+            IEnumerable<TData> UnionComponentsElements()
             {
                 IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
                                    secondEnumerator = second.GetEnumerator(),
                                    withLowerBoundEnumerator = firstEnumerator,
                                    withGreaterBoundEnumerator = secondEnumerator;
                 bool isContinuesWithLowerBoundEnumerator = true,
-                     isContinuesWithGreaterBoundEnumerator = true,
-                     enumeratorsHadSwapped = false; 
+                     isContinuesWithGreaterBoundEnumerator = true;
                 TData firstElement = default(TData), secondElement = default(TData);
+                IComparer<TData> orderingComparer = first.OrderingComparer;
+                int elementsComparisonResult;
 
                 foreach (TData resultData in ReadComponentsUntilAtLeastOneIsOver())
                     yield return resultData;
@@ -51,9 +52,6 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
                 IEnumerable<TData> ReadComponentsUntilAtLeastOneIsOver()
                 {
-                    IComparer<TData> orderingComparer = first.OrderingComparer;
-                    int elementsComparisonResult;
-
                     WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
 
@@ -62,12 +60,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                         elementsComparisonResult = orderingComparer.Compare(firstElement, secondElement);
                         switch (elementsComparisonResult)
                         {
-                            case -1:
-                                {
-                                    if (!enumeratorsHadSwapped)
-                                        yield return firstElement;
-                                    break;
-                                }
+                            case -1: break;
                             case 0:
                                 {
                                     WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
@@ -76,12 +69,10 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                             case 1:
                                 {
                                     SwapEnumeratorsAndCurrentElements();
-                                    if (!enumeratorsHadSwapped)
-                                        yield return firstElement;
                                     break;
                                 }
                         }
-
+                        yield return firstElement;
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
 
@@ -90,8 +81,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
                 IEnumerable<TData> FinishReadingIfAnyComponentRemains()
                 {
-                    if ((isContinuesWithLowerBoundEnumerator && !enumeratorsHadSwapped) ||
-                        (isContinuesWithGreaterBoundEnumerator && enumeratorsHadSwapped))
+                    if (isContinuesWithLowerBoundEnumerator || isContinuesWithGreaterBoundEnumerator)
                     {
                         if (isContinuesWithGreaterBoundEnumerator)
                             SwapEnumeratorsAndCurrentElements();
@@ -109,7 +99,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
                     while (isContinuesWithLowerBoundEnumerator);
-                    
+
                     yield break;
                 }
 
@@ -118,7 +108,6 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                     (withLowerBoundEnumerator, withGreaterBoundEnumerator) =
                         (withGreaterBoundEnumerator, withLowerBoundEnumerator);
                     (firstElement, secondElement) = (secondElement, firstElement);
-                    enumeratorsHadSwapped = !enumeratorsHadSwapped;
 
                     return;
                 }

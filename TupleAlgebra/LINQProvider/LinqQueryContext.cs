@@ -9,68 +9,37 @@ using LINQProvider.DefaultQueryExecutors;
 
 namespace LINQProvider
 {
+    using static QueryContextHelper;
+
     public class LinqQueryContext : QueryContext
     {
-        protected static IDictionary<string, IList<MethodInfo>> _queryBuildingMethods;
+        #region Constants
+
+        protected static Regex _queryMethodPattern { get; private set; } 
+            = new Regex($@"^Build(?<Query>\w+)Query$");
+
+        #endregion
 
         #region Constructors
 
+        static LinqQueryContext()
+        {
+            IDictionary<string, IList<MethodInfo>> queryMethodPatterns =
+                GetQueryMethodPatterns<LinqQueryContext>(_queryMethodPattern);
+            Helper.RegisterType<LinqQueryContext>(
+                queryMethodGroups: queryMethodPatterns);
+
+            return;
+        }
+
         public LinqQueryContext() : base()
         {
-            if (_queryBuildingMethods is null)
-                InitQueryBuildingMethods();
-
             return;
         }
 
         #endregion
 
         #region Instance methods
-
-        private void InitQueryBuildingMethods()
-        {
-            _queryBuildingMethods = new Dictionary<string, IList<MethodInfo>>();
-
-            Regex queryBuildingMethodNamePattern = new Regex($@"^Build(?<Query>\w+)Query$");
-            MethodInfo[] queryContextMethods = this.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic);
-            MethodInfo queryMethod;
-            Match queryMethodMatch;
-            string queryName;
-
-            for (int i = 0; i < queryContextMethods.Length; i++)
-            {
-                queryMethod = queryContextMethods[i];
-                queryMethodMatch = queryBuildingMethodNamePattern.Match(queryMethod.Name);
-                if (!queryMethodMatch.Success) continue;
-
-                queryName = queryMethodMatch.Groups["Query"].Captures[0].Value;
-                if (!_queryBuildingMethods.ContainsKey(queryName))
-                    _queryBuildingMethods[queryName] = new List<MethodInfo>(1);
-                _queryBuildingMethods[queryName].Add(queryMethod);
-            }
-
-            return;
-        }
-
-        protected override MethodInfo FindQueryBuildingMethod(
-            System.Linq.Expressions.MethodCallExpression methodExpr,
-            object[] methodParams)
-        {
-            MethodInfo queryMethod = methodExpr.Method;
-            IList<MethodInfo> matchedMethods = _queryBuildingMethods[queryMethod.Name];
-            MethodInfo targetMethod = null!;
-
-            for (int i = 0; i < matchedMethods.Count; i++)
-            {
-                targetMethod = matchedMethods[i].MakeGenericMethod(methodExpr.Method.GetGenericArguments());
-
-                if (!CheckCompatibilityWithTarget(targetMethod, methodParams)) continue;
-                
-                break;
-            }
-
-            return targetMethod!;
-        }
 
         protected virtual SingleQueryExecutor<TData, TQueryResult> BuildAggregateQuery<TData, TQueryResult>(
             TQueryResult seed,

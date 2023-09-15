@@ -7,19 +7,15 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponents;
 
-/* WARNING!!! ИСПРАВИТЬ new CONSTRAINT! */
-
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-
     public class OrderedFiniteEnumerableAttributeDomain<TAttributeComponent, TData>
         : AttributeDomain<TData>
-        where TAttributeComponent : OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>//, new()
+        where TAttributeComponent : OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>
     {
         public OrderedFiniteEnumerableAttributeDomain(
-            IEnumerable<TData> universum,
-            System.Linq.Expressions.Expression queryExpression = null)
-            : base(queryExpression)
+            IEnumerable<TData> universum)
+            : base()
         {
             Universum = BuildUniversum(universum);
 
@@ -29,7 +25,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         protected OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> BuildUniversum(
             IEnumerable<TData> universum)
         {
-            AttributeComponentFactoryArgs factoryArgs = 
+            AttributeComponentFactoryArgs factoryArgs =
                 OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(
                     values: universum,
                     domainGetter: UniversumDomainGetter);
@@ -48,34 +44,5 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         {
             return;
         }
-
-        /*
-        public OrderedFiniteEnumerableAttributeDomain(IEnumerable<TData> universum)
-            : base(BuildUniversum(universum, out _setDomainCallback))
-        {
-            _setDomainCallback(this);
-            _setDomainCallback = null;
-        }
-        */
-
-        /*
-        protected OrderedFiniteEnumerableAttributeDomain(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> universum)
-            : base(universum)
-        {
-            _setDomainCallback(this);
-            _setDomainCallback = null;
-        }
-        */
-
-        /*
-        protected static OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> BuildUniversum(
-            IEnumerable<TData> universum, out Action<AttributeDomain<TData>> setDomainCallback)
-        {
-            return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(
-                universum, 
-                out setDomainCallback);
-        }
-        */
     }
 }

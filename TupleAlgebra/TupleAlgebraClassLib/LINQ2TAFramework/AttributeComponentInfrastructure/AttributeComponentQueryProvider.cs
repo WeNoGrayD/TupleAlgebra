@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Diagnostics;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
-using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using LINQProvider;
 using System.Reflection;
@@ -32,7 +32,9 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             AttributeComponent<TQueryResultData> queryableAC,
             IEnumerable<TQueryResultData> queryResult)
         {
-            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo(queryResult);
+            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo(
+                queryResult,
+                includeDomain: true);
 
             return queryableAC.Reproduce<TQueryResultData>(factoryArgs);
         }
@@ -54,8 +56,15 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
         {
             AttributeComponent<TData> queryableAC = dataSource as AttributeComponent<TData>;
 
-            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo<TData>(null);
+            AttributeComponentFactoryArgs factoryArgs = queryableAC.ZipInfo<TData>(
+                null,
+                includeDomain: true);
             factoryArgs.QueryExpression = queryExpression;
+            /*
+             * Указывается флаг "компонента является продуктом запроса",
+             * чтобы фабрика компонент атрибутов не проводила лишних проверок.
+             */
+            factoryArgs.IsQuery = true;
 
             return queryableAC.Reproduce<TData>(factoryArgs);
         }

@@ -21,6 +21,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         protected void OnDisposing()
         {
             Disposing?.Invoke();
+            Disposing = null;
 
             return;
         }

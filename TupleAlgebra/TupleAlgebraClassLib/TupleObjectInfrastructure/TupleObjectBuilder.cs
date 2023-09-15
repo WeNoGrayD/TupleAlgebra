@@ -12,35 +12,41 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     /// Построитель кортежа конкретного типа сущности.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public class TupleObjectBuilder<TEntity>
+    public partial class TupleObjectBuilder<TEntity>
     {
-        public static TupleObjectBuilder<TEntity> StaticBuilder;
-
-        /// <summary>
-        /// Паттерн схемы кортежа типа сущности.
-        /// </summary>
-        //private static TupleObjectSchema<TEntity> _schemaPattern;
+        #region Instance properties
 
         /// <summary>
         /// Индивидуальная схема кортежа типа.
         /// </summary>
         public TupleObjectSchema<TEntity> Schema { get; private set; }
 
-        static TupleObjectBuilder()
-        {
-            Init();
-        }
+        #endregion
+
+        #region Static fields
+
+        /// <summary>
+        /// Построитель кортежа данного типа сущности по умолчанию.
+        /// Содержит схему кортежа сущности по умолчанию.
+        /// </summary>
+        public static TupleObjectBuilder<TEntity> StaticBuilder;
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// Статический конструктор.
         /// </summary>
-        public static void Init()
+        static TupleObjectBuilder()
         {
-            //_schemaPattern = new TupleObjectSchema<TEntity>();
-            StaticBuilder = new TupleObjectBuilder<TEntity>(new TupleObjectSchema<TEntity>());// _schemaPattern);
-            //StaticBuilder.Schema =  _schemaPattern = 
-            //    new TupleObjectSchema<TEntity>(StaticBuilder);//TupleObjectSchema<TEntity>.Create(StaticBuilder);
+            /*
+             * Создания построителя кортежа сущности и схемы кортежа сущности по умолчанию.
+             */
+            StaticBuilder = new TupleObjectBuilder<TEntity>(new TupleObjectSchema<TEntity>());
             StaticBuilder.BuildSchemaPattern();
+
+            return;
         }
 
         /// <summary>
@@ -48,7 +54,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// </summary>
         public TupleObjectBuilder()
         {
+            // Копируется схема кортежа сущности по умолчанию.
             Schema = StaticBuilder.Schema.Clone(this);
+
+            return;
         }
 
         /// <summary>
@@ -57,16 +66,24 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public TupleObjectBuilder(TupleObjectSchema<TEntity> schema)
         {
             Schema = schema;
+
+            return;
         }
+
+        #endregion
+
+        #region Instance methods
 
         /// <summary>
         /// Построение паттерна схемы кортежа.
         /// </summary>
-        public void BuildSchemaPattern()
+        private void BuildSchemaPattern()
         {
             Type entityType = typeof(TEntity);
             BindingFlags memberFlags = BindingFlags.Public | BindingFlags.Instance;
-            TupleObjectSchema<TEntity> schemaPattern = StaticBuilder.Schema;
+            TupleObjectSchema<TEntity> schemaPattern = Schema;
+            MethodInfo addAttributeToSchema = typeof(TupleObjectSchema<TEntity>)
+                    .GetMethod(nameof(TupleObjectSchema<TEntity>.AddAttribute), memberFlags);
 
             if (entityType.IsPrimitive)
                 ConstructPrimitiveType();
@@ -80,11 +97,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
              */
             MethodInfo BuildAddAttributeMethodInfo(Type targetAttributeType)
             {
-                MethodInfo addAttributeToSchema = typeof(TupleObjectSchema<TEntity>)
-                    .GetMethod(nameof(TupleObjectSchema<TEntity>.AddAttribute), memberFlags)
-                    .MakeGenericMethod(targetAttributeType);
-
-                return addAttributeToSchema;
+                return addAttributeToSchema.MakeGenericMethod(targetAttributeType);
             }
 
             /*
@@ -113,42 +126,19 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             }
         }
 
+        /// <summary>
+        /// Создания мастера по настройке атрибута сущности для кортежа.
+        /// Тип атрибута наиболее обобщён, перегрузка используется для обычных атрибутов с отношением "один к одному".
+        /// </summary>
+        /// <typeparam name="TAttribute"></typeparam>
+        /// <param name="memberAccess"></param>
+        /// <returns></returns>
         public ITupleObjectAttributeSetupWizard<TAttribute> Attribute<TAttribute>(
             Expression<Func<TEntity, TAttribute>> memberAccess)
         {
             return TupleObjectOneToOneAttributeSetupWizard<TAttribute>.Construct(Schema, memberAccess);
         }
 
-        public TupleObjectOneToManyAttributeSetupWizard<TEnumerable, TAttribute> Attribute<TEnumerable, TAttribute>(
-            Expression<Func<TEntity, TEnumerable>> memberAccess)
-            where TEnumerable : IEnumerable<TAttribute>
-        {
-            return TupleObjectOneToManyAttributeSetupWizard<TEnumerable, TAttribute>.Construct<TEntity, TEnumerable>(Schema, memberAccess);
-        }
-
-        public TupleObjectOneToManyAttributeSetupWizard<TDictionary, KeyValuePair<TKey, TAttribute>> Attribute<TDictionary, TKey, TAttribute>(
-            Expression<Func<TEntity, TDictionary>> memberAccess)
-            where TDictionary : IDictionary<TKey, TAttribute>
-        {
-            return TupleObjectOneToManyAttributeSetupWizard<TDictionary, TAttribute>.Construct<TEntity, TDictionary, TKey>(Schema, memberAccess);
-        }
-
-        public TupleObjectOneToManyAttributeSetupWizard<List<TAttribute>, TAttribute> Attribute<TAttribute>(
-            Expression<Func<TEntity, List<TAttribute>>> memberAccess)
-        {
-            return Attribute<List<TAttribute>, TAttribute>(memberAccess);
-        }
-
-        public TupleObjectOneToManyAttributeSetupWizard<HashSet<TAttribute>, TAttribute> Attribute<TAttribute>(
-            Expression<Func<TEntity, HashSet<TAttribute>>> memberAccess)
-        {
-            return Attribute<HashSet<TAttribute>, TAttribute>(memberAccess);
-        }
-
-        public TupleObjectOneToManyAttributeSetupWizard<Dictionary<TKey, TAttribute>, KeyValuePair<TKey, TAttribute>> Attribute<TAttribute, TKey>(
-            Expression<Func<TEntity, Dictionary<TKey, TAttribute>>> memberAccess)
-        {
-            return Attribute<Dictionary<TKey, TAttribute>, TKey, TAttribute>(memberAccess);
-        }
+        #endregion
     }
 }

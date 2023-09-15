@@ -13,7 +13,8 @@ namespace TupleAlgebraClassLib.SpecializedAttributeDomains
     /// </summary>
     /// <typeparam name="TData">Тип значений домена.</typeparam>
     public class EnumBasedOrderedFiniteEnumerableAttributeDomain<TData>
-        : OrderedFiniteEnumerableAttributeDomain<EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, TData>
+        : //OrderedFiniteEnumerableAttributeDomain<EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, TData>
+        OrderedFiniteEnumerableAttributeDomain<TData>
         where TData : Enum
     {
         /// <summary>

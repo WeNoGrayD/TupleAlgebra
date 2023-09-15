@@ -11,7 +11,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
     public abstract class FactoryUnaryAttributeComponentAcceptor<TData, CTOperand, TOperationResult>
-        : FactoryUnaryOperator<CTOperand, AttributeComponentFactory, TOperationResult>
+        : FactoryUnaryOperator<CTOperand, AttributeComponentFactory, TOperationResult>,
+          IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, TOperationResult>
         where CTOperand: AttributeComponent<TData>
     { }
 }

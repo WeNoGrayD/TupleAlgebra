@@ -190,9 +190,11 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <param name="tuple"></param>
         /// <param name="attributeName"></param>
         /// <returns></returns>
-        public static bool operator +(TupleObject<TEntity> tuple, string attributeName)
+        public static TupleObject<TEntity> operator +(TupleObject<TEntity> tuple, string attributeName)
         {
-            return tuple.Schema + attributeName;
+            tuple.Schema += attributeName;
+
+            return tuple;
         }
 
         /// <summary>
@@ -201,9 +203,11 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <param name="tuple"></param>
         /// <param name="attributeName"></param>
         /// <returns></returns>
-        public static bool operator -(TupleObject<TEntity> tuple, string attributeName)
+        public static TupleObject<TEntity> operator -(TupleObject<TEntity> tuple, string attributeName)
         {
-            return tuple.Schema - attributeName;
+            tuple.Schema -= attributeName;
+
+            return tuple;
         }
 
         public static TupleObject<TEntity> operator !(TupleObject<TEntity> first)

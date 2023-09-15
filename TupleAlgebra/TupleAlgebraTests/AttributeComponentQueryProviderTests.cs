@@ -23,7 +23,8 @@ namespace TupleAlgebraTests
         {
             OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
                 OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(
-                    values: constructorParameters["values"] as IEnumerable<TData>);
+                    values: constructorParameters["values"] as IEnumerable<TData>,
+                    domainGetter: constructorParameters["domainGetter"] as Func<AttributeDomain<TData>>);
 
             return _nonFictionalACFactory.CreateNonFictional<TData>(factoryArgs);
             //return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(null,
@@ -92,7 +93,11 @@ namespace TupleAlgebraTests
             Assert.IsTrue(Enumerable.SequenceEqual(
                 CreateAttributeComponent(
                     fusersDomain, 
-                    new Dictionary<string, object>() { { "values", filteredUsersPredefined } }),
+                    new Dictionary<string, object>() 
+                    { 
+                        { "values", filteredUsersPredefined },
+                        { "domainGetter", ForumDatabase.GetDomain }
+                    }),
                 filteredUsers));
 
             //var s = fusers.Expression.ToString();

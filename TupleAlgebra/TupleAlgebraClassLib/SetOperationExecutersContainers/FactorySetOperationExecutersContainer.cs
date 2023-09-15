@@ -8,21 +8,16 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.AttributeComponents;
 
-namespace TupleAlgebraClassLib.SetOperationExecutersContainers
+namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 {
-    public abstract class FactorySetOperationExecutersContainer<
+    public abstract class FactorySetOperationExecutorsContainer<
         BTOperand, 
         CTOperand, 
-        TOperationResultFactory, 
-        TOperationResultFactoryArgs>
-        : SetOperationExecutersContainer<BTOperand, CTOperand>
-        where CTOperand : BTOperand
+        TOperationResultFactory>
+        : SetOperationExecutorsContainer<BTOperand, CTOperand, TOperationResultFactory>
+        where CTOperand : class, BTOperand
     {
         #region Instance fields
-
-        private Lazy<TOperationResultFactory> _componentFactory;
-
-        private Lazy<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>> _complementionOperator;
 
         private Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _intersectionOperator;
 
@@ -35,12 +30,6 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
         #endregion
 
         #region Instance properties
-
-        protected TOperationResultFactory ComponentFactory
-        { get => _componentFactory.Value; }
-
-        protected IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand> ComplementionOperator
-        { get => _complementionOperator.Value; }
 
         protected IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> IntersectionOperator
         { get => _intersectionOperator.Value; }
@@ -58,8 +47,7 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
 
         #region Constructors
 
-        public FactorySetOperationExecutersContainer(
-            Func<TOperationResultFactory> factory,
+        public FactorySetOperationExecutorsContainer(
             Func<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>
                 complementionOperator,
             Func<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
@@ -76,14 +64,11 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
                 equalityComparer,
             Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> 
                 inclusionOrEquationComparer)
-            : base(inclusionComparer,
+            : base(complementionOperator,
+                   inclusionComparer,
                    equalityComparer,
                    inclusionOrEquationComparer)
         {
-            _componentFactory = new Lazy<TOperationResultFactory>(factory);
-
-            _complementionOperator = new Lazy<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>(
-                complementionOperator);
             _intersectionOperator = new Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
                 intersectionOperator);
             _unionOperator = new Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
@@ -100,82 +85,24 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
 
         #region Instance methods
 
-        public override BTOperand Complement(CTOperand first)
+        public override BTOperand Intersect(BTOperand first, BTOperand second)
         {
-            return ComplementionOperator.Accept(first, ComponentFactory);
+            return IntersectionOperator.Accept((first as CTOperand)!, second, Factory);
         }
 
-        public override BTOperand Intersect(CTOperand first, BTOperand second)
+        public override BTOperand Union(BTOperand first, BTOperand second)
         {
-            return IntersectionOperator.Accept(first, second, ComponentFactory);
+            return UnionOperator.Accept((first as CTOperand)!, second, Factory);
         }
 
-        public override BTOperand Union(CTOperand first, BTOperand second)
+        public override BTOperand Except(BTOperand first, BTOperand second)
         {
-            return UnionOperator.Accept(first, second, ComponentFactory);
+            return DifferenceOperator.Accept((first as CTOperand)!, second, Factory);
         }
 
-        public override BTOperand Except(CTOperand first, BTOperand second)
+        public override BTOperand SymmetricExcept(BTOperand first, BTOperand second)
         {
-            return DifferenceOperator.Accept(first, second, ComponentFactory);
-        }
-
-        public override BTOperand SymmetricExcept(CTOperand first, BTOperand second)
-        {
-            return SymmetricExceptionOperator.Accept(first, second, ComponentFactory);
-        }
-
-        #endregion
-    }
-
-    public abstract class FactoryAttributeComponentOperationExecutersContainer<TData, CTOperand>
-        : FactorySetOperationExecutersContainer<
-            AttributeComponent<TData>, 
-            CTOperand, 
-            AttributeComponentFactory, AttributeComponentFactoryArgs>,
-          IFactoryAttributeComponentOperationExecutersContainer<TData, CTOperand>
-        where CTOperand : AttributeComponent<TData>
-    {
-        #region Constructors
-
-        public FactoryAttributeComponentOperationExecutersContainer(
-            Func<AttributeComponentFactory> componentFactory,
-            Func<IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>>>
-                complementionOperator,
-            Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>> 
-                intersectionOperator,
-            Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>> 
-                unionOperator,
-            Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>> 
-                differenceOperator,
-            Func<IFactoryBinaryOperator<CTOperand, AttributeComponent<TData>, AttributeComponentFactory, AttributeComponent<TData>>>
-                symmetricExceptionOperator,
-            Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>> 
-                inclusionComparer,
-            Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>>
-                equalityComparer,
-            Func<IInstantBinaryOperator<CTOperand, AttributeComponent<TData>, bool>> 
-                inclusionOrEquationComparer)
-            : base(componentFactory,
-                   complementionOperator,
-                   intersectionOperator,
-                   unionOperator,
-                   differenceOperator,
-                   symmetricExceptionOperator,
-                   inclusionComparer,
-                   equalityComparer,
-                   inclusionOrEquationComparer)
-        {
-            return;
-        }
-
-        #endregion
-
-        #region Instance methods
-
-        public AttributeComponent<TProducedData> Produce<TProducedData>(AttributeComponentFactoryArgs factoryArgs)
-        {
-            return ComponentFactory.CreateNonFictional<TProducedData>(factoryArgs);
+            return SymmetricExceptionOperator.Accept((first as CTOperand)!, second, Factory);
         }
 
         #endregion

@@ -4,25 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TupleAlgebraClassLib.SetOperationExecutersContainers
+namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 {
-    public interface ISetOperationExecutersContainer<BTOperand, CTOperand>
-        where CTOperand : BTOperand
+    public interface ISetOperationExecutorsContainer<TOperand>
     {
-        public BTOperand Complement(CTOperand first);
+        #region Instance methods
 
-        public BTOperand Intersect(CTOperand first, BTOperand second);
+        TOperand Complement(TOperand first);
 
-        public BTOperand Union(CTOperand first, BTOperand second);
+        TOperand Intersect(TOperand first, TOperand second);
 
-        public BTOperand Except(CTOperand first, BTOperand second);
+        TOperand Union(TOperand first, TOperand second);
 
-        public BTOperand SymmetricExcept(CTOperand first, BTOperand second);
+        TOperand Except(TOperand first, TOperand second);
 
-        public bool Include(CTOperand first, BTOperand second);
+        TOperand SymmetricExcept(TOperand first, TOperand second);
 
-        public bool Equal(CTOperand first, BTOperand second);
+        bool Include(TOperand first, TOperand second);
 
-        public bool IncludeOrEqual(CTOperand first, BTOperand second);
+        bool Equal(TOperand first, TOperand second);
+
+        bool IncludeOrEqual(TOperand first, TOperand second);
+
+        #endregion
     }
 }

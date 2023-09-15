@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 
-namespace TupleAlgebraClassLib.SetOperationExecutersContainers
+namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 {
-    public interface IFactoryAttributeComponentOperationExecutersContainer<TData, CTOperand>
-        : ISetOperationExecutersContainer<AttributeComponent<TData>, CTOperand>
-        where CTOperand : AttributeComponent<TData>
+    public interface IFactoryAttributeComponentOperationExecutorsContainer<TData>
+        : ISetOperationExecutorsContainer<AttributeComponent<TData>>
     {
         public AttributeComponent<TProducedData> Produce<TProducedData>(
             AttributeComponentFactoryArgs factoryArgs);

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using TupleAlgebraClassLib.FullAttributeComponentInfrastructure;
-using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using System.Linq.Expressions;
@@ -19,22 +19,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
     /// Полная фиктивная компонента атрибута.
     /// </summary>
     /// <typeparam name="TData"></typeparam>
-    public sealed class FullAttributeComponent<TData> : AttributeComponent<TData, FullAttributeComponent<TData>>
+    public sealed class FullAttributeComponent<TData> 
+        : AttributeComponent<TData>
     {
-        #region Static fields
-
-        private static Lazy<ISetOperationExecutersContainer<AttributeComponent<TData>, FullAttributeComponent<TData>>>
-            _setOperations;
-
-        #endregion
-
-        #region Instance properties
-
-        protected override ISetOperationExecutersContainer<AttributeComponent<TData>, FullAttributeComponent<TData>> SetOperations
-        { get => _setOperations.Value; }
-
-        #endregion
-
         #region Constructors
 
         /// <summary>
@@ -42,8 +29,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// </summary>
         static FullAttributeComponent()
         {
-            RegisterType<TData>(
-                typeof(FullAttributeComponent<TData>));
+            Helper.RegisterType<TData, FullAttributeComponent<TData>>(
+                setOperations: new FullAttributeComponentOperationExecutorsContainer());
 
             return;
         }
@@ -60,9 +47,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {
-            _setOperations = new Lazy<ISetOperationExecutersContainer<AttributeComponent<TData>, FullAttributeComponent<TData>>>(
-                () => new FullAttributeComponentOperationExecutersContainer());
-
             return;
         }
 
@@ -83,61 +67,17 @@ namespace TupleAlgebraClassLib.AttributeComponents
         protected override AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return GetFactory(this).CreateFull<TReproducedData>(factoryArgs);
-        }
-
-        #endregion
-
-        #region Operators
-
-        protected override AttributeComponent<TData> ComplementThe()
-        {
-            return SetOperations.Complement(this);
-        }
-
-        protected override AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second)
-        {
-            return SetOperations.Intersect(this, second);
-        }
-
-        protected override AttributeComponent<TData> UnionWith(AttributeComponent<TData> second)
-        {
-            return SetOperations.Union(this, second);
-        }
-
-        protected override AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second)
-        {
-            return SetOperations.Except(this, second);
-        }
-
-        protected override AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second)
-        {
-            return SetOperations.SymmetricExcept(this, second);
-        }
-
-        protected override bool Includes(AttributeComponent<TData> second)
-        {
-            return SetOperations.Include(this, second);
-        }
-
-        protected override bool EqualsTo(AttributeComponent<TData> second)
-        {
-            return SetOperations.Equal(this, second);
-        }
-
-        protected override bool IncludesOrEqualsTo(AttributeComponent<TData> second)
-        {
-            return SetOperations.IncludeOrEqual(this, second);
+            return Factory.CreateFull<TReproducedData>(factoryArgs);
         }
 
         #endregion
 
         #region Nested types
 
-        private class FullAttributeComponentOperationExecutersContainer
-            : InstantAttributeComponentOperationExecutersContainer<TData, FullAttributeComponent<TData>>
+        private class FullAttributeComponentOperationExecutorsContainer
+            : InstantAttributeComponentOperationExecutorsContainer<FullAttributeComponent<TData>>
         {
-            public FullAttributeComponentOperationExecutersContainer() : base(
+            public FullAttributeComponentOperationExecutorsContainer() : base(
                 () => new FullAttributeComponentComplementionOperator<TData>(),
                 () => new FullAttributeComponentIntersectionOperator<TData>(),
                 () => new FullAttributeComponentUnionOperator<TData>(),

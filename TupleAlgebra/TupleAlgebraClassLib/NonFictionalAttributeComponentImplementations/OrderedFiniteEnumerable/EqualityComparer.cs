@@ -8,7 +8,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public sealed class OrderedFiniteEnumerableNonFictionalAttributeComponentEqualityComparer<TData>
+    public sealed class EqualityComparer<TData>
         : NonFictionalAttributeComponentEqualityComparer<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
           IInstantBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
     {

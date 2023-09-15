@@ -11,6 +11,9 @@
     <None Remove="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\QueryExecutors\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="AttributeComponents\AttributeComponent.cs~RFa047caa.TMP" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.410601">
       <PrivateAssets>all</PrivateAssets>
@@ -18,5 +21,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LINQProvider\LINQProvider.csproj" />
+    <ProjectReference Include="..\UniversalClassLib\UniversalClassLib.csproj" />
   </ItemGroup>
 </Project>

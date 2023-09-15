@@ -5,11 +5,47 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace LINQProvider
 {
+    using static QueryContextHelper;
+
+    /// <summary>
+    /// Контекст запросов к IQueryable-объекту.
+    /// </summary>
     public class QueryContext
     {
+        #region Instance methods
+
+        protected static IDictionary<string, IList<MethodInfo>> GetQueryMethodPatterns<TQueryContext>(
+            Regex queryBuildingMethodNamePattern)
+            where TQueryContext : QueryContext
+        {
+            IDictionary<string, IList<MethodInfo>> queryMethodPatterns =
+                new Dictionary<string, IList<MethodInfo>>();
+
+            MethodInfo[] queryContextMethods = typeof(TQueryContext)
+                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic);
+            MethodInfo queryMethod;
+            Match queryMethodMatch;
+            string queryName;
+
+            for (int i = 0; i < queryContextMethods.Length; i++)
+            {
+                queryMethod = queryContextMethods[i];
+                queryMethodMatch = queryBuildingMethodNamePattern.Match(queryMethod.Name);
+                if (!queryMethodMatch.Success) continue;
+
+                queryName = queryMethodMatch.Groups["Query"].Captures[0].Value;
+                if (!queryMethodPatterns.ContainsKey(queryName))
+                    queryMethodPatterns[queryName] = new List<MethodInfo>(1);
+                queryMethodPatterns[queryName].Add(queryMethod);
+            }
+
+            return queryMethodPatterns;
+        }
+
         public object BuildSingleQueryExecutor(MethodCallExpression methodExpr)
         {
             int argc = methodExpr.Arguments.Count - 1;
@@ -41,19 +77,22 @@ namespace LINQProvider
             return BuildSingleQueryExecutorImpl(queryBuildingMethod, methodParams);
         }
 
-        protected virtual MethodInfo FindQueryBuildingMethod(
+        protected MethodInfo FindQueryBuildingMethod(
             MethodCallExpression methodExpr,
             object[] methodParams)
         {
             MethodInfo queryMethod = methodExpr.Method;
-            string queryBuildingMethodName = "Build" + queryMethod.Name + "Query";
+            IList<MethodInfo> matchedMethods = Helper.GetQueryMethodOverloads(this, queryMethod.Name);
+            MethodInfo targetMethod = null!;
 
-            return this.GetType()
-                .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(method => method.Name == queryBuildingMethodName &&
-                       method.GetParameters().Length == methodParams.Length)
-                .Single()
-                .MakeGenericMethod(methodExpr.Method.GetGenericArguments());
+            for (int i = 0; i < matchedMethods.Count; i++)
+            {
+                targetMethod = matchedMethods[i].MakeGenericMethod(methodExpr.Method.GetGenericArguments());
+
+                if (CheckCompatibilityWithTarget(targetMethod, methodParams)) break;
+            }
+
+            return targetMethod!;
         }
 
         private object BuildSingleQueryExecutorImpl(
@@ -86,5 +125,7 @@ namespace LINQProvider
 
             return parametersMatched;
         }
+
+        #endregion
     }
 }

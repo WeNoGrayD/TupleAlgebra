@@ -12,7 +12,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
     /// </summary>
     public abstract class NonFictionalAttributeComponentPower<TData> : AttributeComponentPower
     {
-        #region Constants
+        #region Instance properties
 
         /// <summary>
         /// Константное значение типа наполнения компоненты - нефиктивный.

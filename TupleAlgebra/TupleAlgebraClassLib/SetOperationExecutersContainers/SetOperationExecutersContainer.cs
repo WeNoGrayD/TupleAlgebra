@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,13 +7,18 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
 
-namespace TupleAlgebraClassLib.SetOperationExecutersContainers
+namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 {
-    public abstract class SetOperationExecutersContainer<BTOperand, CTOperand>
-        : ISetOperationExecutersContainer<BTOperand, CTOperand>
-        where CTOperand: BTOperand
+    public abstract class SetOperationExecutorsContainer<
+        BTOperand, 
+        CTOperand,
+        TOperationResultFactory>
+        : ISetOperationExecutorsContainer<BTOperand>
+        where CTOperand: class, BTOperand
     {
         #region Instance fields
+
+        private Lazy<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>> _complementionOperator;
 
         private Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>> _inclusionComparer;
 
@@ -23,6 +29,12 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
         #endregion
 
         #region Instance properties
+
+        protected abstract TOperationResultFactory Factory
+        { get; }
+
+        protected IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand> ComplementionOperator
+        { get => _complementionOperator.Value; }
 
         protected IInstantBinaryOperator<CTOperand, BTOperand, bool> InclusionComparer
         { get => _inclusionComparer.Value; }
@@ -37,11 +49,15 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
 
         #region Constructors
 
-        public SetOperationExecutersContainer(
+        public SetOperationExecutorsContainer(
+            Func<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>
+                complementionOperator,
             Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionComparer,
             Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> equalityComparer,
             Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionOrEquationComparer)
         {
+            _complementionOperator = new Lazy<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>(
+                complementionOperator);
             _inclusionComparer = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>>(
                 inclusionComparer);
             _equalityComparer = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>>(
@@ -56,29 +72,32 @@ namespace TupleAlgebraClassLib.SetOperationExecutersContainers
 
         #region Instance methods
 
-        public abstract BTOperand Complement(CTOperand first);
-
-        public abstract BTOperand Intersect(CTOperand first, BTOperand second);
-
-        public abstract BTOperand Union(CTOperand first, BTOperand second);
-
-        public abstract BTOperand Except(CTOperand first, BTOperand second);
-
-        public abstract BTOperand SymmetricExcept(CTOperand first, BTOperand second);
-
-        public bool Include(CTOperand first, BTOperand second)
+        public BTOperand Complement(BTOperand first)
         {
-            return InclusionComparer.Accept(first, second);
+            return ComplementionOperator.Accept((first as CTOperand)!, Factory);
         }
 
-        public bool Equal(CTOperand first, BTOperand second)
+        public abstract BTOperand Intersect(BTOperand first, BTOperand second);
+
+        public abstract BTOperand Union(BTOperand first, BTOperand second);
+
+        public abstract BTOperand Except(BTOperand first, BTOperand second);
+
+        public abstract BTOperand SymmetricExcept(BTOperand first, BTOperand second);
+
+        public bool Include(BTOperand first, BTOperand second)
         {
-            return EqualityComparer.Accept(first, second);
+            return InclusionComparer.Accept((first as CTOperand)!, second);
         }
 
-        public bool IncludeOrEqual(CTOperand first, BTOperand second)
+        public bool Equal(BTOperand first, BTOperand second)
         {
-            return InclusionOrEqualityComparer.Accept(first, second);
+            return EqualityComparer.Accept((first as CTOperand)!, second);
+        }
+
+        public bool IncludeOrEqual(BTOperand first, BTOperand second)
+        {
+            return InclusionOrEqualityComparer.Accept((first as CTOperand)!, second);
         }
 
         #endregion

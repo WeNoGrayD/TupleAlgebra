@@ -123,8 +123,14 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public void AddAttribute<TDomainEntity>(
             string attributeName, AttributeDomain<TDomainEntity> attribute = null)
         {
-            AttributeInfo attributeInfo = AttributeInfo.Construct(attribute is not null, attribute);
+            /*
+            AttributeInfo attributeInfo = AttributeInfo.Construct(
+                isPlugged: attribute is not null,
+                domain: attribute);
             _attributes.Add(attributeName, attributeInfo);
+            */
+
+            return;
         }
 
         public void RemoveAttribute(string attributeName)
@@ -172,6 +178,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 attributeName, 
                 attached, 
                 AttributeChangedEventArgs.Event.Attachment));
+
+            return;
         }
 
         private void DetachAttribute(string attributeName)
@@ -182,6 +190,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 attributeName, 
                 detached, 
                 AttributeChangedEventArgs.Event.Detachment));
+
+            return;
         }
 
         #endregion
@@ -202,18 +212,18 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #region Operators
 
-        public static bool operator +(TupleObjectSchema<TEntity> schema, string attributeName)
+        public static TupleObjectSchema<TEntity> operator +(TupleObjectSchema<TEntity> schema, string attributeName)
         {
             schema.AttachAttribute(attributeName);
 
-            return true;
+            return schema;
         }
 
-        public static bool operator -(TupleObjectSchema<TEntity> schema, string attributeName)
+        public static TupleObjectSchema<TEntity> operator -(TupleObjectSchema<TEntity> schema, string attributeName)
         {
             schema.DetachAttribute(attributeName);
 
-            return true;
+            return schema;
         }
 
         #endregion

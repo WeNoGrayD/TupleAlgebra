@@ -32,7 +32,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Выражение запроса.
         /// </summary>
-        public virtual Expression Expression { get; private set; }
+        public virtual Expression Expression { get => Universum.Expression; }//; private set; }
 
         /// <summary>
         /// Тип элемента запроса.
@@ -42,15 +42,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Провайдер запросов к домену.
         /// </summary>
-        public virtual IQueryProvider Provider { get; protected set; }
-
-        #endregion
-
-        #region Static fields
-
-        private NonFictionalAttributeComponent<TData> _universum;
-
-        protected static Action<AttributeDomain<TData>> _setDomainCallback;
+        public virtual IQueryProvider Provider { get => Universum.Provider; }
 
         #endregion
 
@@ -59,16 +51,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Универсум домена.
         /// </summary>
-        public NonFictionalAttributeComponent<TData> Universum 
-        { 
-            get => _universum;
-            protected set
-            {
-                _universum = value;
-                Provider = value.Provider;
-                if (Expression is null) Expression = Expression.Constant(value);
-            }
-        }
+        public NonFictionalAttributeComponent<TData> Universum { get; protected set; }
 
         #endregion
 
@@ -77,14 +60,16 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Конструктор экземпляра.
         /// </summary>
-        /// <param name="queryExpression"></param>
-        protected AttributeDomain(
-            Expression queryExpression = null)
+        /// <param name="universum"></param>
+        protected AttributeDomain()
         {
-            Expression = queryExpression;
-
             return;
         }
+
+        /// <summary>
+        /// Конструктор экземпляра.
+        /// </summary>
+        /// <param name="universum"></param>
         protected AttributeDomain(
             NonFictionalAttributeComponent<TData> universum)
         {
@@ -178,7 +163,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
             where TAttributeComponent : NonFictionalAttributeComponent<TData>
         {
             TAttributeComponent universumComponent =
-                GetFactory(typeof(OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>))
+                Helper.GetFactory(typeof(TAttributeComponent))
                 .CreateNonFictional<TData>(factoryArgs) as TAttributeComponent;
 
             return universumComponent;
@@ -190,9 +175,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public IAlgebraicSetObject CreateAttributeComponent<TEntity>(AttributeInfo attribute, IEnumerable<TEntity> entitySource)
         {
-            Func<TEntity, TData> dataSelector = attribute.Getter<TEntity, TData>();
+            Func<TEntity, TData> dataSelector = attribute.AttributeGetter<TEntity, TData>();
 
-            return Universum.Reproduce(entitySource.Select(entity => dataSelector(entity))) as IAlgebraicSetObject;
+            return Universum.Reproduce(entitySource.Select(entity => dataSelector(entity)), true) as IAlgebraicSetObject;
         }
 
         #endregion
@@ -319,95 +304,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
             public override TConverting As<TConverting>() => (NonFictionalPower as TConverting)!;
 
             #endregion
-        }
-
-        /// <summary>
-        /// Провайдер запросов к домену атрибута.
-        /// </summary>
-        protected class AttributeDomainQueryProvider : IQueryProvider
-        {
-            #region Instance fields
-
-            /// <summary>
-            /// Провайдер запросов к универсуму домена атрибута.
-            /// </summary>
-            private QueryProvider UniversumQueryProvider;
-
-            #endregion
-
-            #region Instance properties
-
-            public AttributeDomain<TData> Queryable { get; set; }
-
-            #endregion
-
-            #region Constructors
-
-            /// <summary>
-            /// Конструктор экземпляра.
-            /// </summary>
-            /// <param name="universumQueryProvider"></param>
-            public AttributeDomainQueryProvider(
-                QueryProvider universumQueryProvider)
-            {
-                UniversumQueryProvider = universumQueryProvider;
-            }
-
-            #endregion
-
-            #region IQueryable implemented methods
-
-            /// <summary>
-            /// Создание IQueryable-компоненты.
-            /// </summary>
-            /// <param name="expression"></param>
-            /// <returns></returns>
-            public IQueryable CreateQuery(Expression expression)
-            {
-                return UniversumQueryProvider.CreateQuery(expression);
-            }
-
-            /// <summary>
-            /// Создание IQueryable-компоненты.
-            /// </summary>
-            /// <typeparam name="TQueryResult"></typeparam>
-            /// <param name="expression"></param>
-            /// <returns></returns>
-            public IQueryable<TQueryResult> CreateQuery<TQueryResult>(Expression expression)
-            {
-                return UniversumQueryProvider.CreateQuery<TQueryResult>(expression);
-            }
-
-            /// <summary>
-            /// Выполнение запроса.
-            /// </summary>
-            /// <param name="expression"></param>
-            /// <returns></returns>
-            public object Execute(Expression expression)
-            {
-                return UniversumQueryProvider.Execute(expression);
-            }
-
-            /// <summary>
-            /// Выполнение запроса.
-            /// </summary>
-            /// <typeparam name="TQueryResult"></typeparam>
-            /// <param name="expression"></param>
-            /// <returns></returns>
-            public TQueryResult Execute<TQueryResult>(Expression expression)
-            {
-                return UniversumQueryProvider.Execute<TQueryResult>(expression);
-            }
-
-            #endregion
-        }
-
-        protected class AttributeDomainQueryContext
-        {
-            public object Execute(Expression queryExpression)
-            {
-                return null;
-            }
         }
 
         #endregion

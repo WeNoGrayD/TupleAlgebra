@@ -19,16 +19,20 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 
         public Delegate DomainGetter { get; private set; }
 
+        public bool IsQuery { get; set; }
+
         public readonly IQueryProvider QueryProvider;
 
         public Expression QueryExpression { get; set; }
 
         protected AttributeComponentFactoryArgs(
-            IQueryProvider queryProvider = null,
-            Expression queryExpression = null)
+            bool isQuery,
+            IQueryProvider queryProvider,
+            Expression queryExpression)
         {
             Power = null;
             DomainGetter = null;
+            IsQuery = isQuery;
             QueryProvider = queryProvider;
             QueryExpression = queryExpression;
 
@@ -37,9 +41,10 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 
         protected AttributeComponentFactoryArgs(
             AttributeComponentPower power,
+            bool isQuery,
             IQueryProvider queryProvider = null, 
             Expression queryExpression = null)
-            : this(queryProvider, queryExpression)
+            : this(isQuery, queryProvider, queryExpression)
         {
             Power = power;
 
@@ -59,7 +64,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         public EmptyAttributeComponentFactoryArgs(
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(EmptyAttributeComponentPower.Instance, queryProvider, queryExpression)
+            : base(EmptyAttributeComponentPower.Instance, false, queryProvider, queryExpression)
         {
             return;
         }
@@ -68,9 +73,10 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
     public abstract class NonFictionalAttributeComponentFactoryArgs : AttributeComponentFactoryArgs
     {
         public NonFictionalAttributeComponentFactoryArgs(
-            IQueryProvider queryProvider = null,
-            Expression queryExpression = null)
-            : base(queryProvider, queryExpression)
+            bool isQuery,
+            IQueryProvider queryProvider,
+            Expression queryExpression)
+            : base(isQuery, queryProvider, queryExpression)
         {
             return;
         }
@@ -91,7 +97,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         public FullAttributeComponentFactoryArgs(
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(FullAttributeComponentPower.Instance, queryProvider, queryExpression)
+            : base(FullAttributeComponentPower.Instance, false, queryProvider, queryExpression)
         {
             return;
         }

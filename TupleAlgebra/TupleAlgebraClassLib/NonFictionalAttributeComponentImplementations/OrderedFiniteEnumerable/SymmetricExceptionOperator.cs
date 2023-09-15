@@ -11,8 +11,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class OrderedFiniteEnumerableNonFictionalAttributeComponentUnionOperator<TData>
-        : NonFictionalAttributeComponentUnionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
+    public sealed class SymmetricExceptionOperator<TData>
+        : NonFictionalAttributeComponentSymmetricExceptionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
           IFactoryBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public AttributeComponent<TData> Accept(
@@ -20,15 +20,15 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
             AttributeComponentFactory factory)
         {
-            IEnumerable<TData> unitedElements = UnionComponentsElements();
+            IEnumerable<TData> remainedElements = ExceptComponentsElements();
             OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
-                first.ZipInfo(unitedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
+                first.ZipInfo(remainedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
             factoryArgs.ValuesAreOrdered = true;
             AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
             return resultComponent;
 
-            IEnumerable<TData> UnionComponentsElements()
+            IEnumerable<TData> ExceptComponentsElements()
             {
                 IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
                                    secondEnumerator = second.GetEnumerator(),
@@ -60,7 +60,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                         elementsComparisonResult = orderingComparer.Compare(firstElement, secondElement);
                         switch (elementsComparisonResult)
                         {
-                            case -1: break;
+                            case -1:
+                                {
+                                    yield return firstElement;
+                                    break;
+                                }
                             case 0:
                                 {
                                     WithGreaterBoundEnumeratorMoveNextAndReadCurrent();
@@ -69,10 +73,10 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                             case 1:
                                 {
                                     SwapEnumeratorsAndCurrentElements();
+                                    yield return firstElement;
                                     break;
                                 }
                         }
-                        yield return firstElement;
                         WithLowerBoundEnumeratorMoveNextAndReadCurrent();
                     }
 

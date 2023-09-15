@@ -21,7 +21,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         {
             AttributeGetterImpl(memberAccess);
             AttributeInfo attribute = schema[_attributeName].Value;
-            attribute.SetGetter(memberAccess.Compile());
+            attribute.SetAttributeGetter(memberAccess.Compile());
             schema[_attributeName] = attribute;
             Schema = schema;
 
@@ -55,11 +55,16 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeSetupWizard<TAttribute> SetDomain(
             AttributeDomain<TAttribute> domain)
         {
+            /*
             AttributeInfo attribute = Schema[_attributeName].Value;
-            Schema[_attributeName] = attribute.CloneWith(
-                true, attribute.HasEquivalenceRelation, domain);
+            Schema[_attributeName] = attribute.CloneWith<TAttribute>(
+                isPlugged: true,
+                domain: domain);
 
             return this;
+            */
+
+            return null;
         }
 
         /*
@@ -102,11 +107,46 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <returns></returns>
         public ITupleObjectAttributeSetupWizard<TAttribute> SetEquivalenceRelation()
         {
+            /*
             AttributeInfo attribute = Schema[_attributeName].Value;
             Schema[_attributeName] = attribute.CloneWith(
-                attribute.IsPlugged, true);
+                isPlugged: attribute.IsPlugged,
+                hasEquivalenceRelation: true);
 
             return this;
+            */
+
+            return null;
+        }
+
+        public ITupleObjectAttributeSetupWizard<TAttribute> SetEquivalenceRelation(
+            IEqualityComparer<TAttribute> equivalenceRelationComparer)
+        {
+            /*
+            AttributeInfo attribute = Schema[_attributeName].Value;
+            Schema[_attributeName] = attribute.CloneWith(
+                isPlugged: attribute.IsPlugged,
+                equivalenceRelationComparer: equivalenceRelationComparer);
+
+            return this;
+            */
+
+            return null;
+        }
+
+        public ITupleObjectAttributeSetupWizard<TAttribute> SetEquivalenceRelation(
+            Func<TAttribute, TAttribute, bool> equivalenceRelation)
+        {
+            /*
+            AttributeInfo attribute = Schema[_attributeName].Value;
+            Schema[_attributeName] = attribute.CloneWith(
+                isPlugged: attribute.IsPlugged,
+                equivalenceRelation: equivalenceRelation);
+
+            return this;
+            */
+
+            return null;
         }
 
         /// <summary>
@@ -115,11 +155,16 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <returns></returns>
         public ITupleObjectAttributeSetupWizard<TAttribute> UnsetEquivalenceRelation()
         {
+            /*
             AttributeInfo attribute = Schema[_attributeName].Value;
             Schema[_attributeName] = attribute.CloneWith(
-                attribute.IsPlugged, false);
+                isPlugged: attribute.IsPlugged,
+                hasEquivalenceRelation: false);
 
             return this;
+            */
+
+            return null;
         }
 
         /// <summary>

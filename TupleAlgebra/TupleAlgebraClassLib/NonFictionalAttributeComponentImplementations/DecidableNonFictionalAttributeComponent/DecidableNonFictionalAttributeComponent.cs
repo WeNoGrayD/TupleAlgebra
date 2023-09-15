@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.SetOperationExecutersContainers;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
@@ -57,7 +57,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         {
             //NonFictionalAttributeComponent<TData>.InitSetOperations(
             //    NATURE_TYPE,
-            //    new PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer());
+            //    new PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutorsContainer());
         }
 
         public PredicateBasedDecidableNonFictionalAttributeComponent(
@@ -78,9 +78,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         }
 
         /*
-        private class PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer : FactorySetOperationExecutersContainer<TData>
+        private class PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutorsContainer : FactorySetOperationExecutorsContainer<TData>
         {
-            public PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutersContainer() : base(
+            public PredicateBasedDecidableNonFictionalAttributeComponentOperationExecutorsContainer() : base(
                 new PredicateBasedDecidableNonFictionalAttributeComponentFactory(),
                 new PredicateBasedDecidableNonFictionalAttributeComponentIntersectionOperator<TData>(),
                 new PredicateBasedDecidableNonFictionalAttributeComponentUnionOperator<TData>(),

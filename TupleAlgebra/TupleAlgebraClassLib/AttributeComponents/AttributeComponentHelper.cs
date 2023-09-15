@@ -5,166 +5,282 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using System.Reflection;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
+using UniversalClassLib;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
-    public static class AttributeComponentHelper
+    /// <summary>
+    /// Класс для хранения статических переменных типов компонент атрибутов.
+    /// </summary>
+    public class AttributeComponentHelper : ITypeHierarchyRegistrar<AttributeComponentHelper>
     {
         #region Static fields
 
-        private static HashSet<Type> _registeredTypes;
+        private ITypeHierarchyRegistrar<AttributeComponentHelper> _registrar { get => this; }
+
+        /// <summary>
+        /// Фабрики специфических компонент атрибутов.
+        /// </summary>
+        private static IDictionary<Type, AttributeComponentFactory> _factories;
+
+        /// <summary>
+        /// Контейнеры операций над компонентами атрибутов.
+        /// </summary>
+        private static IDictionary<Type, object> _setOperationContainers;
 
         #endregion
 
         #region Static properties
 
-        public static IDictionary<Type, AttributeComponentFactory> Factories { get; }
+        public static AttributeComponentHelper Helper { get; set; }
 
         #endregion
 
         #region Constructors
 
+        /// <summary>
+        /// Статический конструктор.
+        /// </summary>
         static AttributeComponentHelper()
         {
-            _registeredTypes = new HashSet<Type>();
+            Helper = new AttributeComponentHelper();
+            _factories = new Dictionary<Type, AttributeComponentFactory>();
+            _setOperationContainers = new Dictionary<Type, object>();
 
-            Factories = new Dictionary<Type, AttributeComponentFactory>();
+            return;
+        }
+
+        private AttributeComponentHelper()
+        {
+            _registrar.Init();
+
+            return;
         }
 
         #endregion
 
-        #region Static methods
+        #region Instance methods
 
-        private static bool IsTypeRegistered(Type type) => _registeredTypes.Contains(type);
+        #region Type registration methods
 
-        public static void RegisterType<TData>(
-            Type acType,
+        /// <summary>
+        /// Регистрация типа.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <typeparam name="TAttributeComponent"></typeparam>
+        /// <param name="considerAsNonGeneric"></param>
+        /// <param name="acFactory"></param>
+        /// <param name="setOperations"></param>
+        public void RegisterType<TData, TAttributeComponent>(
             bool considerAsNonGeneric = false,
-            AttributeComponentFactory acFactory = null)
+            AttributeComponentFactory acFactory = null,
+            ISetOperationExecutorsContainer<AttributeComponent<TData>>
+                setOperations = null)
+            where TAttributeComponent : AttributeComponent<TData>
         {
-            Type dataType = typeof(TData), rootAcType = typeof(AttributeComponent<TData>);
-            if (!acType.IsSubclassOf(rootAcType) && !acType.Equals(rootAcType))
-            {
-                throw new ArgumentException($"Тип {acType.Name} с параметром типа {dataType.Name}" +
-                    $"должен наследоваться от типа {rootAcType.Name}!");
-            }
+            Type acType = typeof(TAttributeComponent);
 
             if (acType.IsGenericType && !considerAsNonGeneric)
             {
-                RegisterGenericTypeDefinition<TData>(acType, acFactory);
+                RegisterGenericType(acType, acFactory, setOperations);
             }
             else
             {
-                RegisterNonGenericType<TData>(acType, acFactory);
+                RegisterNonGenericType(acType, acFactory, setOperations);
             }
 
             return;
         }
 
-        private static void FindRelevantTypeAncestorAndExecute(
-            Type leafType, 
-            Predicate<Type> stopCondition, 
-            Action<Type> toExecute,
-            Exception onFailure)
+        /// <summary>
+        /// Регистрация обобщённого типа.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <param name="acType"></param>
+        /// <param name="acFactory"></param>
+        /// <param name="setOperations"></param>
+        private void RegisterGenericType<TData>(
+            Type acType,
+            AttributeComponentFactory acFactory,
+            ISetOperationExecutorsContainer<AttributeComponent<TData>>
+                setOperations)
         {
-            Type superType = leafType, superTypeDefinition, objectType = typeof(object);
-            bool stoppedWithResult;
+            // Если тип зарегистрирован, то дальнейшая регистрация не производится.
+            if (_registrar.IsTypeRegistered(acType)) return;
+            Type acGenericTypeDefinition = acType.GetGenericTypeDefinition();
+            // Обязательно выполняется принудительная регистрация базового типа.
+            _registrar.RegisterTypeWithForce(acType.BaseType);
+            RegisterFactoryForType(acGenericTypeDefinition, acFactory);
+            RegisterSetOperationsForType(acType, setOperations);
 
-            while (stoppedWithResult = !superType.Equals(objectType))
-            {
-                superTypeDefinition = GetDefinition(superType);
-                if (stoppedWithResult = stopCondition(superTypeDefinition))
-                {
-                    toExecute(superTypeDefinition);
-                    break;
-                }
-                else superType = superType.BaseType;
-            }
-
-            if (onFailure is not null && !stoppedWithResult) throw onFailure;
+            _registrar.RegisterType(acGenericTypeDefinition);
+            _registrar.RegisterType(acType);
 
             return;
         }
 
-        private static void RegisterFactoryForType(
+        /// <summary>
+        /// Регистрация необобщённого типа.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <param name="acType"></param>
+        /// <param name="acFactory"></param>
+        /// <param name="setOperations"></param>
+        private void RegisterNonGenericType<TData>(
+            Type acType,
+            AttributeComponentFactory acFactory,
+            ISetOperationExecutorsContainer<AttributeComponent<TData>>
+                setOperations)
+        {
+            // Если тип зарегистрирован, то дальнейшая регистрация не производится.
+            if (_registrar.IsTypeRegistered(acType)) return;
+            // Обязательно выполняется принудительная регистрация базового типа.
+            _registrar.RegisterTypeWithForce(acType.BaseType);
+            RegisterFactoryForType(acType, acFactory);
+            RegisterSetOperationsForType(acType, setOperations);
+
+            _registrar.RegisterType(acType);
+
+            return;
+        }
+
+        #endregion
+
+        #region Type static variables registration methods
+
+        /// <summary>
+        /// Регистрация фабрики для типа.
+        /// </summary>
+        /// <param name="acType"></param>
+        /// <param name="acFactory"></param>
+        private void RegisterFactoryForType(
             Type acType,
             AttributeComponentFactory acFactory)
         {
+            // Если зарегистрировано определение типа, то дальнейшая регистрация не производится.
+            if (_registrar.IsTypeRegistered(acType)) return;
+            /*
+             * Если объект фабрики не предоставлен, то подходящий объект ищется
+             * в иерархии классов нужного типа.
+             */
             if (acFactory is null)
             {
-                FindRelevantTypeAncestorAndExecute(
+                _registrar.FindRelevantTypeAncestorAndExecute(
                     acType.BaseType,
-                    (t) => Factories.ContainsKey(t),
-                    (registeredType) => Factories.Add(acType, Factories[registeredType]),
+                    _registrar.GetDefinition,
+                    (t) => _factories.ContainsKey(t),
+                    (registeredType) => _factories.Add(acType, _factories[registeredType]),
                     new ArgumentNullException(
                         "acFactory", 
                         "Фабрика компоненты должна быть предоставлена для типа " +
                         $"{acType.Name} или быть определена ранее для одного из его базовых типов."));
             }
-            else Factories.Add(acType, acFactory);
+            else _factories.Add(acType, acFactory);
 
             return;
         }
 
-        private static void RegisterGenericTypeDefinition<TData>(
+        /// <summary>
+        /// Регистрация контейнера операций над типом компоненты атрибута.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <param name="acType"></param>
+        /// <param name="setOperations"></param>
+        private void RegisterSetOperationsForType<TData>(
             Type acType,
-            AttributeComponentFactory acFactory = null)
+            ISetOperationExecutorsContainer<AttributeComponent<TData>>
+                setOperations)
         {
-            Type acGenericTypeDefinition = acType.GetGenericTypeDefinition();
-            if (IsTypeRegistered(acGenericTypeDefinition)) return;
-
-            RegisterTypeWithForce(acType.BaseType);
-            RegisterFactoryForType(acGenericTypeDefinition, acFactory);
-
-            _registeredTypes.Add(acGenericTypeDefinition);
-
-            return;
-        }
-
-        private static void RegisterNonGenericType<TData>(
-            Type acType,
-            AttributeComponentFactory acFactory)
-        {
-            if (IsTypeRegistered(acType)) return;
-
-            RegisterTypeWithForce(acType.BaseType);
-            RegisterFactoryForType(acType, acFactory);
-
-            _registeredTypes.Add(acType);
+            /*
+            if (setOperations is not null)
+            {
+                _setOperationContainers.Add(acType, setOperations);
+            }
+            */
+            /*
+             * Если объект контейнера операций не предоставлен, то подходящий объект ищется
+             * в иерархии классов нужного типа.
+             */
+            if (setOperations is null)
+            {
+                _registrar.FindRelevantTypeAncestorAndExecute(
+                    acType.BaseType,
+                    (t) => t,
+                    (t) => _setOperationContainers.ContainsKey(t),
+                    (registeredType) => _setOperationContainers
+                        .Add(acType, _setOperationContainers[registeredType]),
+                    null);// new ArgumentNullException(
+                        //"setOperations",
+                        //"Контейнер операций над компонентой должен быть предоставлен для типа " +
+                        //$"{acType.Name} или быть определен ранее для одного из его базовых типов."));
+            }
+            else _setOperationContainers.Add(acType, setOperations);
 
             return;
         }
 
         #endregion
 
-        public static AttributeComponentFactory GetFactory(object ac)
+        #region Type static variables getters
+
+        /// <summary>
+        /// Получени фабрики компоненты атрибута.
+        /// </summary>
+        /// <param name="ac"></param>
+        /// <returns></returns>
+        public AttributeComponentFactory GetFactory(object ac)
         {
             return GetFactory(ac.GetType());
         }
 
-        public static AttributeComponentFactory GetFactory(Type acType)
+        /// <summary>
+        /// Получени фабрики компоненты атрибута.
+        /// </summary>
+        /// <param name="acType"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public AttributeComponentFactory GetFactory(Type acType)
         {
-            Type acTypeDefinition = GetDefinition(acType);
-            if (!Factories.ContainsKey(acTypeDefinition))
+            Type acTypeDefinition = _registrar.GetDefinition(acType);
+            if (!_registrar.IsTypeRegistered(acTypeDefinition))
             {
-                RegisterTypeWithForce(acType);
-                if (!Factories.ContainsKey(acTypeDefinition))
+                _registrar.RegisterTypeWithForce(acType);
+                if (!_factories.ContainsKey(acTypeDefinition))
                 {
                     throw new InvalidOperationException($"Тип {acType} не выполнил свою регистрацию в классе-помощнике.");
                 }
             }
 
-            return Factories[acTypeDefinition];
+            return _factories[acTypeDefinition];
         }
 
-        private static void RegisterTypeWithForce(Type type)
+        /// <summary>
+        /// Полученик контейнера операций над компонентой атрибута.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <param name="ac"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public ISetOperationExecutorsContainer<AttributeComponent<TData>>
+            GetSetOperations<TData>(object ac)
         {
-            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+            Type acType = ac.GetType();
 
-            return;
+            if (!_registrar.IsTypeRegistered(acType))
+            {
+                _registrar.RegisterTypeWithForce(acType);
+                if (!_setOperationContainers.ContainsKey(acType))
+                {
+                    throw new InvalidOperationException($"Тип {acType} не выполнил свою регистрацию в классе-помощнике.");
+                }
+            }
+
+            return (_setOperationContainers[acType] as ISetOperationExecutorsContainer<AttributeComponent<TData>>)!;
         }
 
-        private static Type GetDefinition(Type type) =>
-            type.IsGenericType ? type.GetGenericTypeDefinition() : type;
+        #endregion
+
+        #endregion
     }
 }

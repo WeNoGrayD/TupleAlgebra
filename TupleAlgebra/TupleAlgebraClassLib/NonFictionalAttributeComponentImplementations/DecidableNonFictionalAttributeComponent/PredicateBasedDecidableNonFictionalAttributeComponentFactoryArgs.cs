@@ -15,7 +15,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
         public readonly IEnumerable<IEnumerable> Values;
 
         public PredicateBasedDecidableNonFictionalAttributeComponentFactoryArgs(params IEnumerable[] rules)
-            : base()
+            : base(false, null, null)
         {
             return;
         }

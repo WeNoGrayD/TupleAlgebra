@@ -72,18 +72,25 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         {
             /*
              * Прежде всего создаётся нефиктивная компонента с предоставленными фабричными аргументами.
-             * Затем появляется возможность проверить компоненту на пустоту и полноту.
              */
             AttributeComponent<TData> ac = CreateSpecificNonFictional();
             ac.GetDomain = (factoryArgs.DomainGetter as Func<AttributeDomain<TData>>)!;
+
+            /*
+             * Если созданная нефиктивная компонента не является продуктом запроса, то
+             * появляется возможность проверить компоненту на пустоту и полноту.
+             */
+            if (!factoryArgs.IsQuery)
             /*
              * Предполагается, что проверка компоненты на пустотность
              * является более простой, чем проверка на полноту.
              */
-            if (factoryArgs.Power.EqualsZero())
-                ac = CreateEmpty<TData>(factoryArgs);
-            else if (factoryArgs.Power.EqualsContinuum())
-                ac = CreateFull<TData>(factoryArgs);
+            {
+                if (factoryArgs.Power.EqualsZero())
+                    ac = CreateEmpty<TData>(factoryArgs);
+                else if (factoryArgs.Power.EqualsContinuum())
+                    ac = CreateFull<TData>(factoryArgs);
+            }
 
             return ac;
 

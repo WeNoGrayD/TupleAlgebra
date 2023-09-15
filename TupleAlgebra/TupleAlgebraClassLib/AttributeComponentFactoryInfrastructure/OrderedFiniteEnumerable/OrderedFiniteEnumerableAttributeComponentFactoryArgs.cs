@@ -26,18 +26,22 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
         private OrderedFiniteEnumerableAttributeComponentFactoryArgs(
             object orderingComparer = null,
             IEnumerable values = null,
+            bool isQuery = false,
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(queryProvider, queryExpression)
+            : base(isQuery, queryProvider, queryExpression)
         {
             Values = values;
             OrderingComparer = orderingComparer;
             ValuesAreOrdered = false;
+
+            return;
         }
 
         public static OrderedFiniteEnumerableAttributeComponentFactoryArgs Construct<TData>(
             IComparer<TData> orderingComparer = null,
             IEnumerable<TData> values = null,
+            bool isQuery = false,
             Func<AttributeDomain<TData>> domainGetter = null,
             OrderedFiniteEnumerableAttributeComponentQueryProvider queryProvider = null,
             Expression queryExpression = null)
@@ -45,6 +49,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
             var factoryArgs = new OrderedFiniteEnumerableAttributeComponentFactoryArgs(
                 orderingComparer,
                 values, 
+                isQuery,
                 queryProvider,
                 queryExpression);
             factoryArgs.SetDomainGetter(domainGetter);
