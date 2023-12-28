@@ -55,14 +55,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeSetupWizard<TAttribute> SetDomain(
             AttributeDomain<TAttribute> domain)
         {
-            /*
             AttributeInfo attribute = Schema[_attributeName].Value;
             Schema[_attributeName] = attribute.CloneWith<TAttribute>(
-                isPlugged: true,
                 domain: domain);
 
             return this;
-            */
 
             return null;
         }

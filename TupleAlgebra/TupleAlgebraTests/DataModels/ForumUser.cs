@@ -36,6 +36,8 @@ namespace TupleAlgebraTests.DataModels
         public Dictionary<DateTime, string> LatestComments { get; set; }
         public ForumUserRank Rank { get; set; }
 
+        public ForumUser() { return; }
+
         public ForumUser(
             int id, string nickname, int likeCount, int postCount,
             int followers, int following,

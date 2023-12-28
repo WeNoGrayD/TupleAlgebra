@@ -7,6 +7,13 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    public enum AttributeQuery : byte
+    {
+        None = 0,
+        Attached = 1,
+        Detached = 2
+    }
+
     /// <summary>
     /// Информация об атрибуте в составе схемы кортежа.
     /// </summary>
@@ -18,6 +25,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// Делегат получения значения атрибута из сущности.
         /// </summary>
         private Delegate _attributeGetter;
+
+        /// <summary>
+        /// Запрос к атрибуту: 
+        /// </summary>
+        private AttributeQuery _query;
 
         #endregion
 
@@ -94,14 +106,17 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         #region Cloning methods
 
         public AttributeInfo CloneWith<TEntity, TAttribute>(
-            bool isPlugged = false,
             IAttributeComponentProvider domain = null,
             Func<TEntity, TAttribute> attributeGetter = null,
             bool hasEquivalenceRelation = false)
         {
+            bool isPlugged = (_query == AttributeQuery.Attached) || 
+                (_query != AttributeQuery.Detached && IsPlugged);
+
             return this with
             {
                 IsPlugged = isPlugged,
+                _query = AttributeQuery.None,
                 Domain = domain ?? this.Domain,
                 _attributeGetter = attributeGetter ?? this._attributeGetter
             };
@@ -151,14 +166,61 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return _attributeGetter as Func<TEntity, TData>;
         }
 
-        public AttributeInfo PlugIn()
+        private AttributeInfo UndoQuery()
         {
-            return this with { IsPlugged = true };
+            return this with { _query = AttributeQuery.None };
         }
 
-        public AttributeInfo UnPlug()
+        private AttributeInfo AttachQuery()
         {
-            return this with { IsPlugged = false };
+            return this with { _query = AttributeQuery.Attached };
+        }
+
+        private AttributeInfo DetachQuery()
+        {
+            return this with { _query = AttributeQuery.Detached };
+        }
+
+        /// <summary>
+        /// Создание запроса к атрибуту на его прикрепление.
+        /// </summary>
+        /// <returns></returns>
+        public AttributeInfo Attach()
+        {
+            return (IsPlugged, _query) switch
+            {
+                (_, AttributeQuery.Attached) => this,
+                (true, AttributeQuery.None) => this,
+                (true, _) => UndoQuery(),
+                (_, _) => AttachQuery(),
+            };
+        }
+
+        /// <summary>
+        /// Создание запроса к атрибуту на его открепление.
+        /// </summary>
+        /// <returns></returns>
+        public AttributeInfo Detach()
+        {
+            return (IsPlugged, _query) switch
+            {
+                (_, AttributeQuery.Detached) => this,
+                (false, AttributeQuery.None) => this,
+                (false, _) => UndoQuery(),
+                (_, _) => DetachQuery()
+            };
+        }
+
+        public AttributeInfo ExecuteQuery()
+        {
+            if (_query == AttributeQuery.None)
+                return this;
+
+
+            bool isPlugged = (_query == AttributeQuery.Attached) ||
+                (_query != AttributeQuery.Detached && IsPlugged);
+
+            return this with { IsPlugged = IsPlugged, _query = AttributeQuery.None };
         }
 
         #region Equivalence relation set/unset methods

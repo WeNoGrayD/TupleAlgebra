@@ -9,6 +9,7 @@ namespace TupleAlgebraClassLib.TupleObjectAcceptors
 {
     public abstract class InstantUnaryAttributeComponentAcceptor<TEntity, TOperand, TOperationResult>
         : HierarchicallyPolymorphicOperators.InstantUnaryOperator<TOperand, TOperationResult>
+        where TEntity : new()
         where TOperand : TupleObjects.TupleObject<TEntity>
     { }
 }

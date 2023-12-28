@@ -8,6 +8,7 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure;
 namespace TupleAlgebraClassLib.TupleObjects
 {
     public class FullTupleObject<TEntity> : TupleObject<TEntity>
+        where TEntity : new()
     {
         public FullTupleObject(Action<TupleObjectBuilder<TEntity>> onTupleBuilding)
             : base(onTupleBuilding)

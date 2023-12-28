@@ -14,6 +14,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
           IInstantBinaryTupleObjectAcceptor<TEntity, TOperand1, EmptyTupleObject<TEntity>, TOperationResult>,
           IInstantBinaryTupleObjectAcceptor<TEntity, TOperand1, TupleObject<TEntity>, TOperationResult>,
           IInstantBinaryTupleObjectAcceptor<TEntity, TOperand1, FullTupleObject<TEntity>, TOperationResult>
+        where TEntity : new()
         where TOperand1 : TupleObject<TEntity>
     {
 

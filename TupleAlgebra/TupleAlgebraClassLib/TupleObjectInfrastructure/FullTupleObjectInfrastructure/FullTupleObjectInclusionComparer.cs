@@ -10,6 +10,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastr
 {
     public sealed class FullTupleObjectInclusionComparer<TEntity>
         : CrossTypeInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, bool>
+        where TEntity : new()
     {
         public override bool Accept(
             FullTupleObject<TEntity> first,

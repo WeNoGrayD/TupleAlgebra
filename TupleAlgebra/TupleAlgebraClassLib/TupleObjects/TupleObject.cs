@@ -20,6 +20,7 @@ namespace TupleAlgebraClassLib.TupleObjects
     public abstract class TupleObject<TEntity>
         : IQueryable<TEntity>,
           IDisposable
+        where TEntity : new()
     {
         #region Instance fields
 
@@ -72,6 +73,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         {
             if (onTupleBuilding is not null) onTupleBuilding(builder);
             Schema = builder.Schema;
+            Schema.AttributeChanged += SchemaAttributeChanged;
 
             return;
         }
@@ -103,6 +105,53 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Instance methods
 
+
+        protected void SchemaAttributeChanged(object sender, AttributeChangedEventArgs eventArgs)
+        {
+            switch (eventArgs.ChangingEvent)
+            {
+                case AttributeChangedEventArgs.Event.Attachment:
+                    {
+                        //_components.Add(
+                        //    eventArgs.AttributeName,
+                        //    GetDefaultFictionalAttributeComponent(eventArgs.Attribute));
+                        OnAttributeAttached(sender, eventArgs);
+
+                        break;
+                    }
+                case AttributeChangedEventArgs.Event.Detachment:
+                    {
+                        OnAttributeDetached(sender, eventArgs);
+
+                        break;
+                    }
+                case AttributeChangedEventArgs.Event.Deletion:
+                    {
+                        //_components.Remove(eventArgs.AttributeName);
+                        OnAttributeDeleted(sender, eventArgs);
+
+                        break;
+                    }
+            }
+
+            return;
+        }
+
+        protected virtual void OnAttributeAttached(object sender, AttributeChangedEventArgs eventArgs)
+        {
+            return;
+        }
+
+        protected virtual void OnAttributeDetached(object sender, AttributeChangedEventArgs eventArgs)
+        {
+            return;
+        }
+
+        protected virtual void OnAttributeDeleted(object sender, AttributeChangedEventArgs eventArgs)
+        {
+            return;
+        }
+
         void ProcessDomain<TDomainEntity>(string attributeName, AttributeDomain<TDomainEntity> attribute)
             where TDomainEntity : IComparable<TDomainEntity>
         {
@@ -117,9 +166,9 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// </summary>
         /// <param name="first"></param>
         /// <param name="second"></param>
-        private static void Generalize(TupleObject<TEntity> first, TupleObject<TEntity> second)
+        private static TupleObjectSchema<TEntity> Generalize(TupleObject<TEntity> first, TupleObject<TEntity> second)
         {
-            first.Schema.GeneralizeWith(second.Schema);
+            return first.Schema.GeneralizeWith(second.Schema);
         }
 
         public abstract TupleObject<TEntity> Diagonal();

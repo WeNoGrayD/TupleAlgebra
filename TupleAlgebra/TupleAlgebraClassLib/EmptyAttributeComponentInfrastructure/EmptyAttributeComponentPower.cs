@@ -43,6 +43,14 @@ namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 
         #region IAttributeComponentPower implementation
 
+        public override int CompareTo(AttributeComponentPower second)
+        {
+            /*
+             * Мощность второй компоненты сравнивается с этой.
+             */
+            return -second.CompareTo(this);
+        }
+
         public override bool EqualsZero() => true;
 
         public override bool EqualsContinuum() => false;

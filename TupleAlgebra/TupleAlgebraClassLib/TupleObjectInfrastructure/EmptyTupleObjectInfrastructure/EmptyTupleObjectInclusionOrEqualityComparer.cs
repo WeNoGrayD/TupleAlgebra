@@ -10,6 +10,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrast
 {
     public sealed class EmptyTupleObjectInclusionOrEqualityComparer<TEntity>
         : CrossTypeInstantBinaryTupleObjectAcceptor<TEntity, EmptyTupleObject<TEntity>, bool>
+        where TEntity : new()
     {
         public override bool Accept(
             EmptyTupleObject<TEntity> first,

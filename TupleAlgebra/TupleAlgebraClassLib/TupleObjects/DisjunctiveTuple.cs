@@ -9,6 +9,7 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraClassLib.TupleObjects
 {
     public class DisjunctiveTuple<TEntity> : SingleTupleObject<TEntity>
+        where TEntity : new()
     {
         #region Constructors
 

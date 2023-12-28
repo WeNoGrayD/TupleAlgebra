@@ -12,6 +12,8 @@ using TupleAlgebraTests.DataModels;
 using TupleAlgebraClassLib.TupleObjects;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
+using System.Reflection;
+using System.Collections;
 
 namespace TupleAlgebraTests
 {
@@ -23,7 +25,7 @@ namespace TupleAlgebraTests
         private static bool _forumUsersAreConfigured = false;
 
         [TestMethod]
-        public void TestMethod1()
+        public void CreateConjunctiveTuple()
         {
             TupleObject<ForumUser>.Configure(CustomLikedUsers);
             TupleObject<ForumUser> likedPersons = new ConjunctiveTuple<ForumUser>();
@@ -78,7 +80,7 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
-        public void CreateConjunctiveTuple()
+        public void CreateConjunctiveTuple2()
         {
             TupleObjectFactory factory;
             using (TAContext context = new TAContext())
@@ -105,6 +107,75 @@ namespace TupleAlgebraTests
             //      cts1.Dispose();
             //      dt1.Dispose();
             //      ct1.Dispose();
+        }
+
+        [TestMethod]
+        public void CreateGetterAndSetter()
+        {
+            //Expression eFU = Expression.Lambda((string nickname, int postCount) => new ForumUser() { Nickname = nickname, PostCount = postCount });
+            Expression eFU = Expression.Lambda((Dictionary<PropertyInfo, int> dict, PropertyInfo prop) => dict[prop]);
+            Expression eNicknameGetterLambda = (ForumUser fu) => fu.Nickname;
+            MemberExpression eNicknameGetter = ((eNicknameGetterLambda as LambdaExpression).Body as MemberExpression);
+            PropertyInfo nicknameGetterInfo = (eNicknameGetter.Member as PropertyInfo);
+            ParameterExpression nicknamePropertyValue = Expression.Parameter(typeof(string), "nickname");
+            MemberAssignment eNicknameSetter = Expression.Bind(nicknameGetterInfo, nicknamePropertyValue);
+            Expression ePostCountGetterLambda = (ForumUser fu) => fu.PostCount;
+            MemberExpression ePostCountGetter = ((ePostCountGetterLambda as LambdaExpression).Body as MemberExpression);
+            PropertyInfo postCountGetterInfo = (ePostCountGetter.Member as PropertyInfo);
+            ParameterExpression postCountPropertyValue = Expression.Parameter(typeof(int), "postCount");
+            MemberAssignment ePostCountSetter = Expression.Bind(postCountGetterInfo, postCountPropertyValue);
+            Expression eConstructor = Expression.MemberInit(
+                Expression.New(typeof(ForumUser)), 
+                eNicknameSetter,
+                ePostCountSetter);
+            LambdaExpression eConstructorLambda = Expression.Lambda(eConstructor, nicknamePropertyValue, postCountPropertyValue);
+            var c = (eConstructorLambda as LambdaExpression)!.Compile() as Func<string, int, ForumUser>;
+            ForumUser fu = c("WeNoGranD", 120);
+            //LambdaExpression eSetterLambda = Expression.Lambda(eSetter, propertyValue);
+
+            IEnumerator[] enumerators = new IEnumerator[]
+                { 
+                    (new List<string> { "WeNoGranD", "Реван" }).GetEnumerator(), 
+                    ((IEnumerable<int>)new int[] { 120, 65 }).GetEnumerator()
+                };
+
+            EntityFactoryBuilder entityFactoryBuilder = new EntityFactoryBuilder();
+            Type fuType = typeof(ForumUser);
+            PropertyInfo[] properties = new PropertyInfo[] {
+                fuType.GetProperty(nameof(ForumUser.Nickname)),
+                fuType.GetProperty(nameof(ForumUser.PostCount))
+            };
+            Expression entityFactoryExpr = entityFactoryBuilder.Build(fuType, properties);
+            Func<IEnumerator[], ForumUser> entityFactory = (entityFactoryExpr as LambdaExpression)
+                .Compile() as Func<IEnumerator[], ForumUser>;
+            enumerators[0].MoveNext();
+            enumerators[1].MoveNext();
+            fu = entityFactory(enumerators);
+            enumerators[1].MoveNext();
+            fu = entityFactory(enumerators);
+            enumerators[1].Reset();
+            enumerators[0].MoveNext();
+            enumerators[1].MoveNext();
+            fu = entityFactory(enumerators);
+            enumerators[1].MoveNext();
+            fu = entityFactory(enumerators);
+
+
+            return;
+        }
+
+        private bool _cartesianDataAreConfigured = false;
+
+        public void CustomCartesianData(TupleObjectBuilder<CartesianData> builder)
+        {
+            if (_cartesianDataAreConfigured) return;
+            _cartesianDataAreConfigured = true;
+
+            AttributeDomain<int> intRange =
+                new Integer32OrderedFiniteEnumerableAttributeDomain((1, 10));
+            builder.Attribute(cd => cd.D1).SetDomain(intRange);
+            builder.Attribute(cd => cd.D2).SetDomain(intRange);
+            builder.Attribute(cd => cd.D3).SetDomain(intRange);
         }
     }
 }

@@ -17,6 +17,8 @@ namespace TupleAlgebraTests.ACTupleZipTests
         public void Startup()
         {
             InitEquClassInfrastructure();
+
+            return;
         }
 
         [TestMethod]
@@ -24,7 +26,7 @@ namespace TupleAlgebraTests.ACTupleZipTests
         {
             EquivalenceClassTable<Data> equClassTable = new EquivalenceClassTable<Data>();
 
-            equClassTable.MakePartition(Data.Enumeration);
+            equClassTable.MakePartition(Data.UniformEnumeration);
 
             int minPartitionModule = equClassTable.EquivalenceClassPartitions.Min(
                 (kvp) => kvp.Value.Count),
@@ -42,7 +44,7 @@ namespace TupleAlgebraTests.ACTupleZipTests
             NonGenericEquivalenceClassTable<Data> equClassTable =
                 new NonGenericEquivalenceClassTable<Data>();
 
-            equClassTable.MakePartition(Data.Enumeration);
+            equClassTable.MakePartition(Data.UniformEnumeration);
 
             int minPartitionModule = equClassTable.EquivalenceClassPartitions.Min(
                 (kvp) => kvp.Value.Count),
@@ -68,7 +70,7 @@ namespace TupleAlgebraTests.ACTupleZipTests
 
                 sw.Start();
 
-                equClassTable.MakePartition(Data.Enumeration);
+                equClassTable.MakePartition(Data.UniformEnumeration);
 
                 sw.Stop();
 
@@ -97,7 +99,142 @@ namespace TupleAlgebraTests.ACTupleZipTests
 
                 sw.Start();
 
-                equClassTable.MakePartition(Data.Enumeration);
+                equClassTable.MakePartition(Data.UniformEnumeration);
+
+                sw.Stop();
+
+                msSum += sw.ElapsedMilliseconds;
+
+                sw.Reset();
+            }
+
+            double avgMsTime = msSum / testCount;
+
+            return;
+        }
+
+        [TestMethod]
+        public void PreliminaryAttributeGroupingTest()
+        {
+            ObjectArchiver<Data> archiver = new ObjectArchiver<Data>();
+
+            var metricizedData = archiver.CalculateMetric(Data.NonUniformEnumeration);
+
+            return;
+        }
+
+        [TestMethod]
+        public void PreliminaryAttributeGroupingTest4000()
+        {
+            ObjectArchiver<Data> archiver = new ObjectArchiver<Data>();
+
+            var metricizedData = archiver.CalculateMetric(
+                Data.CreateUniformEnumeration(4000)
+                );
+
+            return;
+        }
+
+        [TestMethod]
+        public void PreliminaryAttributeGroupingTest3000()
+        {
+            ObjectArchiver<Data> archiver = new ObjectArchiver<Data>();
+
+            var metricizedData = archiver.CalculateMetric(
+                Data.CreateUniformEnumeration(3000)
+                );
+
+            return;
+        }
+
+        [TestMethod]
+        public void PreliminaryAttributeGroupingTest2000()
+        {
+            ObjectArchiver<Data> archiver = new ObjectArchiver<Data>();
+
+            var metricizedData = archiver.CalculateMetric(
+                Data.CreateUniformEnumeration(2000)
+                );
+
+            return;
+        }
+
+        [TestMethod]
+        public void PreliminaryAttributeGroupingTest1000()
+        {
+            ObjectArchiver<Data> archiver = new ObjectArchiver<Data>();
+
+            var metricizedData = archiver.CalculateMetric(
+                Data.CreateUniformEnumeration(
+                    1000, 
+                    new Random[] 
+                    { 
+                        new Random(4), 
+                        new Random(1009), 
+                        new Random(16552), 
+                        new Random(-430), 
+                        new Random(-28900)
+                    })
+                );
+
+            return;
+        }
+
+        [TestMethod]
+        public void PreliminaryAttributeGroupingTest100()
+        {
+            ObjectArchiver<Data> archiver = new ObjectArchiver<Data>();
+
+            var metricizedData = archiver.CalculateMetric(
+                Data.CreateUniformEnumeration(
+                    100,
+                    new Random[]
+                    {
+                        new Random(30),
+                        new Random(-67),
+                        new Random(4444),
+                        new Random(-85),
+                        new Random(1234)
+                    })
+                );
+
+            return;
+        }
+
+        [TestMethod]
+        public void PreliminaryAttributeGroupingTest20()
+        {
+            ObjectArchiver<Data> archiver = new ObjectArchiver<Data>();
+
+            var metricizedData = archiver.CalculateMetric(
+                Data.CreateUniformEnumeration(
+                    20,
+                    new Random[]
+                    {
+                        new Random(667),
+                        new Random(-91),
+                        new Random(-75214),
+                        new Random(321),
+                        new Random(-888)
+                    })
+                );
+
+            return;
+        }
+
+        [TestMethod]
+        public void PreliminaryAttributeGroupingStopwatchTest()
+        {
+            Stopwatch sw = new Stopwatch();
+            ObjectArchiver<Data> archiver = new ObjectArchiver<Data>();
+            int testCount = 1000;
+            long msSum = 0;
+
+            for (int i = 0; i < testCount; i++)
+            {
+                sw.Start();
+
+                archiver.CalculateMetric(Data.NonUniformEnumeration);
 
                 sw.Stop();
 
@@ -154,6 +291,8 @@ namespace TupleAlgebraTests.ACTupleZipTests
                 (Data data) => data.d,
                 (Data data) => data.dec
                 );
+
+            ObjectSchema<Data>.InitAttributeSchema(attributeSchema);
         }
     }
 }

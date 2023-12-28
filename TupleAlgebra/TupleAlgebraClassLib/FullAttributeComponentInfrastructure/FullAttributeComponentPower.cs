@@ -12,39 +12,35 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
     /// </summary>
     public class FullAttributeComponentPower : AttributeComponentPower
     {
-        #region Static fields
+        #region Instance fields
 
-        private static Lazy<FullAttributeComponentPower> _instance;
+        private AttributeComponentPower _universumPower;
 
         #endregion
 
-        #region Instance fields
+        #region Instance properties
 
         public override AttributeComponentContentType ContentType
         { get => AttributeComponentContentType.Full; }
 
-        #endregion
-
-        #region Static properties
-
-        public static FullAttributeComponentPower Instance { get => _instance.Value; }
-
-        #endregion
-
-        #region Constructors
-
-        static FullAttributeComponentPower()
-        {
-            _instance = new Lazy<FullAttributeComponentPower>(() => new FullAttributeComponentPower());
-
-            return;
-        }
-
-        private FullAttributeComponentPower() { }
+        public AttributeComponentPower UniversumPower { get; set; }
 
         #endregion
 
         #region IAttributeComponentPower implementation
+
+        public override int CompareTo(AttributeComponentPower second)
+        {
+            /*
+             * Если вторая компонента тоже полная, то сравнивается мощность представляемая 
+             * ей универсума с универсумом, который представляется этой компонентой.
+             * Если вторая компонента пустая, то универсум этой компоненты сравнивается с ней.
+             * Если вторая компонента нефиктивная, то она сравнивается с универсумом этой компоненты.
+             */
+            return base.CompareTo(second) >= 0 ? 
+                -second.CompareTo(_universumPower) : 
+                _universumPower.CompareTo(second);
+        }
 
         public override bool EqualsZero() => false;
 

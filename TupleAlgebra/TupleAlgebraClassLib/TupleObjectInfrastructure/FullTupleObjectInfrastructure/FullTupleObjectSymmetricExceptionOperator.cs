@@ -10,6 +10,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastr
 {
     public sealed class FullTupleObjectSymmetricExceptionOperator<TEntity>
         : CrossTypeInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, TupleObject<TEntity>>
+        where TEntity : new()
     {
         public override TupleObject<TEntity> Accept(
             FullTupleObject<TEntity> first,

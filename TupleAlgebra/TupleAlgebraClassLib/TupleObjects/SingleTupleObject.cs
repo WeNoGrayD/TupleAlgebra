@@ -4,20 +4,29 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    /// <summary>
+    /// Объект алгебры кортежей, представляющий собой один терм.
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
     public abstract class SingleTupleObject<TEntity> : TupleObject<TEntity>
+        where TEntity : new()
     {
-        private IDictionary<AttributeName, IAlgebraicSetObject> _components =
-            new Dictionary<AttributeName, IAlgebraicSetObject>();
+        protected IAttributeComponent[] _components;
 
-        public IAlgebraicSetObject this[AttributeName name]
+        public IAttributeComponent this[int attrLoc]
         {
-            get => _components[name];
-            set => _components[name] = value;
+            get => _components[attrLoc];
+        }
+
+        public IAttributeComponent this[AttributeInfo attrInfo]
+        {
+            get => _components[Schema.GetAttributeLoc(attrInfo)];
         }
 
         #region Constructors
@@ -41,8 +50,6 @@ namespace TupleAlgebraClassLib.TupleObjects
             Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
             : base(builder, onTupleBuilding)
         {
-            Schema.AttributeChanged += SchemaAttributeChanged;
-
             return;
         }
 
@@ -62,49 +69,51 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Instance methods
 
-        public bool Contains<TAttributeComponent>()
-            where TAttributeComponent : IAlgebraicSetObject
+        /// <summary>
+        /// Сортировка массива компонент атрибутов кортежа в зависимости от задачи.
+        /// </summary>
+        private void RearrangeAttributeComponents()
         {
-            return _components.Values.Any(component => component is TAttributeComponent);
-        }
 
-        public bool ContainsEmptyAttributeComponent()
-        {
-            return false;// return _components.Values.Any(component => component.IsEmpty());
-        }
-
-        public bool ContainsFullAttributeComponent()
-        {
-            return false;// return _components.Values.Any(component => component.IsFull());
-        }
-
-        public void InitAttributes(IDictionary<AttributeName, IAlgebraicSetObject> components)
-        {
-            _components = components;
 
             return;
         }
 
-        protected void SchemaAttributeChanged(object sender, AttributeChangedEventArgs eventArgs)
+        protected bool ContainsSpecificAttributeComponent(Func<IAttributeComponent, bool> gotcha)
         {
-            switch (eventArgs.ChangingEvent)
+            bool containsSpecific = false;
+            IAttributeComponent component;
+
+            for (int i = 0; i < _components.Length; i++)
             {
-                case AttributeChangedEventArgs.Event.Attachment:
-                    {
-                        _components.Add(
-                            eventArgs.AttributeName,
-                            GetDefaultFictionalAttributeComponent(eventArgs.Attribute));
+                if ((component = _components[i]) is null || !gotcha(component)) continue;
 
-                        break;
-                    }
-                case AttributeChangedEventArgs.Event.Detachment:
-                case AttributeChangedEventArgs.Event.Deletion:
-                    {
-                        _components.Remove(eventArgs.AttributeName);
-
-                        break;
-                    }
+                containsSpecific = true;
+                break;
             }
+
+            return containsSpecific;
+        }
+
+        public bool Contains<TAttributeComponent>()
+            where TAttributeComponent : IAttributeComponent
+        {
+            return ContainsSpecificAttributeComponent(component => component is TAttributeComponent);
+        }
+
+        public bool ContainsEmptyAttributeComponent()
+        {
+            return ContainsSpecificAttributeComponent(component => component.Power.EqualsZero());
+        }
+
+        public bool ContainsFullAttributeComponent()
+        {
+            return ContainsSpecificAttributeComponent(component => component.Power.EqualsContinuum());
+        }
+
+        public void InitAttributes(IDictionary<AttributeName, IAlgebraicSetObject> components)
+        {
+            //_components = components;
 
             return;
         }

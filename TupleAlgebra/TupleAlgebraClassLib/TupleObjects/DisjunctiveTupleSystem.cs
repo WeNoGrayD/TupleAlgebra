@@ -8,6 +8,7 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure;
 namespace TupleAlgebraClassLib.TupleObjects
 {
     public class DisjunctiveTupleSystem<TEntity> : TupleObjectSystem<TEntity>
+        where TEntity : new()
     {
         public DisjunctiveTupleSystem(Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
             : base(onTupleBuilding)

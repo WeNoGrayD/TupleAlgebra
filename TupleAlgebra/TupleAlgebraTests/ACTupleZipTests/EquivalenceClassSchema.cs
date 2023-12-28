@@ -47,9 +47,15 @@ namespace TupleAlgebraTests.ACTupleZipTests
             return new EquivalenceClassBearer<TData>();
         }
 
-        bool IEquivalenceClassBearer.Equals(IEquivalenceClassBearer second)
+        public bool Equals(IEquivalenceClassBearer second)
         {
             return Value.Equals((second as EquivalenceClassBearer<TData>)!.Value);
+        }
+
+        public override bool Equals(object? second)
+        {
+            return (second is IEquivalenceClassBearer secondEquClassBearer) ? 
+                Equals(secondEquClassBearer) : false;
         }
 
         public override int GetHashCode()

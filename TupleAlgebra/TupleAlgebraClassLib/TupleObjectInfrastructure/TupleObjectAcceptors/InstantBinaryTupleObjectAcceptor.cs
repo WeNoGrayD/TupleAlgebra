@@ -17,6 +17,7 @@ namespace TupleAlgebraClassLib.TupleObjectAcceptors
     /// <typeparam name="TOperationResult"></typeparam>
     public abstract class InstantBinaryTupleObjectAcceptor<TEntity, TOperand1, TOperationResult>
         : InstantBinaryOperator<TOperand1, TupleAlgebraClassLib.TupleObjects.TupleObject<TEntity>, TOperationResult>
+        where TEntity : new()
         where TOperand1: TupleAlgebraClassLib.TupleObjects.TupleObject<TEntity>
     { }
 }

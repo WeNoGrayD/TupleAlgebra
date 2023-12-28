@@ -121,6 +121,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Dec
                 return (_component.Domain & _component).Power.EqualsZero();
             }
 
+            protected override int CompareToZero()
+            {
+                return 1;
+            }
+
             protected override int CompareToSame(dynamic second)
             {
                 if (second is PredicateBasedDecidableNonFictionalAttributeComponentPower second2)

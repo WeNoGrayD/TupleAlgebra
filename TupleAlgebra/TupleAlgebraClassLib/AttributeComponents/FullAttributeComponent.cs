@@ -22,6 +22,27 @@ namespace TupleAlgebraClassLib.AttributeComponents
     public sealed class FullAttributeComponent<TData> 
         : AttributeComponent<TData>
     {
+        #region Instance fields
+
+        private Func<AttributeDomain<TData>> _getDomain;
+
+        #endregion
+
+        #region Instance properties
+
+        public override Func<AttributeDomain<TData>> GetDomain 
+        {
+            get => _getDomain;
+            set
+            {
+                _getDomain = value;
+                (Power as FullAttributeComponentPower).UniversumPower =
+                    value().Universum.Power;
+            }
+        }
+
+        #endregion
+
         #region Constructors
 
         /// <summary>

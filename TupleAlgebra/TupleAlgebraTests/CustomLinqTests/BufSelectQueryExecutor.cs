@@ -15,7 +15,6 @@ namespace TupleAlgebraTests.CustomLinqTests
         public BufSelectQueryExecutor(Func<TData, TQueryResultData> transform) : base()
         {
             _transform = transform;
-
             return;
         }
 

@@ -97,7 +97,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         public FullAttributeComponentFactoryArgs(
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(FullAttributeComponentPower.Instance, false, queryProvider, queryExpression)
+            : base(new FullAttributeComponentPower(), false, queryProvider, queryExpression)
         {
             return;
         }

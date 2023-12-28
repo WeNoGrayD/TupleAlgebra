@@ -158,6 +158,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
             return;
         }
 
+        protected override int CompareToZero()
+        {
+            return 1;
+        }
+
         protected override int CompareToSame(dynamic second)
         {
             if (second is AtomicNonFictionalAttributeComponentPower<TData> second2)

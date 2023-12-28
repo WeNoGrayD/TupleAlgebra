@@ -33,15 +33,26 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
             return Component.Domain == Component;
         }
 
+        protected abstract int CompareToZero();
+
         protected abstract int CompareToSame(dynamic second);
 
         public override sealed int CompareTo(AttributeComponentPower second)
         {
-            int comparisonResult = base.CompareTo(second);
-            if (comparisonResult == 0)
-                comparisonResult = CompareToSame(second);
-
-            return comparisonResult;
+            /*
+             * Если вторая компонента является полной,
+             * то необходимо сравнить мощность нефиктивной компоненты с мощностью универсума,
+             * который представляет полная компонента (могущая быть компонентой другого атрибута,
+             * т.е. сравнивать по типу мощности будет некорректно).
+             * Если вторая компонента тоже нефиктивная, то проводится специализированное сравнение.
+             * Если вторая компонента пустая, то проводится сравнение на 0.
+             */
+            return base.CompareTo(second) switch
+            {
+                -1 => -second.CompareTo(this),
+                0 => CompareToSame(second),
+                _ => CompareToZero()
+            };
         }
 
         #endregion

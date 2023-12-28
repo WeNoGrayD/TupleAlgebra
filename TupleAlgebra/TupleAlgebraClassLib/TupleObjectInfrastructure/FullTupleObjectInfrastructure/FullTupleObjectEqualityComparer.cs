@@ -13,6 +13,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastr
         : CrossTypeInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, bool>,
           IInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, ConjunctiveTuple<TEntity>, bool>,
           IInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, ConjunctiveTupleSystem<TEntity>, bool>
+        where TEntity : new()
     {
         public override bool Accept(
             FullTupleObject<TEntity> first,

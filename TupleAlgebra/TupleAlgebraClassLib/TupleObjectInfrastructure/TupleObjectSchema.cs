@@ -15,7 +15,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     {
         #region Instance fields
 
-        private Dictionary<AttributeName, AttributeInfo> _attributes;
+        private IDictionary<AttributeName, AttributeInfo> _attributes;
+
+        private IDictionary<AttributeInfo, int> _attributeLocations;
+
+        private Func<IEnumerator[], TEntity> _entityFactory;
 
         /*
         /// <summary>
@@ -29,6 +33,22 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         #region Instance properties
 
         public IDictionary<AttributeName, AttributeInfo> Attributes => _attributes;
+
+        public static bool IsEntityPrimitive { get; private set; }
+
+        public Func<IEnumerator[], TEntity> EntityFactory 
+        {
+            get
+            {
+                if (_entityFactory is null)
+                {
+                    System.Reflection.PropertyInfo[] attributes = null; 
+                    _entityFactory = (new EntityFactoryBuilder()).Build<TEntity>(attributes);
+                }
+
+                return _entityFactory;
+            }
+        }
 
         #endregion
 
@@ -65,33 +85,70 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #region Constructors
 
-        public TupleObjectSchema(
-            //TupleObjectBuilder<TEntity> builder, 
-            Dictionary<AttributeName, AttributeInfo> attributes = null)
+        /// <summary>
+        /// Статический конструктор.
+        /// </summary>
+        static TupleObjectSchema()
         {
-            _attributes = attributes ?? new Dictionary<AttributeName, AttributeInfo>();
-            //Builder = builder;
+            IsEntityPrimitive = typeof(TEntity).IsPrimitive;
+        }
+
+        /// <summary>
+        /// Конструктор экземпляра.
+        /// </summary>
+        /// <param name="attributes"></param>
+        public TupleObjectSchema(
+            IDictionary<AttributeName, AttributeInfo> attributes = null)
+        {
+            if (attributes is not null)
+            {
+                _attributes = attributes;
+                InitAttributeLocations();
+            }
+            else
+            {
+                _attributes = new Dictionary<AttributeName, AttributeInfo>();
+            }
+
+            return;
         }
 
         #endregion
 
         #region Static methods
 
-        public static TupleObjectSchema<TEntity> Create(TupleObjectBuilder<TEntity> builder)
-        {
-            return new TupleObjectSchema<TEntity>();//builder);
-        }
 
         #endregion
 
         #region Instance methods
 
-        public TupleObjectSchema<TEntity> Clone(TupleObjectBuilder<TEntity> builder)
+        /// <summary>
+        /// Инициализация массива индексов атрибутов.
+        /// </summary>
+        private void InitAttributeLocations()
         {
-            Dictionary<AttributeName, AttributeInfo> attributes =
-                _attributes.Select(kvp => kvp).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            int attrLoc = 0;
+            _attributeLocations = new Dictionary<AttributeInfo, int>();
+            
+            foreach (AttributeInfo attrInfo in _attributes.Values)
+            {
+                _attributeLocations.Add(attrInfo, attrLoc++);
+            }
 
-            return new TupleObjectSchema<TEntity>(attributes); //builder, attributes);
+            return;
+        }
+
+        public Func<IEnumerator[], TEntity> GetEntityFactory()
+        {
+            return null;
+        }
+
+        public TupleObjectSchema<TEntity> Clone()
+        {
+            IDictionary<AttributeName, AttributeInfo> attributes =
+                _attributes.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            return new TupleObjectSchema<TEntity>(attributes); 
         }
 
         private void OnAttributeChanged(AttributeChangedEventArgs eventArgs)
@@ -103,7 +160,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public IDictionary<AttributeName, IAlgebraicSetObject> InitAttributes()
         {
-            Dictionary<AttributeName, IAlgebraicSetObject> components = new Dictionary<AttributeName, IAlgebraicSetObject>();
+            Dictionary<AttributeName, IAlgebraicSetObject> components = 
+                new Dictionary<AttributeName, IAlgebraicSetObject>();
 
             foreach ((AttributeName attributeName, AttributeInfo attribute) in this.Attributes)
             {
@@ -115,6 +173,14 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return components;
         }
 
+        /// <summary>
+        /// Получения индекса атрибута в последовательности компонент кортежа
+        /// с данной схемой.
+        /// </summary>
+        /// <param name="attrInfo"></param>
+        /// <returns></returns>
+        public int GetAttributeLoc(AttributeInfo attrInfo) => _attributeLocations[attrInfo];
+
         public bool ContainsAttribute(string attributeName)
         {
             return _attributes.ContainsKey(attributeName);
@@ -123,12 +189,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public void AddAttribute<TDomainEntity>(
             string attributeName, AttributeDomain<TDomainEntity> attribute = null)
         {
-            /*
-            AttributeInfo attributeInfo = AttributeInfo.Construct(
+            AttributeInfo attributeInfo = AttributeInfo.Construct<TEntity, TDomainEntity>(
                 isPlugged: attribute is not null,
                 domain: attribute);
             _attributes.Add(attributeName, attributeInfo);
-            */
 
             return;
         }
@@ -138,58 +202,76 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             _attributes.Remove(attributeName);
         }
 
-        public void GeneralizeWith(TupleObjectSchema<TEntity> second)
+        public TupleObjectSchema<TEntity> GeneralizeWith(TupleObjectSchema<TEntity> second)
         {
+            TupleObjectSchema<TEntity> resultSchema = 
+                this.Clone();
             AttributeInfo attributeInfo1, attributeInfo2;
+
             foreach (string attributeName in _attributes.Keys)
             {
                 (attributeInfo1, attributeInfo2) = (this[attributeName], second[attributeName]);
                 switch ((attributeInfo1.IsPlugged, attributeInfo2.IsPlugged))
                 {
                     case (true, true):
-                        {
-                            break;
-                        }
-                    case (false, false):
-                        {
-                            break;
-                        }
-                    case (false, true):
-                        {
-                            this[attributeName] = attributeInfo1.PlugIn();
-
-                            break;
-                        }
                     case (true, false):
                         {
-                            second[attributeName] = attributeInfo2.PlugIn();
+                            break;
+                        }
+                    case (_, _):
+                        {
+                            resultSchema.AttachAttribute(attributeName);
 
                             break;
                         }
                 }
             }
+
+            resultSchema.EndInitializingAttributes();
+
+            return resultSchema;
         }
 
-        private void AttachAttribute(string attributeName)
+        /// <summary>
+        /// Выполнение запросов над атрибутами, то есть полноценное прикрепление и открепление
+        /// атрибутов для обязательно новой схемы.
+        /// </summary>
+        public void EndInitializingAttributes()
         {
-            AttributeInfo attached = _attributes[attributeName].PlugIn();
+            foreach (string attributeName in _attributes.Keys)
+            {
+                _attributes[attributeName] = _attributes[attributeName].ExecuteQuery();
+            }
+
+            return;
+        }
+
+        public void AttachAttribute(string attributeName)
+        {
+            _attributes[attributeName] = _attributes[attributeName].Attach();
+            /*
+            AttributeInfo attached = _attributes[attributeName].Attach();
             _attributes[attributeName] = attached;
             OnAttributeChanged(new AttributeChangedEventArgs(
                 attributeName, 
                 attached, 
                 AttributeChangedEventArgs.Event.Attachment));
+            */
 
             return;
         }
 
-        private void DetachAttribute(string attributeName)
+        public void DetachAttribute(string attributeName)
         {
-            AttributeInfo detached = _attributes[attributeName].UnPlug();
+            _attributes[attributeName] = _attributes[attributeName].Detach();
+            /*
+            AttributeInfo detached = _attributes[attributeName].Detach();
             _attributes[attributeName] = detached;
             OnAttributeChanged(new AttributeChangedEventArgs(
                 attributeName, 
                 detached, 
                 AttributeChangedEventArgs.Event.Detachment));
+            */
 
             return;
         }
@@ -212,14 +294,30 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #region Operators
 
-        public static TupleObjectSchema<TEntity> operator +(TupleObjectSchema<TEntity> schema, string attributeName)
+        /// <summary>
+        /// Оператор прикрепления атрибута.
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="attributeName"></param>
+        /// <returns></returns>
+        public static TupleObjectSchema<TEntity> operator +(
+            TupleObjectSchema<TEntity> schema, 
+            string attributeName)
         {
             schema.AttachAttribute(attributeName);
 
             return schema;
         }
 
-        public static TupleObjectSchema<TEntity> operator -(TupleObjectSchema<TEntity> schema, string attributeName)
+        /// <summary>
+        /// Оператор открепления атрибута.
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="attributeName"></param>
+        /// <returns></returns>
+        public static TupleObjectSchema<TEntity> operator -(
+            TupleObjectSchema<TEntity> schema, 
+            string attributeName)
         {
             schema.DetachAttribute(attributeName);
 

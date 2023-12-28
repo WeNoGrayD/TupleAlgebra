@@ -32,7 +32,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
           IBitwiseOperators<AttributeComponent<TData>, AttributeComponent<TData>, AttributeComponent<TData>>,
           IDivisionOperators<AttributeComponent<TData>, AttributeComponent<TData>, AttributeComponent<TData>>,
           IEqualityOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>,
-          IComparisonOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>
+          IComparisonOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>,
+          IAttributeComponent
     {
         #region Instance properties
 
@@ -40,7 +41,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public AttributeDomain<TData> Domain { get => GetDomain(); }
 
-        public Func<AttributeDomain<TData>> GetDomain { get;  set; }
+        public virtual Func<AttributeDomain<TData>> GetDomain { get;  set; }
 
         public AttributeComponentFactory Factory { get => Helper.GetFactory(this); }
 
@@ -148,6 +149,17 @@ namespace TupleAlgebraClassLib.AttributeComponents
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        IEnumerator IAttributeComponent.GetBufferizedEnumerator()
+        {
+            /*
+             * 1) Сначала компонента превращается в массив.
+             * 2) Затем массив приводится к типу IEnumerable<TData>, чтобы вернулся обобщённый
+             * IEnumerator, а не необобщённый, как по умолчанию у массивов.
+             * 3) И вот от приведённого массива передаётся GetEnumerator().
+             */
+            return ((this.ToArray()) as IEnumerable<TData>).GetEnumerator();
         }
 
         #region Set operations

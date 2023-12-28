@@ -10,7 +10,8 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 {
-    public class TupleObjectFactoryArgs
+    public class TupleObjectFactoryArgs<TEntity>
+        where TEntity : new()
     {
         /*
         #region Instance fields
@@ -22,7 +23,9 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         #region Instance properties
 
-        public readonly IQueryProvider QueryProvider;
+        public TupleObjectSchema<TEntity> Schema { get; set; }
+
+        public IQueryProvider QueryProvider { get; set; }
 
         public Expression QueryExpression { get; set; }
 
@@ -30,7 +33,9 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         #region Constructors
 
-        protected TupleObjectFactoryArgs(IQueryProvider queryProvider, Expression queryExpression)
+        protected TupleObjectFactoryArgs(
+            IQueryProvider queryProvider, 
+            Expression queryExpression)
         {
             QueryProvider = queryProvider;
             QueryExpression = queryExpression;
@@ -59,7 +64,9 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
     */
     }
 
-    public class TupleObjectCopyFactoryArgs<TEntity> : TupleObjectFactoryArgs
+    /*
+    public class TupleObjectCopyFactoryArgs<TEntity> : TupleObjectFactoryArgs<TEntity>
+        where TEntity : new()
     {
         public TupleObject<TEntity> Source { get; private set; }
 
@@ -68,24 +75,28 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             object actionAfterCopy = null,
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(queryProvider, queryExpression)
+            : base(source.Schema, queryProvider, queryExpression)
         {
             Source = source;
 
             return;
         }
     }
+    */
 
-    public class SingleTupleObjectFactoryArgs: TupleObjectFactoryArgs
+    public class SingleTupleObjectFactoryArgs<TEntity> : TupleObjectFactoryArgs<TEntity>
+        where TEntity : new()
     {
         public SingleTupleObjectFactoryArgs(
             IQueryProvider queryProvider = null,
-            Expression queryExpression = null)
+            Expression queryExpression = null,
+            params (LambdaExpression AttributeGetterExpr, IAttributeComponent AttributeComponent)[] attributes)
             : base(queryProvider, queryExpression)
         { }
     }
 
-    public class TupleSystemObjectFactoryArgs : TupleObjectFactoryArgs
+    public class TupleSystemObjectFactoryArgs<TEntity> : TupleObjectFactoryArgs<TEntity>
+        where TEntity : new()
     {
         public TupleSystemObjectFactoryArgs(
             IQueryProvider queryProvider = null,

@@ -131,7 +131,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         public virtual FullAttributeComponent<TData> CreateFull<TData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            factoryArgs.Power = FullAttributeComponentPower.Instance;
+            factoryArgs.Power = new FullAttributeComponentPower();
             FullAttributeComponent<TData> full = 
                 new FullAttributeComponent<TData>(
                     (factoryArgs.Power as FullAttributeComponentPower)!, 

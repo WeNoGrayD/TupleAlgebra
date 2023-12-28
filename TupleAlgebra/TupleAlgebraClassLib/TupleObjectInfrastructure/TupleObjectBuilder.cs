@@ -55,7 +55,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public TupleObjectBuilder()
         {
             // Копируется схема кортежа сущности по умолчанию.
-            Schema = StaticBuilder.Schema.Clone(this);
+            Schema = StaticBuilder.Schema.Clone();
 
             return;
         }
@@ -85,7 +85,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             MethodInfo addAttributeToSchema = typeof(TupleObjectSchema<TEntity>)
                     .GetMethod(nameof(TupleObjectSchema<TEntity>.AddAttribute), memberFlags);
 
-            if (entityType.IsPrimitive)
+            if (TupleObjectSchema<TEntity>.IsEntityPrimitive)
                 ConstructPrimitiveType();
             else
                 ConstructComplicatedType();

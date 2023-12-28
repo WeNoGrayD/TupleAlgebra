@@ -41,6 +41,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             return Value == 0;
         }
 
+        protected override int CompareToZero()
+        {
+            return Value.CompareTo(0);
+        }
+
         protected override int CompareToSame(dynamic second)
         {
             if (second is OrderedFiniteEnumerableNonFictionalAttributeComponentPower<TData> castedSecond)
