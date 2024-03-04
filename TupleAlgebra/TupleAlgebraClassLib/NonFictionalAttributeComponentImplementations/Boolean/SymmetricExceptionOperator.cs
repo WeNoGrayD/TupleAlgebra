@@ -12,21 +12,21 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean
 {
     public class SymmetricExceptionOperator
-        : NonFictionalAttributeComponentSymmetricExceptionOperator<bool, BooleanNonFictionalAttributeComponent>,
-          IFactoryBinaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, BooleanNonFictionalAttributeComponent, AttributeComponent<bool>>
+        : NonFictionalAttributeComponentSymmetricExceptionOperator<bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs>,
+          IBooleanAttributeComponentBinaryOperator
     {
         public AttributeComponent<bool> Accept(
             BooleanNonFictionalAttributeComponent first,
             BooleanNonFictionalAttributeComponent second,
-            AttributeComponentFactory factory)
+            IBooleanAttributeComponentFactory factory)
         {
             if (first.Value == second.Value)
             {
-                return factory.CreateEmpty<bool>(first.GetDomain);
+                return factory.CreateEmpty();
             }
             else
             {
-                return factory.CreateFull<bool>(first.GetDomain);
+                return factory.CreateFull();
             }
         }
     }

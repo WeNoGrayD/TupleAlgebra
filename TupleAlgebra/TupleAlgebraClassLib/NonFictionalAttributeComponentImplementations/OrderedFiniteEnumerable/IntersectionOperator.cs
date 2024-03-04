@@ -8,25 +8,27 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class IntersectionOperator<TData>
-        : NonFictionalAttributeComponentIntersectionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
-          IFactoryBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+    public abstract class IntersectionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
+        : NonFictionalAttributeComponentIntersectionOperator<TData, CTOperand1, TFactory, TFactoryArgs>,
+          IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, CTOperand1, AttributeComponent<TData>, TFactory, TFactoryArgs>,
+          IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, CTOperand1, TFactory, TFactoryArgs>,
+          IFiniteEnumerableAttributeComponentIntersectionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
+        where CTOperand1 : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
+        where TFactoryArgs : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+        where TFactory : IOrderedFiniteEnumerableAttributeComponentFactory<TData, CTOperand1, TFactoryArgs>
     {
         public AttributeComponent<TData> Accept(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
-            AttributeComponentFactory factory)
+            CTOperand1 first,
+            IOrderedFiniteEnumerableAttributeComponent<TData> second,
+            TFactory factory)
         {
             IEnumerable<TData> intersectedElements = IntersectComponentsElements();
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
-                first.ZipInfo(intersectedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
-            factoryArgs.ValuesAreOrdered = true;
-            AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
-            return resultComponent;
+            return factory.CreateNonFictional(first, intersectedElements);
 
             IEnumerable<TData> IntersectComponentsElements()
             {

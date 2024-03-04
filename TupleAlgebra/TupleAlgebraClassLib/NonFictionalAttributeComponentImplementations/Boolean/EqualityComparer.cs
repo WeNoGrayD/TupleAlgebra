@@ -10,7 +10,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
 {
     public class EqualityComparer
         : NonFictionalAttributeComponentEqualityComparer<bool, BooleanNonFictionalAttributeComponent>,
-          IInstantBinaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, BooleanNonFictionalAttributeComponent, bool>
+          IBooleanAttributeComponentBooleanOperator
     {
         public bool Accept(
             BooleanNonFictionalAttributeComponent first,

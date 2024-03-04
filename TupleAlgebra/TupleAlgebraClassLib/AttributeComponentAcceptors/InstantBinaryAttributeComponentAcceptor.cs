@@ -19,6 +19,6 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     public abstract class InstantBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
         : InstantBinaryOperator<TOperand1, AttributeComponent<TData>, TOperationResult>,
           IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, AttributeComponent<TData>, TOperationResult>
-        where TOperand1: AttributeComponent<TData>
+        where TOperand1: IAttributeComponent<TData>
     { }
 }

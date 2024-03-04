@@ -4,8 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Buffered;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponents;
+using System.Linq.Expressions;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable;
+using System.Collections;
 
 namespace TupleAlgebraTests
 {
@@ -17,48 +22,108 @@ namespace TupleAlgebraTests
         protected MockAttributeComponentFactory<string> stringFactory;
         protected Dictionary<Type, object> factories;
 
-        protected class MockAttributeComponentFactory<TData> : OrderedFiniteEnumerableAttributeComponentFactory
+        protected class MockAttributeComponentFactory<TData> 
+            : OrderedFiniteEnumerableAttributeComponentFactory<TData>//,
+              //INonFictionalAttributeComponentFactory<TData, MockAttributeComponentFactory<TData>.MockAttributeComponentFactoryArgs<TData>>
             where TData : IComparable<TData>
         {
-            public readonly AttributeDomain<TData> FactoryDomain;
-
-            public MockAttributeComponentFactory(AttributeDomain<TData> factoryDomain)
-            {
-                FactoryDomain = factoryDomain;
-            }
-
-            public EmptyAttributeComponent<TData> CreateEmpty()
-            {
-                AttributeComponentFactoryArgs factoryArgs = new EmptyAttributeComponentFactoryArgs();
-                factoryArgs.SetDomainGetter(FactoryDomain.UniversumDomainGetter);
-                return CreateEmpty<TData>(factoryArgs);
-            }
+            public MockAttributeComponentFactory(IEnumerable<TData> universeData)
+                : base(universeData)
+            { }
 
             public AttributeComponent<TData> CreateNonFictional(
                 IEnumerable<TData> values)
             {
-                OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
-                    OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(null, values);
-                factoryArgs.SetDomainGetter(FactoryDomain.UniversumDomainGetter);
-                return CreateNonFictional<TData>(factoryArgs);
+                StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
+                    new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(values);
+
+                return CreateNonFictional(factoryArgs);
             }
 
-            public FullAttributeComponent<TData> CreateFull()
+            /*
+            public NonFictionalAttributeComponent<TData> CreateSpecificNonFictional(
+                BufferedMockAttributeComponentFactoryArgs<TData> args)
             {
-                AttributeComponentFactoryArgs factoryArgs = new FullAttributeComponentFactoryArgs();
-                factoryArgs.SetDomainGetter(FactoryDomain.UniversumDomainGetter);
-                return CreateFull<TData>(factoryArgs);
+                return new MockAttributeComponent(
+                    args.Power,
+                    args.Values as IEnumerable<TData>);
             }
+
+            public NonFictionalAttributeComponent<TData> CreateSpecificNonFictional(
+                StreamingMockAttributeComponentFactoryArgs<TData> args)
+            {
+                return new MockAttributeComponent(
+                    args.Power,
+                    args.Values as IEnumerable<TData>);
+            }
+            */
+
+            public AttributeComponent<TData> CreateMock(
+                IEnumerable<TData> values = null)
+            {
+                StreamingMockAttributeComponentFactoryArgs<TData> factoryArgs =
+                    new StreamingMockAttributeComponentFactoryArgs<TData>(values);
+
+                return CreateNonFictional(factoryArgs);
+            }
+
+            public class BufferedMockAttributeComponentFactoryArgs<TData>
+                : BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+            {
+                public BufferedMockAttributeComponentFactoryArgs(
+                    IEnumerable<TData> values = null)
+                    : base(values: values)
+                { return; }
+            }
+
+            public class StreamingMockAttributeComponentFactoryArgs<TData>
+                : StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+            {
+                public StreamingMockAttributeComponentFactoryArgs(
+                    IEnumerable<TData> values = null)
+                    : base(values: values)
+                { return; }
+            }
+
+            /*
+            private class MockAttributeComponent
+                : OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>
+            {
+                static MockAttributeComponent()
+                {
+                    AttributeComponentHelper.Helper.RegisterType<TData, MockAttributeComponent>(
+                        setOperations: null);// new OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer());
+
+                    return;
+                }
+
+                public MockAttributeComponent(
+                    AttributeComponentPower power,
+                    IEnumerable<TData> values)
+                    : base(power, values)
+                {
+                    return;
+                }
+
+                private class MockSetOperationContainer
+                    : OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer
+                {
+                    public MockSetOperationContainer(
+                        IOrderedFiniteEnumerableAttributeComponentFactory<TData> 
+                        factory) 
+                        : base(factory) { }
+                }
+            }
+            */
         }
 
         [TestInitialize]
         public void SetUp()
         {
             intFactory = new MockAttributeComponentFactory<int>(
-                new OrderedFiniteEnumerableAttributeDomain<int>(Enumerable.Range(0, 10)));
+                Enumerable.Range(0, 10));
             stringFactory = new MockAttributeComponentFactory<string>(
-                new OrderedFiniteEnumerableAttributeDomain<string>(
-                    new[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" }));
+                new[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j" });
             factories = new Dictionary<Type, object>()
             { { typeof(int), intFactory }, { typeof(string), stringFactory } };
         }
@@ -69,7 +134,7 @@ namespace TupleAlgebraTests
         {
             MockAttributeComponentFactory<T> factory =
                 (factories[typeof(T)] as MockAttributeComponentFactory<T>)!;
-            first.SymmetricExceptWith(factory.FactoryDomain);
+            first.SymmetricExceptWith(factory.Domain);
             List<T> resultValuesList = new List<T>(first);
             resultValuesList.Sort();
             return resultValuesList;

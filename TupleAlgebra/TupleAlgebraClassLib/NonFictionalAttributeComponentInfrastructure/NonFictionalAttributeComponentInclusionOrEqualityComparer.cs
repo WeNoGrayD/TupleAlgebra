@@ -9,23 +9,19 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
     public abstract class NonFictionalAttributeComponentInclusionOrEqualityComparer<TData, CTOperand1>
-        : InstantBinaryAttributeComponentAcceptor<TData, CTOperand1, bool>,
-          IInstantBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, EmptyAttributeComponent<TData>, bool>,
-          IInstantBinaryAttributeComponentAcceptor<TData, CTOperand1, NonFictionalAttributeComponent<TData>, bool>,
-          IInstantBinaryAttributeComponentAcceptor<TData, NonFictionalAttributeComponent<TData>, FullAttributeComponent<TData>, bool>
+        : NonFictionalAttributeComponentBooleanBinaryOperator<TData, CTOperand1>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
     {
-        public bool Accept(NonFictionalAttributeComponent<TData> first, EmptyAttributeComponent<TData> second)
+        public override bool Accept(
+            NonFictionalAttributeComponent<TData> first, 
+            EmptyAttributeComponent<TData> second)
         {
             return true;
         }
 
-        public bool Accept(CTOperand1 first, NonFictionalAttributeComponent<TData> second)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Accept(NonFictionalAttributeComponent<TData> first, FullAttributeComponent<TData> second)
+        public override bool Accept(
+            NonFictionalAttributeComponent<TData> first, 
+            FullAttributeComponent<TData> second)
         {
             return false;
         }

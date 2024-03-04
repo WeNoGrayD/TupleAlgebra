@@ -7,11 +7,12 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.SpecializedAttributeDomains
 {
+    /*
     public sealed class Integer32OrderedFiniteEnumerableAttributeDomain 
         : NumericOrderedFiniteEnumerableAttributeDomain<int>
     {
-        public Integer32OrderedFiniteEnumerableAttributeDomain(IEnumerable<int> universum)
-            : base(universum)
+        public Integer32OrderedFiniteEnumerableAttributeDomain(IEnumerable<int> universe)
+            : base(universe)
         { }
 
         public Integer32OrderedFiniteEnumerableAttributeDomain(
@@ -29,4 +30,5 @@ namespace TupleAlgebraClassLib.SpecializedAttributeDomains
             : base(ranges)
         { }
     }
+    */
 }

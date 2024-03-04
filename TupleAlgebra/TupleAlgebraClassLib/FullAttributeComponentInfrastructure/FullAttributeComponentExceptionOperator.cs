@@ -12,7 +12,7 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
     using static AttributeComponentHelper;
 
     public sealed class FullAttributeComponentExceptionOperator<TData>
-        : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, FullAttributeComponent<TData>, AttributeComponent<TData>>
+        : FictionalAttributeComponentCrossTypeInstantBinaryAcceptor<TData, FullAttributeComponent<TData>, AttributeComponent<TData>>
     {
         public override AttributeComponent<TData> Accept(
             FullAttributeComponent<TData> first,
@@ -32,7 +32,7 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
             FullAttributeComponent<TData> first,
             FullAttributeComponent<TData> second)
         {
-            return Helper.GetFactory(first).CreateEmpty<TData>(first.GetDomain);
+            return first.Factory.CreateEmpty();
         }
     }
 }

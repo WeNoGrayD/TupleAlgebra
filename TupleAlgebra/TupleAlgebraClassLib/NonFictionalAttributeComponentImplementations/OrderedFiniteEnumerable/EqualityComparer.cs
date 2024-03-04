@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Countable;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public sealed class EqualityComparer<TData>
-        : NonFictionalAttributeComponentEqualityComparer<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
-          IInstantBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
+    public abstract class EqualityComparer<TData, TAttributeComponent>
+        : NonFictionalAttributeComponentEqualityComparer<TData, TAttributeComponent>,
+          IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent, AttributeComponent<TData>>,
+          IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent>,
+          IFiniteEnumerableAttributeComponentEqualityComparer<TData>,
+          ICountableAttributeComponentEqualityComparer<TData>
+        where TAttributeComponent : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
     {
         public bool Accept(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first, 
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second)
+            TAttributeComponent first,
+            IOrderedFiniteEnumerableAttributeComponent<TData> second)
         {
-            //return Enumerable.SequenceEqual(first, second);
             IEnumerator<TData> firstEnumerator = first.GetEnumerator(),
                                secondEnumerator = second.GetEnumerator();
             TData firstElement = default(TData), secondElement = default(TData);

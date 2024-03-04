@@ -8,25 +8,26 @@ using TupleAlgebraClassLib.LINQ2TAFramework;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Buffered;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming;
 
 namespace TupleAlgebraTests
 {
     [TestClass]
     public class AttributeComponentQueryProviderTests
     {
-        private OrderedFiniteEnumerableAttributeComponentFactory _nonFictionalACFactory =
-            new OrderedFiniteEnumerableAttributeComponentFactory();
+        private OrderedFiniteEnumerableAttributeComponentFactory<ForumUser> _nonFictionalACFactory =
+            new OrderedFiniteEnumerableAttributeComponentFactory<ForumUser>((IEnumerable<ForumUser>)null);
 
         protected IEnumerable<TData> CreateAttributeComponent<TData>(
             AttributeDomain<TData> domain,
             Dictionary<string, object> constructorParameters)
         {
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
-                OrderedFiniteEnumerableAttributeComponentFactoryArgs.Construct(
-                    values: constructorParameters["values"] as IEnumerable<TData>,
-                    domainGetter: constructorParameters["domainGetter"] as Func<AttributeDomain<TData>>);
+            StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
+                new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(
+                    values: constructorParameters["values"] as IEnumerable<TData>);
 
-            return _nonFictionalACFactory.CreateNonFictional<TData>(factoryArgs);
+            return _nonFictionalACFactory.CreateNonFictional(factoryArgs) as IEnumerable<TData>;
             //return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(null,
             //    constructorParameters["values"] as IEnumerable<TData>);
         }
@@ -42,7 +43,7 @@ namespace TupleAlgebraTests
             string s1 = fusers.Expression.ToString(),
                 s2 = Expression.Constant(fusers).ToString();
 
-            //Assert.AreEqual(fusers.Expression.ToString(), Expression.Constant(fusersDomain.Universum).ToString());
+            //Assert.AreEqual(fusers.Expression.ToString(), Expression.Constant(fusersDomain.Universe).ToString());
             Assert.IsTrue(Enumerable.SequenceEqual(fusers, fusersDomain));
 
             fusers = fusersDomain.Select(fuser => fuser);
@@ -65,7 +66,7 @@ namespace TupleAlgebraTests
             string s1 = fusers.Expression.ToString(),
                 s2 = Expression.Constant(fusers).ToString();
 
-            //Assert.AreEqual(fusers.Expression.ToString(), Expression.Constant(fusersDomain.Universum).ToString());
+            //Assert.AreEqual(fusers.Expression.ToString(), Expression.Constant(fusersDomain.Universe).ToString());
             Assert.IsTrue(Enumerable.SequenceEqual(fusers, fusersDomain));
 
             fusers = fusersDomain.Select(fuser => fuser);

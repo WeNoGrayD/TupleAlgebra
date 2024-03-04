@@ -12,13 +12,13 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean
 {
     internal class IntersectionOperator
-        : NonFictionalAttributeComponentIntersectionOperator<bool, BooleanNonFictionalAttributeComponent>,
-          IFactoryBinaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, BooleanNonFictionalAttributeComponent, AttributeComponent<bool>>
+        : NonFictionalAttributeComponentIntersectionOperator<bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs>,
+          IBooleanAttributeComponentBinaryOperator
     {
         public AttributeComponent<bool> Accept(
             BooleanNonFictionalAttributeComponent first,
             BooleanNonFictionalAttributeComponent second,
-            AttributeComponentFactory factory)
+            IBooleanAttributeComponentFactory factory)
         {
             if (first.Value == second.Value)
             {
@@ -26,7 +26,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
             }
             else
             {
-                return factory.CreateEmpty<bool>(first.GetDomain);
+                return factory.CreateEmpty();
             }
         }
     }

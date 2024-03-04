@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -76,7 +78,7 @@ namespace UniversalClassLib
             type.IsGenericType ? type.GetGenericTypeDefinition() : type;
 
         /// <summary>
-        /// Поиск в иерархии классов подходяшего предка с выполненим какой-либо задачи.
+        /// Поиск в иерархии классов подходящего предка с выполнением какой-либо задачи.
         /// </summary>
         /// <param name="leafType"></param>
         /// <param name="getTypeDefinition"></param>
@@ -112,5 +114,51 @@ namespace UniversalClassLib
         #endregion
 
         #endregion
+    }
+
+    public abstract class TypeHierarchyNode<TNode>
+        where TNode : TypeHierarchyNode<TNode>
+    {
+        protected PropertyNode<TProperty> InitProperty<TProperty>(
+            TProperty property)
+        {
+            return new PropertyNode<TProperty>() { Value = property };
+        }
+
+        protected PropertyNode<TProperty> InitProperty<TProperty>(
+            TNode ancestorNode,
+            Func<TNode, PropertyNode<TProperty>> ancestorProperty)
+        {
+            return ancestorProperty(ancestorNode);
+        }
+
+        protected PropertyNode<TProperty> InitProperty<TProperty>(
+            Func<TProperty> propertySetter)
+        {
+            return new LazyPropertyNode<TProperty>(propertySetter);
+        }
+    }
+
+    public class PropertyNode<TProperty>
+    {
+        public virtual TProperty Value { get; set; }
+    }
+
+    public class LazyPropertyNode<TProperty>
+        : PropertyNode<TProperty>
+    {
+        private Lazy<TProperty> _property;
+
+        public override TProperty Value
+        {
+            get => _property.Value;
+        }
+
+        public LazyPropertyNode(Func<TProperty> propertySetter)
+        {
+            _property = new Lazy<TProperty>(propertySetter);
+
+            return;
+        }
     }
 }

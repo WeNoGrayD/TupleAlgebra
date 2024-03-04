@@ -10,9 +10,9 @@ using System.Reflection;
 
 namespace TupleAlgebraClassLib.SpecializedAttributeComponents.Factories
 {
-    public abstract class AttributeComponentWithCompoundDataFactory<TFactoryArgs>
-        : AttributeComponentFactory,
-          INonFictionalAttributeComponentFactory<TFactoryArgs>
+    public abstract class AttributeComponentWithCompoundDataFactory<TCompoundData, TFactoryArgs>
+        : AttributeComponentFactory<TCompoundData>,
+          INonFictionalAttributeComponentFactory<TCompoundData, TFactoryArgs>
         where TFactoryArgs : AttributeComponentFactoryArgs
     {
         private MethodInfo _createSpecificNonFictionalImplMIPattern;
@@ -20,6 +20,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.Factories
         public AttributeComponentWithCompoundDataFactory(
             string createSpecificNonFictionalImplMethodName,
             BindingFlags methodFlags)
+            : base(null)
         {
             _createSpecificNonFictionalImplMIPattern = this.GetType().
                 GetMethod(createSpecificNonFictionalImplMethodName,
@@ -36,7 +37,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.Factories
             return;
         }
 
-        public NonFictionalAttributeComponent<TCompoundData> CreateSpecificNonFictional<TCompoundData>(
+        public NonFictionalAttributeComponent<TCompoundData> CreateSpecificNonFictional(
             TFactoryArgs args)
         {
             return _createSpecificNonFictionalImplMIPattern

@@ -7,6 +7,7 @@ using TupleAlgebraFrameworkTests.DataModels;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using System.Reflection;
+using LINQProvider;
 
 namespace TupleAlgebraFrameworkTests
 {

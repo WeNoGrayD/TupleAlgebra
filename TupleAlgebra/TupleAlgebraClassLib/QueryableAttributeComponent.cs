@@ -47,13 +47,13 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework
             Expression queryExpression = Expression.Call(
                 null,
                 queryMethod,
-                Expression.Constant(sourceDomain.Universum),
+                Expression.Constant(sourceDomain.Universe),
                 Expression.Quote(selector));
 
             return sourceDomain.Provider.CreateQuery<TQueryResult>(queryExpression)
                 as AttributeComponent<TQueryResult>;
                 *//*
-            return QueryableAttributeComponent.Select(sourceDomain.Universum, selector);
+            return QueryableAttributeComponent.Select(sourceDomain.Universe, selector);
         }
 
         public static AttributeComponent<TQueryResult> Select<TData, TQueryResult>(

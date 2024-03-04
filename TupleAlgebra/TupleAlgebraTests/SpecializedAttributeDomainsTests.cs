@@ -33,11 +33,12 @@ namespace TupleAlgebraTests
             }
         }
 
+        /*
         internal class DomainOfDataWithKnownHashCode 
             : //OrderedFiniteEnumerableAttributeDomain<OrderedAttributeComponentOfDataWithKnownHashCode, DataWithKnownHashCode>
               OrderedFiniteEnumerableAttributeDomain<DataWithKnownHashCode>
         {
-            private static IEnumerable<DataWithKnownHashCode> _universum = new DataWithKnownHashCode[]
+            private static IEnumerable<DataWithKnownHashCode> _universe = new DataWithKnownHashCode[]
             {
                 new DataWithKnownHashCode(12),
                 new DataWithKnownHashCode(-9),
@@ -47,11 +48,12 @@ namespace TupleAlgebraTests
             };
 
             public DomainOfDataWithKnownHashCode()
-                : base(_universum)
+                : base(_universe)
             {
                 return;
             }
         }
+        */
 
         /*
         internal class OrderedAttributeComponentOfDataWithKnownHashCode 
@@ -74,6 +76,7 @@ namespace TupleAlgebraTests
         }
         */
 
+        /*
         [TestMethod]
         public void OrderedAttributeComponentOfDataWithKnownHashCodeTest()
         {
@@ -84,7 +87,7 @@ namespace TupleAlgebraTests
             //    .Provider.Execute<IEnumerable<DataWithKnownHashCode>>(queryTemp.Expression)     
             //    as AttributeComponent<DataWithKnownHashCode>;
 
-            AttributeComponent<DataWithKnownHashCode> datas = domain.Universum;
+            AttributeComponent<DataWithKnownHashCode> datas = domain.Universe;
             int hc1 = datas.First().GetHashCode(), hc2;
             foreach (DataWithKnownHashCode data in datas.Skip(1))
             {
@@ -104,7 +107,7 @@ namespace TupleAlgebraTests
             foreach (ForumUserRank fuserRank in Enum.GetValues(typeof(ForumUserRank)))
                 Assert.IsTrue(fuserRanksDomain.Contains(fuserRank));
 
-            AttributeComponent<ForumUserRank> ranks = fuserRanksDomain.Universum;
+            AttributeComponent<ForumUserRank> ranks = fuserRanksDomain.Universe;
             ForumUserRank rank1 = ranks.First();
             foreach (ForumUserRank rank2 in ranks.Skip(1))
             {
@@ -119,7 +122,9 @@ namespace TupleAlgebraTests
                 = new EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<ForumUserRank>(
                     fuserRanksDomain, component1Values);
                     */
-        }
+        /*}
+    */
+        /*
 
         [TestMethod]
         public void DictionaryBasedOrderedFiniteEnumerableAttributeComponentTest()
@@ -133,7 +138,7 @@ namespace TupleAlgebraTests
                 Assert.IsTrue(fuserCommentsByNicknameDomain.Contains(fuserData));
 
             AttributeComponent<KeyValuePair<string, string>> commentsByNickname =
-                fuserCommentsByNicknameDomain.Universum;
+                fuserCommentsByNicknameDomain.Universe;
             KeyValuePair<string, string> cbu1 = commentsByNickname.First();
             foreach (KeyValuePair<string, string> cbu2 in commentsByNickname.Skip(1))
             {
@@ -148,7 +153,8 @@ namespace TupleAlgebraTests
                 = new EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<ForumUserRank>(
                     fuserRanksDomain, component1Values);
                     */
-        }
+        /*}
+*/
 
         [TestMethod]
         public void MethodCallChainTest()

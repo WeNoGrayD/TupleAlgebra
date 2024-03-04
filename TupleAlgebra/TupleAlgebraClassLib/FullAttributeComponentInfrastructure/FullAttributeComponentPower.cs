@@ -14,7 +14,7 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
     {
         #region Instance fields
 
-        private AttributeComponentPower _universumPower;
+        private AttributeComponentPower _universePower;
 
         #endregion
 
@@ -23,7 +23,7 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
         public override AttributeComponentContentType ContentType
         { get => AttributeComponentContentType.Full; }
 
-        public AttributeComponentPower UniversumPower { get; set; }
+        public AttributeComponentPower UniversePower { get; set; }
 
         #endregion
 
@@ -37,9 +37,11 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
              * Если вторая компонента пустая, то универсум этой компоненты сравнивается с ней.
              * Если вторая компонента нефиктивная, то она сравнивается с универсумом этой компоненты.
              */
-            return base.CompareTo(second) >= 0 ? 
-                -second.CompareTo(_universumPower) : 
-                _universumPower.CompareTo(second);
+            return base.CompareTo(second) switch
+            {
+                <0 => _universePower.CompareTo(second),
+                _ => -second.CompareTo(_universePower)
+            };
         }
 
         public override bool EqualsZero() => false;

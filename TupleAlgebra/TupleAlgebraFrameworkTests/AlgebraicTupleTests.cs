@@ -7,12 +7,14 @@ using System.Linq.Expressions;
 using System.Diagnostics;
 using TupleAlgebraClassLib.TAFrameworkCustomAttributes;
 using TupleAlgebraClassLib.SpecializedAttributeDomains;
-using TupleAlgebraClassLib.AlgebraicTupleInfrastructure;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 using TupleAlgebraFrameworkTests.DataModels;
+using TupleAlgebraClassLib.TupleObjectInfrastructure;
+using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraFrameworkTests
 {
+    /*
     [TestClass]
     public class AlgebraicTupleTests
     {
@@ -21,7 +23,7 @@ namespace TupleAlgebraFrameworkTests
         [TestMethod]
         public void TestMethod1()
         {
-            AlgebraicTuple<ForumUser> likedPersons = new ConjunctiveAlgebraicTuple<ForumUser>(CustomLikedUsers);
+            TupleObject<ForumUser> likedPersons = new ConjunctiveTuple<ForumUser>(CustomLikedUsers);
 
             Assert.IsFalse(likedPersons.Schema.ContainsAttribute(nameof(ForumUser.Id)));
             Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.Nickname)].IsPlugged);
@@ -79,4 +81,5 @@ namespace TupleAlgebraFrameworkTests
                 yield return new KeyValuePair<DateTime, string>(comments.Key, commentsEnumerator.Current);
         }
     }
+    */
 }

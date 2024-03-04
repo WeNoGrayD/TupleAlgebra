@@ -12,6 +12,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeDomains
     /// Упорядоченный конечный перечислимый домент аттрибута, основанный на типе перечисления (enum). 
     /// </summary>
     /// <typeparam name="TData">Тип значений домена.</typeparam>
+    /*
     public class EnumBasedOrderedFiniteEnumerableAttributeDomain<TData>
         : //OrderedFiniteEnumerableAttributeDomain<EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, TData>
         OrderedFiniteEnumerableAttributeDomain<TData>
@@ -24,4 +25,5 @@ namespace TupleAlgebraClassLib.SpecializedAttributeDomains
             : base(Enum.GetValues(typeof(TData)).Cast<TData>())
         { }
     }
+    */
 }

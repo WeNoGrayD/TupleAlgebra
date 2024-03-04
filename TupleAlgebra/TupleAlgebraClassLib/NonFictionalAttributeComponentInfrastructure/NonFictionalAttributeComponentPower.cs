@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
@@ -20,22 +21,27 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
         public override AttributeComponentContentType ContentType
         { get => AttributeComponentContentType.NonFictional; }
 
-        protected abstract NonFictionalAttributeComponent<TData> Component { get; }
-
         #endregion
 
         #region Instance methods
 
-        public abstract void InitAttributeComponent(NonFictionalAttributeComponent<TData> component);
+        public abstract void InitWith(NonFictionalAttributeComponent<TData> component);
 
-        public override bool EqualsContinuum()
+        public override bool EqualsZero()
         {
-            return Component.Domain == Component;
+            return CompareToZero() == 0;
         }
 
         protected abstract int CompareToZero();
 
-        protected abstract int CompareToSame(dynamic second);
+        /// <summary>
+        /// Сравнение мощностей двух нефиктивных компонент.
+        /// Компоненты не обязаны иметь один тип данных: так,
+        /// может проводиться сортировка компонент в схеме кортежа по мощности.
+        /// </summary>
+        /// <param name="second"></param>
+        /// <returns></returns>
+        protected abstract int CompareToNonFictional(AttributeComponentPower second);
 
         public override sealed int CompareTo(AttributeComponentPower second)
         {
@@ -49,10 +55,49 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
              */
             return base.CompareTo(second) switch
             {
-                -1 => -second.CompareTo(this),
-                0 => CompareToSame(second),
-                _ => CompareToZero()
+                <0 => -second.CompareTo(this),
+                0 => CompareToNonFictional(second),
+                >0 => CompareToZero()
             };
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Мощной захватываемой в контекст нефиктивной компоненты.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <typeparam name="TComponent"></typeparam>
+    public abstract class CapturingNonFictionalAttributeComponentPower<TData, TComponent> 
+        : NonFictionalAttributeComponentPower<TData>
+        where TComponent : NonFictionalAttributeComponent<TData>,
+                           IFiniteEnumerableAttributeComponent<TData>
+    {
+        #region Instance fields
+
+        private TComponent _component;
+
+        #endregion
+
+        #region Instance properties
+
+        protected TComponent Component { get => _component; }
+
+        #endregion
+
+        #region Instance methods
+
+        public override bool EqualsContinuum()
+        {
+            return _component.Domain == _component;
+        }
+
+        public override void InitWith(NonFictionalAttributeComponent<TData> component)
+        {
+            _component = (component as TComponent)!;
+
+            return;
         }
 
         #endregion

@@ -9,7 +9,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraTests
 {
     [TestClass]
-    public class OrderedFiniteEnumerableNonFictionalAttributeComponentTests : AttributeComponentTests
+    public class OrderedFiniteEnumerableNonFictionalAttributeComponentTests 
+        : AttributeComponentTests
     {
         [TestMethod]
         public void NonFictionalComponentCreating()
@@ -27,14 +28,14 @@ namespace TupleAlgebraTests
             Assert.IsInstanceOfType(component1, typeof(NonFictionalAttributeComponent<int>));
             Assert.IsTrue(Enumerable.SequenceEqual(component1, component1ValuesSorted));
 
-            component1Values = new HashSet<int>(intFactory.FactoryDomain);
+            component1Values = new HashSet<int>(intFactory.Domain);
             component1 = intFactory.CreateNonFictional(component1Values);
 
             Assert.IsInstanceOfType(component1, typeof(FullAttributeComponent<int>));
         }
 
         [TestMethod]
-        public void NonFictionalComponentComplemention()
+        public void NonFictionalComponentComplementation()
         {
             HashSet<int> component1Values = new HashSet<int>() { 0, 1, 2 };
             component1 = intFactory.CreateNonFictional(component1Values);
@@ -707,7 +708,7 @@ namespace TupleAlgebraTests
         public void NonFictionalComponentExceptionWithFullComponent()
         {
             HashSet<int> component1Values = new HashSet<int>() { 0, 1, 2 };
-            HashSet<int> domainValues = new HashSet<int>(intFactory.FactoryDomain);
+            HashSet<int> domainValues = new HashSet<int>(intFactory.Domain);
             component1 = intFactory.CreateNonFictional(component1Values);
             component2 = intFactory.CreateFull();
 
@@ -942,7 +943,7 @@ namespace TupleAlgebraTests
         public void NonFictionalComponentSymmetricExceptionWithFullComponent()
         {
             HashSet<int> component1Values = new HashSet<int>() { 0, 1, 2 };
-            HashSet<int> domainValues = new HashSet<int>(intFactory.FactoryDomain);
+            HashSet<int> domainValues = new HashSet<int>(intFactory.Domain);
             component1 = intFactory.CreateNonFictional(component1Values);
             component2 = intFactory.CreateFull();
 
@@ -1680,6 +1681,187 @@ namespace TupleAlgebraTests
             Assert.IsFalse(result);
             result = component1 <= component2;
             Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void MockTest()
+        {
+            HashSet<int> component1Values = new HashSet<int>() { 0, 1, 2 };
+            HashSet<int> component2Values = new HashSet<int>() { 3, 4, 5 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            AttributeComponent<int> result = component1 & component2;
+            IEnumerable<int> resultValuesPredefined;
+            Assert.IsInstanceOfType(result, typeof(EmptyAttributeComponent<int>));
+
+            component1Values = new HashSet<int>() { 0, 2, 4, 6, 8 };
+            component2Values = new HashSet<int>() { 1, 3, 5, 7, 9 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            result = component1 & component2;
+            Assert.IsInstanceOfType(result, typeof(EmptyAttributeComponent<int>));
+
+            component1Values = new HashSet<int>() { 0, 2, 4, 6, 8 };
+            component2Values = new HashSet<int>() { 0, 3, 5, 7, 9 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 2, 4, 6, 8 };
+            component2Values = new HashSet<int>() { 1, 3, 4, 7, 9 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 2, 5, 6, 8 };
+            component2Values = new HashSet<int>() { 1, 3, 5, 7, 9 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 2, 4, 6, 9 };
+            component2Values = new HashSet<int>() { 1, 3, 5, 7, 9 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 2, 4, 6, 8 };
+            component2Values = new HashSet<int>() { 0, 2, 5, 7, 9 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 3, 4, 6, 8 };
+            component2Values = new HashSet<int>() { 1, 3, 4, 6, 9 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 2, 4, 7, 9 };
+            component2Values = new HashSet<int>() { 1, 3, 5, 7, 9 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 1, 2, 3, 4, 5 };
+            component2Values = new HashSet<int>() { 3, 5 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = component2;
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 1, 3, 5 };
+            component2Values = new HashSet<int>() { 0, 1, 2, 3, 4, 5 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = component1;
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0 };
+            component2Values = new HashSet<int>() { 0 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 4, 8 };
+            component2Values = new HashSet<int>() { 0, 4, 8 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 2, 4, 6, 8 };
+            component2Values = new HashSet<int>() { 0, 2, 4, 6, 8 };
+            component1 = intFactory.CreateNonFictional(component1Values);
+            component2 = intFactory.CreateMock(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+            component2Values = new HashSet<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
+            component2Values = new HashSet<int>() { 1, 2, 3, 4, 5, 6, 7, 8 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 1, 2, 3, 6, 7, 8 };
+            component2Values = new HashSet<int>() { 1, 2, 3, 6, 7, 8 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
+
+            component1Values = new HashSet<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            component2Values = new HashSet<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            component1 = intFactory.CreateMock(component1Values);
+            component2 = intFactory.CreateNonFictional(component2Values);
+
+            result = component1 & component2;
+            resultValuesPredefined = SortedIntersect(component1Values, component2Values);
+            Assert.IsInstanceOfType(result, typeof(NonFictionalAttributeComponent<int>));
+            Assert.IsTrue(Enumerable.SequenceEqual(resultValuesPredefined, result));
         }
     }
 }

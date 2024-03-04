@@ -7,6 +7,8 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using System.Reflection;
 using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using UniversalClassLib;
+using static TupleAlgebraClassLib.AttributeComponents.AttributeComponentHelper;
+using System.Reflection.Metadata;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
@@ -22,18 +24,26 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Фабрики специфических компонент атрибутов.
         /// </summary>
-        private static IDictionary<Type, AttributeComponentFactory> _factories;
-
-        /// <summary>
-        /// Контейнеры операций над компонентами атрибутов.
-        /// </summary>
-        private static IDictionary<Type, object> _setOperationContainers;
+        private static IDictionary<Type, IAttributeDomainManifold> 
+            _nodes;
 
         #endregion
 
         #region Static properties
 
         public static AttributeComponentHelper Helper { get; set; }
+
+        #endregion
+
+        #region Delegates
+
+        public delegate IAttributeComponentFactory<TData>
+            AttributeComponentFactoryCreationHandler<TData>(
+                AttributeDomain<TData> domain);
+
+        public delegate ISetOperationExecutorsContainer<AttributeComponent<TData>>
+            AttributeComponentSetOperationsCreationHandler<TData>(
+                IAttributeComponentFactory<TData> factory);
 
         #endregion
 
@@ -45,8 +55,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         static AttributeComponentHelper()
         {
             Helper = new AttributeComponentHelper();
-            _factories = new Dictionary<Type, AttributeComponentFactory>();
-            _setOperationContainers = new Dictionary<Type, object>();
+            _nodes = new Dictionary<Type, IAttributeDomainManifold>();
 
             return;
         }
@@ -74,20 +83,35 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="setOperations"></param>
         public void RegisterType<TData, TAttributeComponent>(
             bool considerAsNonGeneric = false,
-            AttributeComponentFactory acFactory = null,
-            ISetOperationExecutorsContainer<AttributeComponent<TData>>
+            AttributeComponentFactoryCreationHandler<TData> 
+                acFactory = null,
+            AttributeComponentSetOperationsCreationHandler<TData>
                 setOperations = null)
-            where TAttributeComponent : AttributeComponent<TData>
+            where TAttributeComponent : IAttributeComponent<TData>
         {
             Type acType = typeof(TAttributeComponent);
+            // Если тип зарегистрирован, то дальнейшая регистрация не производится.
+            if (_registrar.IsTypeRegistered(acType)) return;
+
+            AttributeDomainManifold<TData> manifold =
+                new AttributeDomainManifold<TData>();
+            _nodes.Add(acType, manifold);
 
             if (acType.IsGenericType && !considerAsNonGeneric)
             {
-                RegisterGenericType(acType, acFactory, setOperations);
+                RegisterGenericType(
+                    acType,
+                    manifold,
+                    acFactory,
+                    setOperations);
             }
             else
             {
-                RegisterNonGenericType(acType, acFactory, setOperations);
+                RegisterNonGenericType(
+                    acType, 
+                    manifold,
+                    acFactory,
+                    setOperations);
             }
 
             return;
@@ -102,19 +126,21 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="setOperations"></param>
         private void RegisterGenericType<TData>(
             Type acType,
-            AttributeComponentFactory acFactory,
-            ISetOperationExecutorsContainer<AttributeComponent<TData>>
+            AttributeDomainManifold<TData> manifold,
+            AttributeComponentFactoryCreationHandler<TData>
+                acFactory,
+            AttributeComponentSetOperationsCreationHandler<TData>
                 setOperations)
         {
             // Если тип зарегистрирован, то дальнейшая регистрация не производится.
             if (_registrar.IsTypeRegistered(acType)) return;
-            Type acGenericTypeDefinition = acType.GetGenericTypeDefinition();
+            //Type acGenericTypeDefinition = acType.GetGenericTypeDefinition();
             // Обязательно выполняется принудительная регистрация базового типа.
             _registrar.RegisterTypeWithForce(acType.BaseType);
-            RegisterFactoryForType(acGenericTypeDefinition, acFactory);
-            RegisterSetOperationsForType(acType, setOperations);
+            RegisterFactoryForType(acType, manifold, acFactory);
+            RegisterSetOperationsForType(acType, manifold, setOperations);
 
-            _registrar.RegisterType(acGenericTypeDefinition);
+            //_registrar.RegisterType(acGenericTypeDefinition);
             _registrar.RegisterType(acType);
 
             return;
@@ -129,16 +155,16 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="setOperations"></param>
         private void RegisterNonGenericType<TData>(
             Type acType,
-            AttributeComponentFactory acFactory,
-            ISetOperationExecutorsContainer<AttributeComponent<TData>>
+            AttributeDomainManifold<TData> manifold,
+            AttributeComponentFactoryCreationHandler<TData> 
+                acFactory,
+            AttributeComponentSetOperationsCreationHandler<TData>
                 setOperations)
         {
-            // Если тип зарегистрирован, то дальнейшая регистрация не производится.
-            if (_registrar.IsTypeRegistered(acType)) return;
             // Обязательно выполняется принудительная регистрация базового типа.
             _registrar.RegisterTypeWithForce(acType.BaseType);
-            RegisterFactoryForType(acType, acFactory);
-            RegisterSetOperationsForType(acType, setOperations);
+            RegisterFactoryForType(acType, manifold, acFactory);
+            RegisterSetOperationsForType(acType, manifold, setOperations);
 
             _registrar.RegisterType(acType);
 
@@ -154,9 +180,11 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// </summary>
         /// <param name="acType"></param>
         /// <param name="acFactory"></param>
-        private void RegisterFactoryForType(
+        private void RegisterFactoryForType<TData>(
             Type acType,
-            AttributeComponentFactory acFactory)
+            AttributeDomainManifold<TData> manifold,
+            AttributeComponentFactoryCreationHandler<TData>
+                acFactory)
         {
             // Если зарегистрировано определение типа, то дальнейшая регистрация не производится.
             if (_registrar.IsTypeRegistered(acType)) return;
@@ -168,15 +196,16 @@ namespace TupleAlgebraClassLib.AttributeComponents
             {
                 _registrar.FindRelevantTypeAncestorAndExecute(
                     acType.BaseType,
-                    _registrar.GetDefinition,
-                    (t) => _factories.ContainsKey(t),
-                    (registeredType) => _factories.Add(acType, _factories[registeredType]),
+                    (t) => t,
+                    (t) => _nodes.ContainsKey(t),
+                    (registeredType) => manifold.NodePattern
+                        .ProvideFactorySetterSource(_nodes[registeredType].GetNodePattern<TData>()),
                     new ArgumentNullException(
-                        "acFactory", 
+                        nameof(acFactory), 
                         "Фабрика компоненты должна быть предоставлена для типа " +
                         $"{acType.Name} или быть определена ранее для одного из его базовых типов."));
             }
-            else _factories.Add(acType, acFactory);
+            else manifold.NodePattern.ProvideFactorySetter(acFactory);
 
             return;
         }
@@ -189,7 +218,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="setOperations"></param>
         private void RegisterSetOperationsForType<TData>(
             Type acType,
-            ISetOperationExecutorsContainer<AttributeComponent<TData>>
+            AttributeDomainManifold<TData> manifold,
+            AttributeComponentSetOperationsCreationHandler<TData>
                 setOperations)
         {
             /*
@@ -207,15 +237,17 @@ namespace TupleAlgebraClassLib.AttributeComponents
                 _registrar.FindRelevantTypeAncestorAndExecute(
                     acType.BaseType,
                     (t) => t,
-                    (t) => _setOperationContainers.ContainsKey(t),
-                    (registeredType) => _setOperationContainers
-                        .Add(acType, _setOperationContainers[registeredType]),
+                    (t) => _nodes.ContainsKey(t),
+                    (registeredType) => manifold.NodePattern
+                        .ProvideSetOperationsSetterSource(
+                            _nodes[registeredType].GetNodePattern<TData>()),
                     null);// new ArgumentNullException(
                         //"setOperations",
                         //"Контейнер операций над компонентой должен быть предоставлен для типа " +
                         //$"{acType.Name} или быть определен ранее для одного из его базовых типов."));
             }
-            else _setOperationContainers.Add(acType, setOperations);
+            else manifold.NodePattern
+                    .ProvideSetOperationsSetter(setOperations);
 
             return;
         }
@@ -229,9 +261,10 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// </summary>
         /// <param name="ac"></param>
         /// <returns></returns>
-        public AttributeComponentFactory GetFactory(object ac)
+        public IAttributeComponentFactory<TData> GetFactory<TData>(
+            AttributeComponent<TData> ac)
         {
-            return GetFactory(ac.GetType());
+            return GetFactory<TData>(ac.GetType(), ac.Domain);
         }
 
         /// <summary>
@@ -240,19 +273,26 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="acType"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public AttributeComponentFactory GetFactory(Type acType)
+        public IAttributeComponentFactory<TData> GetFactory<TData>(
+            Type acType,
+            AttributeDomain<TData> domain)
         {
-            Type acTypeDefinition = _registrar.GetDefinition(acType);
-            if (!_registrar.IsTypeRegistered(acTypeDefinition))
+            IAttributeComponentFactory<TData> acFactory;
+
+            if (!_registrar.IsTypeRegistered(acType))
             {
                 _registrar.RegisterTypeWithForce(acType);
-                if (!_factories.ContainsKey(acTypeDefinition))
+                /*
+                if (!_factories.TryGetValue(acTypeDefinition, out acFactory))
                 {
                     throw new InvalidOperationException($"Тип {acType} не выполнил свою регистрацию в классе-помощнике.");
                 }
+                */
             }
+            acFactory = _nodes[acType]
+                .GetNode<TData>(domain).Factory.Value;
 
-            return _factories[acTypeDefinition];
+            return acFactory;
         }
 
         /// <summary>
@@ -263,23 +303,190 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         public ISetOperationExecutorsContainer<AttributeComponent<TData>>
-            GetSetOperations<TData>(object ac)
+            GetSetOperations<TData>(
+                AttributeComponent<TData> ac)
         {
-            Type acType = ac.GetType();
+            ISetOperationExecutorsContainer<AttributeComponent<TData>> 
+                setOpsContainer;
 
+            Type acType = ac.GetType();
             if (!_registrar.IsTypeRegistered(acType))
             {
                 _registrar.RegisterTypeWithForce(acType);
-                if (!_setOperationContainers.ContainsKey(acType))
+                /*
+                if (!_setOperationContainers.TryGetValue(acType, out setOpsContainer))
                 {
                     throw new InvalidOperationException($"Тип {acType} не выполнил свою регистрацию в классе-помощнике.");
                 }
+                */
             }
+            setOpsContainer = _nodes[acType]
+                .GetNode<TData>(ac.Domain).SetOperations.Value;
 
-            return (_setOperationContainers[acType] as ISetOperationExecutorsContainer<AttributeComponent<TData>>)!;
+            return setOpsContainer;
         }
 
         #endregion
+
+        #endregion
+
+        #region Nested types
+
+        public interface IAttributeDomainManifold
+        {
+            AttributeComponentNodePattern<TData> GetNodePattern<TData>()
+            {
+                return (this as AttributeDomainManifold<TData>)!
+                    .NodePattern;
+            }
+
+            AttributeComponentNode<TData> GetNode<TData>(
+                AttributeDomain<TData> domain)
+            {
+                return (this as AttributeDomainManifold<TData>)![domain];
+            }
+        };
+
+        public class AttributeDomainManifold<TData>
+            : IAttributeDomainManifold
+        {
+            private AttributeComponentNodePattern<TData> _nodePattern;
+
+            private IDictionary<
+                AttributeDomain<TData>,
+                AttributeComponentNode<TData>> _nodes;
+
+            public AttributeComponentNodePattern<TData> NodePattern
+            { get => _nodePattern; }
+
+            public AttributeComponentNode<TData> 
+                this[AttributeDomain<TData> domain]
+            {
+                get
+                {
+                    AttributeComponentNode<TData> node;
+                    if (!_nodes.TryGetValue(domain, out node))
+                        node = RegisterDomain(domain);
+
+                    return node;
+                }
+            }
+
+            public AttributeDomainManifold()
+            {
+                _nodePattern = new AttributeComponentNodePattern<TData>();
+                _nodes = new Dictionary<
+                    AttributeDomain<TData>, 
+                    AttributeComponentNode<TData>>();
+
+                return;
+            }
+
+            public AttributeComponentNode<TData> 
+                RegisterDomain(AttributeDomain<TData> domain)
+            {
+                AttributeComponentNode<TData> node =
+                    new AttributeComponentNode<TData>(domain);
+                _nodes.Add(domain, node);
+                node.ProvideFactorySetter(
+                    NodePattern.FactorySetter.Value);
+                node.ProvideSetOperationsSetter(
+                    NodePattern.SetOperationsSetter.Value);
+
+                return node;
+            }
+        }
+
+        public class AttributeComponentNodePattern<TData>
+            : TypeHierarchyNode<AttributeComponentNodePattern<TData>>
+        {
+            public PropertyNode<AttributeComponentFactoryCreationHandler<TData>>
+                    FactorySetter
+            { get; private set; }
+
+            public PropertyNode<AttributeComponentSetOperationsCreationHandler<TData>>
+                    SetOperationsSetter
+            { get; private set; }
+
+            public void ProvideFactorySetterSource(
+                AttributeComponentNodePattern<TData> ancestorNode)
+            {
+                this.FactorySetter = InitProperty(
+                    ancestorNode,
+                    (node) => node.FactorySetter);
+
+                return;
+            }
+
+            public void ProvideFactorySetter(
+                AttributeComponentFactoryCreationHandler<TData>
+                    factorySetter)
+            {
+                this.FactorySetter = InitProperty(factorySetter);
+
+                return;
+            }
+
+            public void ProvideSetOperationsSetterSource(
+                AttributeComponentNodePattern<TData> ancestorNode)
+            {
+                this.SetOperationsSetter = InitProperty(
+                    ancestorNode,
+                    (node) => node.SetOperationsSetter);
+
+                return;
+            }
+
+            public void ProvideSetOperationsSetter(
+                AttributeComponentSetOperationsCreationHandler<TData>
+                    setOperationsSetter)
+            {
+                this.SetOperationsSetter = 
+                    InitProperty(setOperationsSetter);
+
+                return;
+            }
+        }
+
+        public class AttributeComponentNode<TData>
+            : TypeHierarchyNode<AttributeComponentNode<TData>>
+        {
+            private AttributeDomain<TData> _domain;
+
+            public PropertyNode<IAttributeComponentFactory<TData>>
+                Factory
+            { get; protected set; }
+
+            public PropertyNode<ISetOperationExecutorsContainer<AttributeComponent<TData>>>
+                SetOperations
+            { get; protected set; }
+
+            public AttributeComponentNode(AttributeDomain<TData> domain)
+            {
+                _domain = domain;
+
+                return;
+            }
+
+            public void ProvideFactorySetter(
+                AttributeComponentFactoryCreationHandler<TData>
+                    factorySetter)
+            {
+                this.Factory = InitProperty(() => factorySetter(_domain));
+
+                return;
+            }
+
+            public void ProvideSetOperationsSetter(
+                AttributeComponentSetOperationsCreationHandler<TData>
+                    setOperationsSetter)
+            {
+                this.SetOperations = InitProperty(
+                    () => setOperationsSetter(Factory.Value));
+
+                return;
+            }
+        }
 
         #endregion
     }

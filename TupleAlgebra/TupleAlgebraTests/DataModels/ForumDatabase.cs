@@ -80,7 +80,7 @@ namespace TupleAlgebraTests.DataModels
 
         public static AttributeDomain<ForumUser> GetDomain()
         {
-            return new OrderedFiniteEnumerableAttributeDomain<ForumUser>(Domain);
+            return null;// new OrderedFiniteEnumerableAttributeDomain<ForumUser>(Domain);
         }
 
         public static IEnumerable<ForumUser> GetLatestVisitorsDomain()

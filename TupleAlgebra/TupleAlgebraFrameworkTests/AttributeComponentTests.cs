@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TupleAlgebraClassLib;
 using System.Collections.Generic;
 using System.Linq;
+using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
@@ -17,36 +18,22 @@ namespace TupleAlgebraFrameworkTests
         protected MockAttributeComponentFactory<string> stringFactory;
         protected Dictionary<Type, object> factories;
 
-        protected class MockAttributeComponentFactory<TData> : OrderedFiniteEnumerableAttributeComponentFactory<TData>
+        protected class MockAttributeComponentFactory<TData> : 
+            OrderedFiniteEnumerableAttributeComponentFactory<TData>
             where TData : IComparable<TData>
         {
-            public readonly AttributeDomain<TData> FactoryDomain;
-
-            public MockAttributeComponentFactory(AttributeDomain<TData> factoryDomain)
-            {
-                FactoryDomain = factoryDomain;
-            }
-
-            public EmptyAttributeComponent<TData> CreateEmpty()
-            {
-                AttributeComponentFactoryArgs<TData> factoryArgs =
-                    new AttributeComponentFactoryArgs<TData>(FactoryDomain);
-                return CreateEmpty(factoryArgs);
-            }
+            public MockAttributeComponentFactory(
+                AttributeDomain<TData> domain)
+                : base(domain)
+            { }
 
             public AttributeComponent<TData> CreateNonFictional(
                 IEnumerable<TData> values)
             {
-                OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> factoryArgs =
-                    new OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(FactoryDomain, values);
+                OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
+                    OrderedFiniteEnumerableAttributeComponentFactoryArgs
+                    .Construct(domainGetter: () => Domain, values: values);
                 return CreateNonFictional(factoryArgs);
-            }
-
-            public FullAttributeComponent<TData> CreateFull()
-            {
-                AttributeComponentFactoryArgs<TData> factoryArgs = 
-                    new AttributeComponentFactoryArgs<TData>(FactoryDomain);
-                return CreateFull(factoryArgs);
             }
         }
 
@@ -68,7 +55,7 @@ namespace TupleAlgebraFrameworkTests
         {
             MockAttributeComponentFactory<T> factory =
                 factories[typeof(T)] as MockAttributeComponentFactory<T>;
-            first.SymmetricExceptWith(factory.FactoryDomain);
+            first.SymmetricExceptWith(factory.Domain);
             List<T> resultValuesList = new List<T>(first);
             resultValuesList.Sort();
             return resultValuesList;

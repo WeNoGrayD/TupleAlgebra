@@ -26,7 +26,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         static EmptyAttributeComponent()
         {
             Helper.RegisterType<TData, EmptyAttributeComponent<TData>>(
-                setOperations: new EmptyAttributeComponentOperationExecutorsContainer());
+                setOperations: (_) => new EmptyAttributeComponentOperationExecutorsContainer());
 
             return;
         }
@@ -57,7 +57,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
         protected override AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return Factory.CreateEmpty<TReproducedData>(factoryArgs);
+            return null;
+            //return Factory.CreateEmpty<TReproducedData>(factoryArgs);
         }
 
         #endregion
@@ -68,7 +69,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
             : InstantAttributeComponentOperationExecutorsContainer<EmptyAttributeComponent<TData>>
         {
             public EmptyAttributeComponentOperationExecutorsContainer() : base(
-                () => new EmptyAttributeComponentComplementionOperator<TData>(),
+                () => new EmptyAttributeComponentComplementationOperator<TData>(),
                 () => new EmptyAttributeComponentIntersectionOperator<TData>(),
                 () => new EmptyAttributeComponentUnionOperator<TData>(),
                 () => new EmptyAttributeComponentExceptionOperator<TData>(),

@@ -4,12 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.HierarchicallyPolymorphicOperators
 {
     using static OperatorHelper;
 
     public abstract class FactoryBinaryOperator<TOperand1, TOperand2, TOperationResultFactory, TOperationResult>
+        : IFactoryBinaryOperator<TOperand1, TOperand2, TOperationResultFactory, TOperationResult>
     {
         #region Methods
 
@@ -26,13 +29,20 @@ namespace TupleAlgebraClassLib.HierarchicallyPolymorphicOperators
             TOperand2 second,
             TOperationResultFactory factory)
         {
-            return (TOperationResult)FactoryBinaryOperatorAcceptImplMIPattern
+            MethodInfo binaryOperatorMI = FactoryBinaryOperatorAcceptImplMIPattern
                 .MakeGenericMethod(
-                    typeof(TOperand1), 
-                    second.GetType(), 
+                    typeof(TOperand1),
+                    second.GetType(),
                     typeof(TOperationResultFactory),
-                    typeof(TOperationResult))
-                .Invoke(null, new object[] { this, first, second, factory });
+                    typeof(TOperationResult));
+
+            if (binaryOperatorMI is not null)
+            {
+                return (TOperationResult)binaryOperatorMI
+                    .Invoke(null, new object[] { this, first, second, factory });
+            }
+
+            throw new NotImplementedException();
         }
 
         #endregion

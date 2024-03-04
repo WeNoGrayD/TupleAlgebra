@@ -20,7 +20,7 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
-        public void FullComponentComplemention()
+        public void FullComponentComplementation()
         {
             component1 = intFactory.CreateFull();
 
@@ -105,7 +105,7 @@ namespace TupleAlgebraTests
         [TestMethod]
         public void FullComponentExceptionWithNonFictionalComponent()
         {
-            HashSet<int> domainValues = new HashSet<int>(intFactory.FactoryDomain);
+            HashSet<int> domainValues = new HashSet<int>(intFactory.Domain);
             HashSet<int> component2Values = new HashSet<int>() { 0, 1, 2 };
             component1 = intFactory.CreateFull();
             component2 = intFactory.CreateNonFictional(component2Values);
@@ -139,7 +139,7 @@ namespace TupleAlgebraTests
         [TestMethod]
         public void FullComponentSymmetricExceptionWithNonFictionalComponent()
         {
-            HashSet<int> domainValues = new HashSet<int>(intFactory.FactoryDomain);
+            HashSet<int> domainValues = new HashSet<int>(intFactory.Domain);
             HashSet<int> component2Values = new HashSet<int>() { 0, 1, 2 };
             component1 = intFactory.CreateFull();
             component2 = intFactory.CreateNonFictional(component2Values);

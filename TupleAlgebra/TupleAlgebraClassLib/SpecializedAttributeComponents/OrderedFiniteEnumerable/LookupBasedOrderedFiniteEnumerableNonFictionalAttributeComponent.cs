@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SpecializedAttributeDomains;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable.Buffered;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.SpecializedAttributeComponents.Factories;
@@ -14,7 +14,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
     using static AttributeComponentHelper;
 
     public class LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>
-        : OrderedFiniteEnumerableNonFictionalAttributeComponent<IGrouping<TKey, TData>>
+        : BufferedOrderedFiniteEnumerableAttributeComponent<IGrouping<TKey, TData>>
         where TKey : IComparable<TKey>
     {
         static LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent()
@@ -22,7 +22,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
             Helper.RegisterType<
                 IGrouping<TKey, TData>, 
                 LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>>(
-                    acFactory: new LookupBasedAttributeComponentFactory());
+                    acFactory: (domain) => new LookupBasedAttributeComponentFactory<TKey, TData>(domain));
 
             return;
         }
@@ -77,18 +77,19 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         }
     }
 
-    internal class LookupBasedAttributeComponentFactory
-        : AttributeComponentWithCompoundDataFactory<OrderedFiniteEnumerableAttributeComponentFactoryArgs>
+    internal class LookupBasedAttributeComponentFactory<TKey, TData>
+        : AttributeComponentWithCompoundDataFactory<IGrouping<TKey, TData>, OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+            where TKey : IComparable<TKey>
     {
-        public LookupBasedAttributeComponentFactory()
+        public LookupBasedAttributeComponentFactory(
+            AttributeDomain<IGrouping<TKey, TData>> domain)
             : base(nameof(CreateLookupBased))
         {
             return;
         }
 
-        private NonFictionalAttributeComponent<IGrouping<TKey, TData>> CreateLookupBased<TKey, TData>(
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs args)
-            where TKey : IComparable<TKey>
+        private NonFictionalAttributeComponent<IGrouping<TKey, TData>> CreateLookupBased(
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> args)
         {
             return new LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>(
                 args.Power,

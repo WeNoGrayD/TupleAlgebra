@@ -15,12 +15,13 @@ namespace TupleAlgebraClassLib.SpecializedAttributeDomains
     /// </summary>
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TShiftedData"></typeparam>
-    public class ShiftingAttributeDomain<TData, TShiftedData> : AttributeDomain<TData>
+    public class ShiftingAttributeDomain<TData, TShiftedData> 
+        : AttributeDomain<TData>
     {
         public ShiftingAttributeDomain(AttributeDomain<TData> content)
             : base()
         {
-            Universum = content.Universum;
+            Universe = content.Universe;
 
             return;
         }

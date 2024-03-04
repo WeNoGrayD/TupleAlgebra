@@ -30,14 +30,14 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Instance properties
 
-        public override Func<AttributeDomain<TData>> GetDomain 
+        public override AttributeDomain<TData> Domain 
         {
-            get => _getDomain;
+            get => base.Domain;
             set
             {
-                _getDomain = value;
-                (Power as FullAttributeComponentPower).UniversumPower =
-                    value().Universum.Power;
+                _domain = value;
+                (Power as FullAttributeComponentPower).UniversePower =
+                    value.Universe.Power;
             }
         }
 
@@ -51,7 +51,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         static FullAttributeComponent()
         {
             Helper.RegisterType<TData, FullAttributeComponent<TData>>(
-                setOperations: new FullAttributeComponentOperationExecutorsContainer());
+                setOperations: (_) => new FullAttributeComponentOperationExecutorsContainer());
 
             return;
         }
@@ -82,13 +82,14 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public override IEnumerator<TData> GetEnumeratorImpl()
         {
-            return Domain.Universum.GetEnumerator();
+            return Domain.Universe.GetEnumerator();
         }
 
         protected override AttributeComponent<TReproducedData> ReproduceImpl<TReproducedData>(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return Factory.CreateFull<TReproducedData>(factoryArgs);
+            return null;
+            //return Factory.CreateFull<TReproducedData>(factoryArgs);
         }
 
         #endregion
@@ -99,11 +100,11 @@ namespace TupleAlgebraClassLib.AttributeComponents
             : InstantAttributeComponentOperationExecutorsContainer<FullAttributeComponent<TData>>
         {
             public FullAttributeComponentOperationExecutorsContainer() : base(
-                () => new FullAttributeComponentComplementionOperator<TData>(),
+                () => new FullAttributeComponentComplementationOperator<TData>(),
                 () => new FullAttributeComponentIntersectionOperator<TData>(),
                 () => new FullAttributeComponentUnionOperator<TData>(),
                 () => new FullAttributeComponentExceptionOperator<TData>(),
-                () => new FullAttributeComponentSymmetricExceptionOperator<TData>(),
+                () => new FullAttributeComponentExceptionOperator<TData>(),
                 () => new FullAttributeComponentInclusionComparer<TData>(),
                 () => new FullAttributeComponentEqualityComparer<TData>(),
                 () => new FullAttributeComponentInclusionOrEqualityComparer<TData>())

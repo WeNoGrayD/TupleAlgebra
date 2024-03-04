@@ -11,13 +11,13 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean
 {
-    public class ComplementionOperator
-        : FactoryUnaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, AttributeComponent<bool>>,
-          IFactoryUnaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, AttributeComponent<bool>>
+    public class ComplementationOperator
+        : FactoryUnaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs, AttributeComponent<bool>>,
+          IFactoryUnaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs, AttributeComponent<bool>>
     {
         public override AttributeComponent<bool> Accept(
-            BooleanNonFictionalAttributeComponent first, 
-            AttributeComponentFactory factory)
+            BooleanNonFictionalAttributeComponent first,
+            IBooleanAttributeComponentFactory factory)
         {
             if (first.Value)
                 return BooleanNonFictionalAttributeComponent.False;

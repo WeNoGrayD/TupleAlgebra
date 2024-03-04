@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SpecializedAttributeDomains;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable.Buffered;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
@@ -21,7 +21,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TData"></typeparam>
     public class DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>
-        : OrderedFiniteEnumerableNonFictionalAttributeComponent<KeyValuePair<TKey, TData>>
+        : BufferedOrderedFiniteEnumerableAttributeComponent<KeyValuePair<TKey, TData>>
         where TKey : IComparable<TKey>
     {
         #region Constructors
@@ -31,7 +31,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
             Helper.RegisterType<
                 KeyValuePair<TKey, TData>,
                 DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>>(
-                    acFactory: new DictionaryBasedAttributeComponentFactory());
+                    acFactory: (domain) => new DictionaryBasedAttributeComponentFactory<TKey, TData>(domain));
 
             return;
         }
@@ -111,18 +111,19 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         #endregion
     }
 
-    internal class DictionaryBasedAttributeComponentFactory
-        : AttributeComponentWithCompoundDataFactory<OrderedFiniteEnumerableAttributeComponentFactoryArgs>
+    internal class DictionaryBasedAttributeComponentFactory<TKey, TData>
+        : AttributeComponentWithCompoundDataFactory<KeyValuePair<TKey, TData>, OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+            where TKey : IComparable<TKey>
     {
-        public DictionaryBasedAttributeComponentFactory()
+        public DictionaryBasedAttributeComponentFactory(
+            AttributeDomain<KeyValuePair<TKey, TData>> domain)
             : base(nameof(CreateDictionaryBased))
         {
             return;
         }
 
-        private NonFictionalAttributeComponent<KeyValuePair<TKey, TData>> CreateDictionaryBased<TKey, TData>(
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs args)
-            where TKey : IComparable<TKey>
+        private NonFictionalAttributeComponent<KeyValuePair<TKey, TData>> CreateDictionaryBased(
+            OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData> args)
         {
             return new DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>(
                 args.Power,

@@ -24,31 +24,31 @@ namespace TupleAlgebraClassLib.AttributeComponents
     /// </summary>
     /// <typeparam name="TData">Тип значения, которое может принимать атрибут.</typeparam>
     public abstract class AttributeComponent<TData>
-        : IEnumerable<TData>,
-          IQueryable<TData>,
-          IReproducingQueryable<TData>,
+        : IReproducingQueryable<TData>,
           IReproducingQueryable<AttributeComponentFactoryArgs, TData>,
-          IAlgebraicSetObject,
           IBitwiseOperators<AttributeComponent<TData>, AttributeComponent<TData>, AttributeComponent<TData>>,
           IDivisionOperators<AttributeComponent<TData>, AttributeComponent<TData>, AttributeComponent<TData>>,
           IEqualityOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>,
           IComparisonOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>,
-          IAttributeComponent
+          IAttributeComponent<TData>
     {
+        #region Instance fields
+
+        protected AttributeDomain<TData> _domain;
+
+        #endregion
+
         #region Instance properties
 
         public AttributeComponentPower Power { get; private set; }
 
-        public AttributeDomain<TData> Domain { get => GetDomain(); }
+        public virtual AttributeDomain<TData> Domain 
+        { get => _domain; set => _domain = value; }
 
-        public virtual Func<AttributeDomain<TData>> GetDomain { get;  set; }
-
-        public AttributeComponentFactory Factory { get => Helper.GetFactory(this); }
+        public IAttributeComponentFactory<TData> Factory { get => Helper.GetFactory(this); }
 
         public ISetOperationExecutorsContainer<AttributeComponent<TData>> SetOperations
             { get => Helper.GetSetOperations<TData>(this); }
-
-        #endregion
 
         #region IQueryable implemented properties
 
@@ -60,6 +60,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #endregion
 
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         static AttributeComponent()
         {
             Helper.RegisterType<TData, AttributeComponent<TData>>(
-                acFactory: new AttributeComponentFactory());
+                acFactory: (domain) => new AttributeComponentFactory<TData>(domain));
 
             return;
         }
@@ -106,7 +108,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public void IncludeDomain(AttributeComponentFactoryArgs factoryArgs)
         {
-            factoryArgs.SetDomainGetter(GetDomain);
+            //factoryArgs.SetDomainGetter(GetDomain);
 
             return;
         }
@@ -141,7 +143,21 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public IEnumerator<TData> GetEnumerator()
         {
-            return (Provider.Execute<IEnumerable<TData>>(Expression) as AttributeComponent<TData>).GetEnumeratorImpl();
+            return ExecuteQueryExpression().GetEnumeratorImpl();
+        }
+
+        /// <summary>
+        /// 
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        protected internal AttributeComponent<TData> ExecuteQueryExpression()
+        {
+            AttributeComponent<TData> result = 
+                (Provider.Execute<IEnumerable<TData>>(Expression) as AttributeComponent<TData>);
+            this.Expression = result.Expression;
+
+            return result;
         }
 
         public abstract IEnumerator<TData> GetEnumeratorImpl();
@@ -151,7 +167,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
             return GetEnumerator();
         }
 
-        IEnumerator IAttributeComponent.GetBufferizedEnumerator()
+        IEnumerator<TData> IAttributeComponent<TData>.GetBufferizedEnumerator()
         {
             /*
              * 1) Сначала компонента превращается в массив.
@@ -213,22 +229,26 @@ namespace TupleAlgebraClassLib.AttributeComponents
             return this.ComplementThe();
         }
 
-        IAlgebraicSetObject IAlgebraicSetObject.IntersectWith(IAlgebraicSetObject second)
+        IAlgebraicSetObject IAlgebraicSetObject.IntersectWith(
+            IAlgebraicSetObject second)
         {
             return this.IntersectWith(second as AttributeComponent<TData>);
         }
 
-        IAlgebraicSetObject IAlgebraicSetObject.UnionWith(IAlgebraicSetObject second)
+        IAlgebraicSetObject IAlgebraicSetObject.UnionWith(
+            IAlgebraicSetObject second)
         {
             return this.UnionWith(second as AttributeComponent<TData>);
         }
 
-        IAlgebraicSetObject IAlgebraicSetObject.ExceptWith(IAlgebraicSetObject second)
+        IAlgebraicSetObject IAlgebraicSetObject.ExceptWith(
+            IAlgebraicSetObject second)
         {
             return this.ExceptWith(second as AttributeComponent<TData>);
         }
 
-        IAlgebraicSetObject IAlgebraicSetObject.SymmetricExceptWith(IAlgebraicSetObject second)
+        IAlgebraicSetObject IAlgebraicSetObject.SymmetricExceptWith(
+            IAlgebraicSetObject second)
         {
             return this.SymmetricExceptWith(second as AttributeComponent<TData>);
         }
@@ -243,7 +263,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
             return this.EqualsTo(second as AttributeComponent<TData>);
         }
 
-        bool IAlgebraicSetObject.IncludesOrEqualsTo(IAlgebraicSetObject second)
+        bool IAlgebraicSetObject.IncludesOrEqualsTo(
+            IAlgebraicSetObject second)
         {
             return this.IncludesOrEqualsTo(second as AttributeComponent<TData>);
         }
@@ -252,7 +273,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Operators
 
-        public static AttributeComponent<TData> operator ~(AttributeComponent<TData> first)
+        public static AttributeComponent<TData> operator ~(
+            AttributeComponent<TData> first)
         {
             return first.ComplementThe();
         }
@@ -285,32 +307,44 @@ namespace TupleAlgebraClassLib.AttributeComponents
             return first.SymmetricExceptWith(second);
         }
 
-        public static bool operator ==(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public static bool operator ==(
+            AttributeComponent<TData> first, 
+            AttributeComponent<TData> second)
         {
             return first.EqualsTo(second);
         }
 
-        public static bool operator !=(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public static bool operator !=(
+            AttributeComponent<TData> first, 
+            AttributeComponent<TData> second)
         {
             return !(first == second);
         }
 
-        public static bool operator >(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public static bool operator >(
+            AttributeComponent<TData> first, 
+            AttributeComponent<TData> second)
         {
             return first.Includes(second);
         }
 
-        public static bool operator >=(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public static bool operator >=(
+            AttributeComponent<TData> first, 
+            AttributeComponent<TData> second)
         {
             return first.IncludesOrEqualsTo(second);
         }
 
-        public static bool operator <(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public static bool operator <(
+            AttributeComponent<TData> first, 
+            AttributeComponent<TData> second)
         {
             return second.Includes(first);
         }
 
-        public static bool operator <=(AttributeComponent<TData> first, AttributeComponent<TData> second)
+        public static bool operator <=(
+            AttributeComponent<TData> first, 
+            AttributeComponent<TData> second)
         {
             return second.IncludesOrEqualsTo(first);
         }
@@ -320,21 +354,14 @@ namespace TupleAlgebraClassLib.AttributeComponents
         #region Nested types
 
         public abstract class InstantAttributeComponentOperationExecutorsContainer<CTOperand>
-            : InstantSetOperationExecutorsContainer<AttributeComponent<TData>, CTOperand, AttributeComponentFactory>
+            : InstantSetOperationExecutorsContainer<AttributeComponent<TData>, CTOperand>
             where CTOperand : AttributeComponent<TData>
         {
-            #region Instance properties
-
-            protected override AttributeComponentFactory Factory
-            { get => Helper.GetFactory(typeof(CTOperand)); }
-
-            #endregion
-
             #region Constructors
 
             public InstantAttributeComponentOperationExecutorsContainer(
-                Func<IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>>>
-                    complementionOperator,
+                Func<IInstantUnaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>>>
+                    complementationOperator,
                 Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
                     intersectionOperator,
                 Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
@@ -349,7 +376,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
                     equalityComparer,
                 Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
                     inclusionOrEquationComparer)
-                : base(complementionOperator,
+                : base(complementationOperator,
                        intersectionOperator,
                        unionOperator,
                        differenceOperator,

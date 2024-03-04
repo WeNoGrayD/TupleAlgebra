@@ -47,7 +47,7 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
         }
 
         public ConditionBasedStreamingQueryExecutorWithEnumerableOneToOneResult(Func<TData, bool> condition)
-            : base()
+            : this()
         {
             _condition = condition;
 

@@ -10,9 +10,11 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
 {
-    public abstract class FactoryUnaryAttributeComponentAcceptor<TData, CTOperand, TOperationResult>
-        : FactoryUnaryOperator<CTOperand, AttributeComponentFactory, TOperationResult>,
-          IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, TOperationResult>
-        where CTOperand: AttributeComponent<TData>
+    public abstract class FactoryUnaryAttributeComponentAcceptor<TData, CTOperand, TFactory, CTFactoryArgs, TOperationResult>
+        : FactoryUnaryOperator<CTOperand, TFactory, TOperationResult>,
+          IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, TFactory, CTFactoryArgs, TOperationResult>
+        where CTOperand: NonFictionalAttributeComponent<TData>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, CTOperand, CTFactoryArgs>
+        where CTFactoryArgs : AttributeComponentFactoryArgs
     { }
 }

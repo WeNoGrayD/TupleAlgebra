@@ -13,7 +13,7 @@ namespace TupleAlgebraTests
     public class BooleanAttributeComponentTests
     {
         [TestMethod]
-        public void ComplementionTest()
+        public void ComplementationTest()
         {
             AttributeComponent<bool> first, result;
 
@@ -34,13 +34,13 @@ namespace TupleAlgebraTests
             AttributeComponent<bool> first, second, result;
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first & second;
             Assert.IsInstanceOfType(result, typeof(EmptyAttributeComponent<bool>));
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first & second;
             Assert.IsInstanceOfType(result, typeof(EmptyAttributeComponent<bool>));
@@ -70,13 +70,13 @@ namespace TupleAlgebraTests
             Assert.AreEqual(result, first);
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first & second;
             Assert.AreEqual(result, first);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first & second;
             Assert.AreEqual(result, first);
@@ -88,13 +88,13 @@ namespace TupleAlgebraTests
             AttributeComponent<bool> first, second, result;
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first | second;
             Assert.AreEqual(result, first);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first | second;
             Assert.AreEqual(result, first);
@@ -124,13 +124,13 @@ namespace TupleAlgebraTests
             Assert.AreEqual(result, first);
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first | second;
             Assert.AreEqual(result, second);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first | second;
             Assert.AreEqual(result, second);
@@ -142,13 +142,13 @@ namespace TupleAlgebraTests
             AttributeComponent<bool> first, second, result;
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first ^ second;
             Assert.AreEqual(result, first);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first ^ second;
             Assert.AreEqual(result, first);
@@ -178,13 +178,13 @@ namespace TupleAlgebraTests
             Assert.IsInstanceOfType(result, typeof(EmptyAttributeComponent<bool>));
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first ^ second;
             Assert.AreEqual(result, BooleanNonFictionalAttributeComponent.True);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first ^ second;
             Assert.AreEqual(result, BooleanNonFictionalAttributeComponent.False);
@@ -196,13 +196,13 @@ namespace TupleAlgebraTests
             AttributeComponent<bool> first, second, result;
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first / second;
             Assert.AreEqual(result, first);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first / second;
             Assert.AreEqual(result, first);
@@ -232,13 +232,13 @@ namespace TupleAlgebraTests
             Assert.IsInstanceOfType(result, typeof(EmptyAttributeComponent<bool>));
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first / second;
             Assert.IsInstanceOfType(result, typeof(EmptyAttributeComponent<bool>));
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first / second;
             Assert.IsInstanceOfType(result, typeof(EmptyAttributeComponent<bool>));
@@ -251,13 +251,13 @@ namespace TupleAlgebraTests
             bool result;
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first == second;
             Assert.IsFalse(result);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first == second;
             Assert.IsFalse(result);
@@ -287,13 +287,13 @@ namespace TupleAlgebraTests
             Assert.IsTrue(result);
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first == second;
             Assert.IsFalse(result);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first == second;
             Assert.IsFalse(result);
@@ -306,13 +306,13 @@ namespace TupleAlgebraTests
             bool result;
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first < second;
             Assert.IsFalse(result);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first < second;
             Assert.IsFalse(result);
@@ -342,13 +342,13 @@ namespace TupleAlgebraTests
             Assert.IsFalse(result);
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first < second;
             Assert.IsTrue(result);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first < second;
             Assert.IsTrue(result);
@@ -361,13 +361,13 @@ namespace TupleAlgebraTests
             bool result;
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first <= second;
             Assert.IsFalse(result);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateEmpty<bool>(first.GetDomain);
+            second = first.Factory.CreateEmpty();
 
             result = first <= second;
             Assert.IsFalse(result);
@@ -397,13 +397,13 @@ namespace TupleAlgebraTests
             Assert.IsTrue(result);
 
             first = BooleanNonFictionalAttributeComponent.False;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first <= second;
             Assert.IsTrue(result);
 
             first = BooleanNonFictionalAttributeComponent.True;
-            second = first.Factory.CreateFull<bool>(first.GetDomain);
+            second = first.Factory.CreateFull();
 
             result = first <= second;
             Assert.IsTrue(result);

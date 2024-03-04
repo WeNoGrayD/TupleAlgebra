@@ -17,8 +17,6 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
     {
         public AttributeComponentPower Power { get; set; }
 
-        public Delegate DomainGetter { get; private set; }
-
         public bool IsQuery { get; set; }
 
         public readonly IQueryProvider QueryProvider;
@@ -31,7 +29,6 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             Expression queryExpression)
         {
             Power = null;
-            DomainGetter = null;
             IsQuery = isQuery;
             QueryProvider = queryProvider;
             QueryExpression = queryExpression;
@@ -50,16 +47,10 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 
             return;
         }
-
-        public virtual void SetDomainGetter<TData>(Func<AttributeDomain<TData>> domainGetter)
-        {
-            DomainGetter = domainGetter;
-
-            return;
-        }
     }
 
-    public class EmptyAttributeComponentFactoryArgs : AttributeComponentFactoryArgs
+    public class EmptyAttributeComponentFactoryArgs 
+        : AttributeComponentFactoryArgs
     {
         public EmptyAttributeComponentFactoryArgs(
             IQueryProvider queryProvider = null,
@@ -70,7 +61,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         }
     }
 
-    public abstract class NonFictionalAttributeComponentFactoryArgs : AttributeComponentFactoryArgs
+    public abstract class NonFictionalAttributeComponentFactoryArgs<TData>
+        : AttributeComponentFactoryArgs
     {
         public NonFictionalAttributeComponentFactoryArgs(
             bool isQuery,
@@ -78,21 +70,16 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             Expression queryExpression)
             : base(isQuery, queryProvider, queryExpression)
         {
-            return;
-        }
-
-        public override void SetDomainGetter<TData>(Func<AttributeDomain<TData>> domainGetter)
-        {
-            base.SetDomainGetter(domainGetter);
-            if (Power is null) Power = CreatePower<TData>();
+            Power = CreatePower();
 
             return;
         }
 
-        protected abstract AttributeComponentPower CreatePower<TData>();
+        protected abstract AttributeComponentPower CreatePower();
     }
 
-    public class FullAttributeComponentFactoryArgs : AttributeComponentFactoryArgs
+    public class FullAttributeComponentFactoryArgs 
+        : AttributeComponentFactoryArgs
     {
         public FullAttributeComponentFactoryArgs(
             IQueryProvider queryProvider = null,

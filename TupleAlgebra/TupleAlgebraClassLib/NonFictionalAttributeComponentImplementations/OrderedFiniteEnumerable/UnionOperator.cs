@@ -8,25 +8,27 @@ using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class UnionOperator<TData>
-        : NonFictionalAttributeComponentUnionOperator<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
-          IFactoryBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, AttributeComponent<TData>>
+    public abstract class UnionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
+        : NonFictionalAttributeComponentUnionOperator<TData, CTOperand1, TFactory, TFactoryArgs>,
+          IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, CTOperand1, AttributeComponent<TData>, TFactory, TFactoryArgs>,
+          IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, CTOperand1, TFactory, TFactoryArgs>,
+          IFiniteEnumerableAttributeComponentUnionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
+        where CTOperand1 : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
+        where TFactoryArgs : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+        where TFactory : IOrderedFiniteEnumerableAttributeComponentFactory<TData, CTOperand1, TFactoryArgs>
     {
         public AttributeComponent<TData> Accept(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> second,
-            AttributeComponentFactory factory)
+            CTOperand1 first,
+            IOrderedFiniteEnumerableAttributeComponent<TData> second,
+            TFactory factory)
         {
             IEnumerable<TData> unitedElements = UnionComponentsElements();
-            OrderedFiniteEnumerableAttributeComponentFactoryArgs factoryArgs =
-                first.ZipInfo(unitedElements, true) as OrderedFiniteEnumerableAttributeComponentFactoryArgs;
-            factoryArgs.ValuesAreOrdered = true;
-            AttributeComponent<TData> resultComponent = factory.CreateNonFictional<TData>(factoryArgs);
 
-            return resultComponent;
+            return factory.CreateNonFictional(first, unitedElements);
 
             IEnumerable<TData> UnionComponentsElements()
             {

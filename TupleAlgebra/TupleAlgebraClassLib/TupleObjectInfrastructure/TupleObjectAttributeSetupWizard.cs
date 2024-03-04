@@ -56,8 +56,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             AttributeDomain<TAttribute> domain)
         {
             AttributeInfo attribute = Schema[_attributeName].Value;
-            Schema[_attributeName] = attribute.CloneWith<TAttribute>(
-                domain: domain);
+            //Schema[_attributeName] = attribute.CloneWith<TAttribute>(
+                //domain: domain);
 
             return this;
 

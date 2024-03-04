@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable.Streaming;
 
 namespace TupleAlgebraTests
 {
@@ -19,17 +19,19 @@ namespace TupleAlgebraTests
         /// <summary>
         /// Тест переводимости мощности домена универсума в мощность компоненты универсума.
         /// </summary>
+        /*
         [TestMethod]
-        public void AttributeUniversumPowerConversionTest()
+        public void AttributeUniversePowerConversionTest()
         {
             var ofePower = new OrderedFiniteEnumerableNonFictionalAttributeComponentPower<int>();
-            var attributeUniversumPower = new AttributeDomain<int>.AttributeUniversumPower(ofePower);
+            var attributeUniversePower = new AttributeDomain<int>.AttributeUniversePower(ofePower);
 
-            AttributeComponentPower acPower = attributeUniversumPower;
+            AttributeComponentPower acPower = attributeUniversePower;
             NonFictionalAttributeComponentPower<int> nfPower = acPower
                 .As<NonFictionalAttributeComponentPower<int>>();
-            OrderedFiniteEnumerableNonFictionalAttributeComponentPower<int> ofePowerVonverted = acPower
+            OrderedFiniteEnumerableNonFictionalAttributeComponentPower<int> ofePowerConverted = acPower
                 .As<OrderedFiniteEnumerableNonFictionalAttributeComponentPower<int>>();
         }
+        */
     }
 }

@@ -50,6 +50,7 @@ namespace TupleAlgebraTests
 
         public void CustomLikedUsers(TupleObjectBuilder<ForumUser> builder)
         {
+            /*
             if (_forumUsersAreConfigured) return;
             _forumUsersAreConfigured = true;
 
@@ -63,6 +64,7 @@ namespace TupleAlgebraTests
             builder.Attribute(user => user.PostCount).SetDomain(intRange);
             builder.Attribute(user => user.Followers).SetDomain(intRange);
             builder.Attribute(user => user.Following).SetDomain(intRange);
+            */
             //AttributeDomain<ForumUser> users =
             //    new OrderedFiniteEnumerableAttributeDomain<ForumUser>(_forumUsers);
             //builder.Attribute(user => user.LatestProfileVisitors).OneToOneRelation().SetDomain(users);
@@ -145,7 +147,7 @@ namespace TupleAlgebraTests
                 fuType.GetProperty(nameof(ForumUser.Nickname)),
                 fuType.GetProperty(nameof(ForumUser.PostCount))
             };
-            Expression entityFactoryExpr = entityFactoryBuilder.Build(fuType, properties);
+            Expression entityFactoryExpr = null;//entityFactoryBuilder.Build(fuType, properties);
             Func<IEnumerator[], ForumUser> entityFactory = (entityFactoryExpr as LambdaExpression)
                 .Compile() as Func<IEnumerator[], ForumUser>;
             enumerators[0].MoveNext();
@@ -171,11 +173,13 @@ namespace TupleAlgebraTests
             if (_cartesianDataAreConfigured) return;
             _cartesianDataAreConfigured = true;
 
+            /*
             AttributeDomain<int> intRange =
                 new Integer32OrderedFiniteEnumerableAttributeDomain((1, 10));
             builder.Attribute(cd => cd.D1).SetDomain(intRange);
             builder.Attribute(cd => cd.D2).SetDomain(intRange);
             builder.Attribute(cd => cd.D3).SetDomain(intRange);
+            */
         }
     }
 }

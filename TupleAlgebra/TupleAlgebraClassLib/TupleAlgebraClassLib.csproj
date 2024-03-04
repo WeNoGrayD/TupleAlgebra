@@ -7,8 +7,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\QueryExecutors\**" />
+    <Compile Remove="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\**" />
     <EmbeddedResource Remove="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\QueryExecutors\**" />
+    <EmbeddedResource Remove="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\**" />
     <None Remove="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\QueryExecutors\**" />
+    <None Remove="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="AttributeComponents\AttributeComponent.cs~RFa047caa.TMP" />

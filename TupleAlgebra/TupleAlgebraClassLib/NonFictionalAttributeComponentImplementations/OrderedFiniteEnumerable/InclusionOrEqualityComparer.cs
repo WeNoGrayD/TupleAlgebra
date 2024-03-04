@@ -4,17 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Countable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public class InclusionOrEqualityComparer<TData>
-        : NonFictionalAttributeComponentInclusionComparer<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
-          IInstantBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
+    public abstract class InclusionOrEqualityComparer<TData, TAttributeComponent>
+        : NonFictionalAttributeComponentInclusionComparer<TData, TAttributeComponent>,
+          IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent, AttributeComponent<TData>>,
+          IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent>,
+          IFiniteEnumerableAttributeComponentInclusionOrEqualityComparer<TData>,
+          ICountableAttributeComponentInclusionOrEqualityComparer<TData>
+        where TAttributeComponent : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
     {
         public bool Accept(
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> greater,
-            OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> lesser)
+            TAttributeComponent greater,
+            IOrderedFiniteEnumerableAttributeComponent<TData> lesser)
         {
             bool isInclude = false;
             IEnumerator<TData> greaterEnumerator = greater.GetEnumerator(),

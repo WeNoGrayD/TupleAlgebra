@@ -32,7 +32,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Выражение запроса.
         /// </summary>
-        public virtual Expression Expression { get => Universum.Expression; }//; private set; }
+        public virtual Expression Expression { get => Universe.Expression; }//; private set; }
 
         /// <summary>
         /// Тип элемента запроса.
@@ -42,7 +42,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Провайдер запросов к домену.
         /// </summary>
-        public virtual IQueryProvider Provider { get => Universum.Provider; }
+        public virtual IQueryProvider Provider { get => Universe.Provider; }
 
         #endregion
 
@@ -51,7 +51,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Универсум домена.
         /// </summary>
-        public NonFictionalAttributeComponent<TData> Universum { get; protected set; }
+        public NonFictionalAttributeComponent<TData> Universe { get; protected set; }
 
         #endregion
 
@@ -60,7 +60,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Конструктор экземпляра.
         /// </summary>
-        /// <param name="universum"></param>
+        /// <param name="universe"></param>
         protected AttributeDomain()
         {
             return;
@@ -69,11 +69,12 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Конструктор экземпляра.
         /// </summary>
-        /// <param name="universum"></param>
-        protected AttributeDomain(
-            NonFictionalAttributeComponent<TData> universum)
+        /// <param name="universe"></param>
+        public AttributeDomain(
+            NonFictionalAttributeComponent<TData> universe)
         {
-            Universum = universum;
+            Universe = universe;
+            universe.Domain = this;
 
             return;
         }
@@ -81,8 +82,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
         #endregion
 
         #region Instance methods
-
-        public AttributeDomain<TData> UniversumDomainGetter() => this;
 
         /// <summary>
         /// Преобразование домена с отношением 1-к-1.
@@ -93,19 +92,19 @@ namespace TupleAlgebraClassLib.AttributeComponents
         public AttributeDomain<TShiftedData> Shift<TShiftedData>(
             Expression<Func<TData, TShiftedData>> itemSelector)
         {
-            NonFictionalAttributeComponent<TShiftedData> shiftedUniversum =
-                Universum.Select(itemSelector) as NonFictionalAttributeComponent<TShiftedData>;
+            NonFictionalAttributeComponent<TShiftedData> shiftedUniverse =
+                Universe.Select(itemSelector) as NonFictionalAttributeComponent<TShiftedData>;
 
-            return new AttributeDomain<TShiftedData>(shiftedUniversum);
+            return new AttributeDomain<TShiftedData>(shiftedUniverse);
         }
 
         public AttributeDomain<TShiftedData> Shift<TShiftedData>(
             Func<TData, TShiftedData> itemSelector)
         {
-            NonFictionalAttributeComponent<TShiftedData> shiftedUniversum =
-                Universum.Select(itemSelector) as NonFictionalAttributeComponent<TShiftedData>;
+            NonFictionalAttributeComponent<TShiftedData> shiftedUniverse =
+                Universe.Select(itemSelector) as NonFictionalAttributeComponent<TShiftedData>;
 
-            return new AttributeDomain<TShiftedData>(shiftedUniversum);
+            return new AttributeDomain<TShiftedData>(shiftedUniverse);
         }
 
         /// <summary>
@@ -117,19 +116,19 @@ namespace TupleAlgebraClassLib.AttributeComponents
         public AttributeDomain<TShiftedData> ShiftMany<TShiftedData>(
             Expression<Func<TData, IEnumerable<TShiftedData>>> itemsSelector)
         {
-            NonFictionalAttributeComponent<TShiftedData> shiftedUniversum =
-                Universum.Reproduce(Universum.SelectMany(itemsSelector)) as NonFictionalAttributeComponent<TShiftedData>;
+            NonFictionalAttributeComponent<TShiftedData> shiftedUniverse =
+                Universe.Reproduce(Universe.SelectMany(itemsSelector)) as NonFictionalAttributeComponent<TShiftedData>;
 
-            return new AttributeDomain<TShiftedData>(shiftedUniversum);
+            return new AttributeDomain<TShiftedData>(shiftedUniverse);
         }
 
         public AttributeDomain<TShiftedData> ShiftMany<TShiftedData>(
             Func<TData, IEnumerable<TShiftedData>> itemsSelector)
         {
-            NonFictionalAttributeComponent<TShiftedData> shiftedUniversum =
-                Universum.Reproduce(Universum.SelectMany(itemsSelector)) as NonFictionalAttributeComponent<TShiftedData>;
+            NonFictionalAttributeComponent<TShiftedData> shiftedUniverse =
+                Universe.Reproduce(Universe.SelectMany(itemsSelector)) as NonFictionalAttributeComponent<TShiftedData>;
 
-            return new AttributeDomain<TShiftedData>(shiftedUniversum);
+            return new AttributeDomain<TShiftedData>(shiftedUniverse);
         }
 
         #endregion
@@ -142,7 +141,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <returns></returns>
         public IEnumerator<TData> GetEnumerator()
         {
-            return Universum.GetEnumerator();
+            return Universe.GetEnumerator();
         }
 
         /// <summary>
@@ -158,27 +157,16 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Static methods
 
-        protected TAttributeComponent BuildUniversum<TAttributeComponent>(
-            AttributeComponentFactoryArgs factoryArgs)
-            where TAttributeComponent : NonFictionalAttributeComponent<TData>
-        {
-            TAttributeComponent universumComponent =
-                Helper.GetFactory(typeof(TAttributeComponent))
-                .CreateNonFictional<TData>(factoryArgs) as TAttributeComponent;
-
-            return universumComponent;
-        }
-
-        #endregion
-
         #region IAttributeComponentProvider implementation
 
         public IAlgebraicSetObject CreateAttributeComponent<TEntity>(AttributeInfo attribute, IEnumerable<TEntity> entitySource)
         {
             Func<TEntity, TData> dataSelector = attribute.AttributeGetter<TEntity, TData>();
 
-            return Universum.Reproduce(entitySource.Select(entity => dataSelector(entity)), true) as IAlgebraicSetObject;
+            return Universe.Reproduce(entitySource.Select(entity => dataSelector(entity)), true) as IAlgebraicSetObject;
         }
+
+        #endregion
 
         #endregion
 
@@ -192,7 +180,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <returns></returns>
         public static AttributeComponent<TData> operator &(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
-            return domain.Universum & component;
+            return domain.Universe & component;
         }
 
         /// <summary>
@@ -203,7 +191,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <returns></returns>
         public static AttributeComponent<TData> operator |(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
-            return domain.Universum | component;
+            return domain.Universe | component;
         }
 
         /// <summary>
@@ -214,7 +202,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <returns></returns>
         public static AttributeComponent<TData> operator /(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
-            return domain.Universum / component;
+            return domain.Universe / component;
         }
 
         /// <summary>
@@ -225,7 +213,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <returns></returns>
         public static AttributeComponent<TData> operator ^(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
-            return domain.Universum ^ component;
+            return domain.Universe ^ component;
         }
 
         /// <summary>
@@ -236,7 +224,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <returns></returns>
         public static bool operator ==(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
-            return domain.Universum == component;
+            return domain.Universe == component;
         }
 
         /// <summary>
@@ -257,7 +245,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <summary>
         /// Мощность полной фиктивной компоненты атрибута.
         /// </summary>
-        public class AttributeUniversumPower : AttributeComponentPower
+        public class AttributeUniversePower : AttributeComponentPower
         {
             #region Instance fields
 
@@ -274,7 +262,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
             #region Constructors
 
-            public AttributeUniversumPower(NonFictionalAttributeComponentPower<TData> nonFictionalPower)
+            public AttributeUniversePower(NonFictionalAttributeComponentPower<TData> nonFictionalPower)
             {
                 NonFictionalPower = nonFictionalPower;
 

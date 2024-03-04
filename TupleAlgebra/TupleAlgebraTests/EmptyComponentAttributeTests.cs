@@ -20,7 +20,7 @@ namespace TupleAlgebraTests
         }
 
         [TestMethod]
-        public void EmptyComponentComplemention()
+        public void EmptyComponentComplementation()
         {
             component1 = intFactory.CreateEmpty();
 

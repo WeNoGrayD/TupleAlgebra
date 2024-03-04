@@ -9,7 +9,7 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
 {
     public sealed class FullAttributeComponentInclusionComparer<TData>
-        : CrossContentTypesInstantBinaryAttributeComponentAcceptor<TData, FullAttributeComponent<TData>, bool>
+        : FictionalAttributeComponentCrossTypeInstantBinaryAcceptor<TData, FullAttributeComponent<TData>, bool>
     {
         public override bool Accept(FullAttributeComponent<TData> first, EmptyAttributeComponent<TData> second)
         {

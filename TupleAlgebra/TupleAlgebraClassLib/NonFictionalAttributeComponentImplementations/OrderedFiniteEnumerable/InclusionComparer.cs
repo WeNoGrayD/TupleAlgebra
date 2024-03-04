@@ -3,17 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Countable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
-    public sealed class InclusionComparer<TData>
-        : NonFictionalAttributeComponentInclusionComparer<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
-          IInstantBinaryAttributeComponentAcceptor<TData, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>, bool>
+    public abstract class InclusionComparer<TData, TAttributeComponent>
+        : NonFictionalAttributeComponentInclusionComparer<TData, TAttributeComponent>,
+          IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent, AttributeComponent<TData>>,
+          IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent>,
+          IFiniteEnumerableAttributeComponentInclusionComparer<TData>,
+          ICountableAttributeComponentInclusionComparer<TData>
+        where TAttributeComponent : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
     {
-        public bool Accept(OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> greater,
-                           OrderedFiniteEnumerableNonFictionalAttributeComponent<TData> lesser)
+        public bool Accept(TAttributeComponent greater,
+                           IOrderedFiniteEnumerableAttributeComponent<TData> lesser)
         {
             bool isInclude = false;
             IEnumerator<TData> greaterEnumerator = greater.GetEnumerator(),

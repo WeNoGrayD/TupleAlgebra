@@ -19,4 +19,11 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <returns></returns>
         IEnumerator GetBufferizedEnumerator();
     }
+
+    public interface IAttributeComponent<TData> : IAttributeComponent, IEnumerable<TData>, IQueryable<TData>
+    {
+        IEnumerator<TData> GetBufferizedEnumerator();
+
+        IEnumerator IAttributeComponent.GetBufferizedEnumerator() => GetBufferizedEnumerator();
+    }
 }

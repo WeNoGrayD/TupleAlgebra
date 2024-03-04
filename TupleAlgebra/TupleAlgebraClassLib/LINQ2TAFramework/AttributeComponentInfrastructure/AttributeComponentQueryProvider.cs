@@ -11,6 +11,8 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using LINQProvider;
 using System.Reflection;
 using TupleAlgebraClassLib.AttributeComponents;
+using LINQProvider.QueryPipelineInfrastructure;
+using System.Collections;
 
 namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
 {
