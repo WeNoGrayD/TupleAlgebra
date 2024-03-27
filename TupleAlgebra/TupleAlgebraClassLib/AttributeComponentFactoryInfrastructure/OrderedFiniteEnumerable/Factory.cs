@@ -15,7 +15,7 @@ using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable
 {
     public interface IOrderedFiniteEnumerableAttributeComponentFactory<TData, in TAttributeComponent, TFactoryArgs>
-        : INonFictionalAttributeComponentFactory<
+        : IEnumerableNonFictionalAttributeComponentFactory<
               TData,
               TAttributeComponent,
               TFactoryArgs>
@@ -58,5 +58,17 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
             IEnumerable<TData> universeData)
             : this(new BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(values: universeData))
         { }
+
+        AttributeComponent<TData>
+            INonFictionalAttributeComponentFactory<
+                TData,
+                IEnumerable<TData>>
+            .CreateNonFictional(IEnumerable<TData> values)
+        {
+            IStreamingOrderedFiniteEnumerableAttributeComponentFactory<TData>
+                streamingFactory = this;
+
+            return streamingFactory.ProduceOperationResult(values);
+        }
     }
 }

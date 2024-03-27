@@ -10,10 +10,11 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
 {
-    public class BooleanAttributeComponentFactoryArgs
+    public record BooleanAttributeComponentFactoryArgs
         : NonFictionalAttributeComponentFactoryArgs<bool>
     {
         public bool Value { get; private set; }
@@ -33,6 +34,16 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
         protected override AttributeComponentPower CreatePower()
         {
             return AtomicNonFictionalAttributeComponentPower<bool>.Instance;
+        }
+    }
+
+    public record BooleanAttributeDomainFactoryArgs
+        : FiniteIterableAttributeComponentFactoryArgs<bool>
+    {
+        public BooleanAttributeDomainFactoryArgs()
+            : base([false, true])
+        {
+            return;
         }
     }
 }

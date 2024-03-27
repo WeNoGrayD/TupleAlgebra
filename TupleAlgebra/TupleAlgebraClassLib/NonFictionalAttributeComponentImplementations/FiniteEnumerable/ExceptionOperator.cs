@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable
 {
@@ -15,23 +16,26 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
         TAttributeComponent,
         TFactory,
         TFactoryArgs>
-        : IFactoryBinaryAttributeComponentAcceptor<
+        : IFiniteEnumerableAttributeComponentBinaryOperator<
             TData,
             TAttributeComponent,
-            IFiniteEnumerableAttributeComponent<TData>,
             TFactory,
-            TFactoryArgs,
-            AttributeComponent<TData>>
+            TFactoryArgs>,
+          IFiniteEnumerableXFilteringExceptionOperator<
+            TData,
+            TAttributeComponent,
+            TFactory,
+            TFactoryArgs>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, IFiniteEnumerableAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, TAttributeComponent, TFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TAttributeComponent, TFactoryArgs>
         where TFactoryArgs : AttributeComponentFactoryArgs
     {
-        AttributeComponent<TData>
+        IAttributeComponent<TData>
              IFactoryBinaryOperator<
                 TAttributeComponent,
                 IFiniteEnumerableAttributeComponent<TData>,
                 TFactory,
-                AttributeComponent<TData>>
+                IAttributeComponent<TData>>
             .Accept(
                 TAttributeComponent first,
                 IFiniteEnumerableAttributeComponent<TData> second,

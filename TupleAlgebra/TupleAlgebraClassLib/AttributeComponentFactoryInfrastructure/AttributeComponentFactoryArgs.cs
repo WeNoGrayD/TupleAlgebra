@@ -13,13 +13,13 @@ using TupleAlgebraClassLib.FullAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
-    public abstract class AttributeComponentFactoryArgs
+    public abstract record AttributeComponentFactoryArgs
     {
         public AttributeComponentPower Power { get; set; }
 
         public bool IsQuery { get; set; }
 
-        public readonly IQueryProvider QueryProvider;
+        public IQueryProvider QueryProvider { get; init; }
 
         public Expression QueryExpression { get; set; }
 
@@ -49,7 +49,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         }
     }
 
-    public class EmptyAttributeComponentFactoryArgs 
+    public record EmptyAttributeComponentFactoryArgs 
         : AttributeComponentFactoryArgs
     {
         public EmptyAttributeComponentFactoryArgs(
@@ -61,7 +61,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         }
     }
 
-    public abstract class NonFictionalAttributeComponentFactoryArgs<TData>
+    public abstract record NonFictionalAttributeComponentFactoryArgs<TData>
         : AttributeComponentFactoryArgs
     {
         public NonFictionalAttributeComponentFactoryArgs(
@@ -78,7 +78,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         protected abstract AttributeComponentPower CreatePower();
     }
 
-    public class FullAttributeComponentFactoryArgs 
+    public record FullAttributeComponentFactoryArgs 
         : AttributeComponentFactoryArgs
     {
         public FullAttributeComponentFactoryArgs(

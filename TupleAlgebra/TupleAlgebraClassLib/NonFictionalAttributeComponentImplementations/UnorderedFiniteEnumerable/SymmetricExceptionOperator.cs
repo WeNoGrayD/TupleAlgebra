@@ -11,14 +11,25 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Unorder
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Countable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.UnorderedFiniteEnumerable
 {
     public sealed class SymmetricExceptionOperator<TData>
-        : NonFictionalAttributeComponentSymmetricExceptionOperator<TData, UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>, IUnorderedFiniteEnumerableAttributeComponentFactory<TData>, UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>,
-          IUnorderedFiniteEnumerableAttributeComponentBinaryOperator<TData>
+        : NonFictionalAttributeComponentSymmetricExceptionOperator<
+            TData, 
+            IEnumerable<TData>, 
+            UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>, 
+            IUnorderedFiniteEnumerableAttributeComponentFactory<TData>, 
+            UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>,
+          IUnorderedFiniteEnumerableAttributeComponentBinaryOperator<TData>,
+          IFiniteEnumerableXFilteringSymmetricExceptionOperator<
+              TData,
+              UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
+              IUnorderedFiniteEnumerableAttributeComponentFactory<TData>, 
+              UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
     {
-        public AttributeComponent<TData> Accept(
+        public IAttributeComponent<TData> Accept(
             UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
             IFiniteEnumerableAttributeComponent<TData> second,
             IUnorderedFiniteEnumerableAttributeComponentFactory<TData> factory)

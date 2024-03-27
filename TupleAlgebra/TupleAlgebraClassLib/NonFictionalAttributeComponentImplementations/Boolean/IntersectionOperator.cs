@@ -12,10 +12,10 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean
 {
     internal class IntersectionOperator
-        : NonFictionalAttributeComponentIntersectionOperator<bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs>,
+        : NonFictionalAttributeComponentIntersectionOperator<bool, bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs>,
           IBooleanAttributeComponentBinaryOperator
     {
-        public AttributeComponent<bool> Accept(
+        public IAttributeComponent<bool> Accept(
             BooleanNonFictionalAttributeComponent first,
             BooleanNonFictionalAttributeComponent second,
             IBooleanAttributeComponentFactory factory)

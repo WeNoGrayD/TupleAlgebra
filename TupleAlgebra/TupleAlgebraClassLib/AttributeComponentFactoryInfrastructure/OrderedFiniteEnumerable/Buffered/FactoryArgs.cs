@@ -10,7 +10,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Buffered
 {
-    public class BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+    public record BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
     {
         public BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs(

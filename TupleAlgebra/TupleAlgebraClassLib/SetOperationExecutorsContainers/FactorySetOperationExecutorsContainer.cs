@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
@@ -26,15 +26,15 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
     {
         #region Instance fields
 
-        private Lazy<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>> _complementationOperator;
+        private Lazy<FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>> _complementationOperator;
 
-        private Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _intersectionOperator;
+        private Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _intersectionOperator;
 
-        private Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _unionOperator;
+        private Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _unionOperator;
 
-        private Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _differenceOperator;
+        private Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _differenceOperator;
 
-        private Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _symmetricExceptionOperator;
+        private Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _symmetricExceptionOperator;
 
         #endregion
 
@@ -42,19 +42,19 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 
         protected TOperationResultFactory Factory { get; private set; }
 
-        protected IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand> ComplementationOperator
+        protected FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand> ComplementationOperator
         { get => _complementationOperator.Value; }
 
-        protected IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> IntersectionOperator
+        protected FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> IntersectionOperator
         { get => _intersectionOperator.Value; }
 
-        protected IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> UnionOperator
+        protected FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> UnionOperator
         { get => _unionOperator.Value; }
 
-        protected IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> DifferenceOperator
+        protected FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> DifferenceOperator
         { get => _differenceOperator.Value; }
 
-        protected IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> SymmetricExceptionOperator
+        protected FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> SymmetricExceptionOperator
         { get => _symmetricExceptionOperator.Value; }
 
         #endregion
@@ -63,21 +63,21 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 
         public FactorySetOperationExecutorsContainer(
             TOperationResultFactory factory,
-            Func<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>
+            Func<FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>
                 complementationOperator,
-            Func<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
+            Func<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
                 intersectionOperator,
-            Func<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
+            Func<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
                 unionOperator,
-            Func<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
+            Func<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
                 differenceOperator,
-            Func<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
+            Func<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
                 symmetricExceptionOperator,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>>
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>>
                 inclusionComparer,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> 
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> 
                 equalityComparer,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> 
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> 
                 inclusionOrEquationComparer)
             : base(inclusionComparer,
                    equalityComparer,
@@ -85,15 +85,15 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         {
             Factory = factory;
 
-            _complementationOperator = new Lazy<IFactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>(
+            _complementationOperator = new Lazy<FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>(
                 complementationOperator);
-            _intersectionOperator = new Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
+            _intersectionOperator = new Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
                 intersectionOperator);
-            _unionOperator = new Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
+            _unionOperator = new Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
                 unionOperator);
-            _differenceOperator = new Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
+            _differenceOperator = new Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
                 differenceOperator);
-            _symmetricExceptionOperator = new Lazy<IFactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
+            _symmetricExceptionOperator = new Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
                 symmetricExceptionOperator);
 
             return;

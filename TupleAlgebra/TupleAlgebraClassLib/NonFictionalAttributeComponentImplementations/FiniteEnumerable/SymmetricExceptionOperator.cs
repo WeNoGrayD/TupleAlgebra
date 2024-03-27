@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable
 {
@@ -23,9 +24,14 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
             TFactoryArgs>,
           IFiniteEnumerableSequenceOperator<
             TData, 
-            TAttributeComponent>
+            TAttributeComponent>,
+          IFiniteEnumerableXFilteringSymmetricExceptionOperator<
+            TData,
+            TAttributeComponent,
+            TFactory,
+            TFactoryArgs>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, IFiniteEnumerableAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, TAttributeComponent, TFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TAttributeComponent, TFactoryArgs>
         where TFactoryArgs : AttributeComponentFactoryArgs
     { }
 }

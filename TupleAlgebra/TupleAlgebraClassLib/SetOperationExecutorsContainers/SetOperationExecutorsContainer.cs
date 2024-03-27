@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 {
@@ -15,23 +15,23 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
     {
         #region Instance fields
 
-        private Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>> _inclusionComparer;
+        private Lazy<InstantBinaryOperator<CTOperand, BTOperand, bool>> _inclusionComparer;
 
-        private Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>> _equalityComparer;
+        private Lazy<InstantBinaryOperator<CTOperand, BTOperand, bool>> _equalityComparer;
 
-        private Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>> _inclusionOrEqualityComparer;
+        private Lazy<InstantBinaryOperator<CTOperand, BTOperand, bool>> _inclusionOrEqualityComparer;
 
         #endregion
 
         #region Instance properties
 
-        protected IInstantBinaryOperator<CTOperand, BTOperand, bool> InclusionComparer
+        protected InstantBinaryOperator<CTOperand, BTOperand, bool> InclusionComparer
         { get => _inclusionComparer.Value; }
 
-        protected IInstantBinaryOperator<CTOperand, BTOperand, bool> EqualityComparer
+        protected InstantBinaryOperator<CTOperand, BTOperand, bool> EqualityComparer
         { get => _equalityComparer.Value; }
 
-        protected IInstantBinaryOperator<CTOperand, BTOperand, bool> InclusionOrEqualityComparer
+        protected InstantBinaryOperator<CTOperand, BTOperand, bool> InclusionOrEqualityComparer
         { get => _inclusionOrEqualityComparer.Value; }
 
         #endregion
@@ -39,15 +39,15 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         #region Constructors
 
         public SetOperationExecutorsContainer(
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionComparer,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> equalityComparer,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionOrEquationComparer)
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionComparer,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> equalityComparer,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionOrEquationComparer)
         {
-            _inclusionComparer = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>>(
+            _inclusionComparer = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, bool>>(
                 inclusionComparer);
-            _equalityComparer = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>>(
+            _equalityComparer = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, bool>>(
                 equalityComparer);
-            _inclusionOrEqualityComparer = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, bool>>(
+            _inclusionOrEqualityComparer = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, bool>>(
                 inclusionOrEquationComparer);
 
             return;

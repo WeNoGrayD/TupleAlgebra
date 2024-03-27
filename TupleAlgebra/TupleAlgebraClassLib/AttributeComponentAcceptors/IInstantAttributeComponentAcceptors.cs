@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors

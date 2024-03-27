@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Countable
@@ -26,7 +26,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cou
               TData, 
               TAttributeComponent>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, ICountableAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, TAttributeComponent, TFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TAttributeComponent, TFactoryArgs>
         where TFactoryArgs : AttributeComponentFactoryArgs
     { }
 }

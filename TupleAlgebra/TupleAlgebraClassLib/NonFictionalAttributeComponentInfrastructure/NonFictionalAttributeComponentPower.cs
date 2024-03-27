@@ -25,7 +25,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 
         #region Instance methods
 
-        public abstract void InitWith(NonFictionalAttributeComponent<TData> component);
+        public virtual void InitWith(
+            NonFictionalAttributeComponent<TData> component)
+        { return; }
 
         public override bool EqualsZero()
         {

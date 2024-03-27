@@ -28,10 +28,12 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
 
         static DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent()
         {
+            /*
             Helper.RegisterType<
                 KeyValuePair<TKey, TData>,
                 DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>>(
                     acFactory: (domain) => new DictionaryBasedAttributeComponentFactory<TKey, TData>(domain));
+            */
 
             return;
         }
@@ -111,6 +113,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         #endregion
     }
 
+    /*
     internal class DictionaryBasedAttributeComponentFactory<TKey, TData>
         : AttributeComponentWithCompoundDataFactory<KeyValuePair<TKey, TData>, OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
             where TKey : IComparable<TKey>
@@ -134,4 +137,5 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
                 args.QueryExpression);
         }
     }
+    */
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.AttributeComponentAcceptors
@@ -17,8 +17,7 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
     public abstract class InstantBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
-        : InstantBinaryOperator<TOperand1, AttributeComponent<TData>, TOperationResult>,
-          IInstantBinaryAttributeComponentAcceptor<TData, TOperand1, AttributeComponent<TData>, TOperationResult>
+        : InstantBinaryOperator<TOperand1, IAttributeComponent<TData>, TOperationResult>
         where TOperand1: IAttributeComponent<TData>
     { }
 }

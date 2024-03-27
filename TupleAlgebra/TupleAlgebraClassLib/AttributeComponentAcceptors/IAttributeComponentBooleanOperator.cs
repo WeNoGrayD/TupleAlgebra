@@ -19,14 +19,4 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
         where CTOperand1 : IAttributeComponent<TData>
         where CTOperand2 : IAttributeComponent<TData>
     { }
-
-    public interface IAttributeComponentBooleanOperator<
-        TData,
-        in CTOperand1>
-        : IAttributeComponentBooleanOperator<
-              TData,
-              CTOperand1,
-              AttributeComponent<TData>>
-        where CTOperand1 : IAttributeComponent<TData>
-    { }
 }

@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable
 {
@@ -13,7 +14,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
             TData,
             IFiniteEnumerableAttributeComponent<TData>,
             IFiniteEnumerableAttributeComponent<TData>>,
-          IFiniteEnumerableSequenceComparer<TData>
+          IFiniteEnumerableSequenceComparer<TData>,
+          IFiniteEnumerableXFilteringEqualityComparer<TData>
     {
         bool IInstantBinaryOperator<
             IFiniteEnumerableAttributeComponent<TData>,

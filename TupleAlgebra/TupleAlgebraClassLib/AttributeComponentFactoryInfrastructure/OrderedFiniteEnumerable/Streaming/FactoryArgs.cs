@@ -10,7 +10,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming
 {
-    public class StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+    public record StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
     {
         public StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs(

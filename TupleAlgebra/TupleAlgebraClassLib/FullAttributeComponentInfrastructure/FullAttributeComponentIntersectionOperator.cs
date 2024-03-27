@@ -9,23 +9,26 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
 {
     public sealed class FullAttributeComponentIntersectionOperator<TData>
-        : FictionalAttributeComponentCrossTypeInstantBinaryAcceptor<TData, FullAttributeComponent<TData>, AttributeComponent<TData>>
+        : FictionalAttributeComponentCrossTypeInstantBinaryAcceptor<
+            TData, 
+            FullAttributeComponent<TData>, 
+            IAttributeComponent<TData>>
     {
-        public override AttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Accept(
             FullAttributeComponent<TData> first,
             EmptyAttributeComponent<TData> second)
         {
             return second;
         }
 
-        public override AttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Accept(
             FullAttributeComponent<TData> first,
             NonFictionalAttributeComponent<TData> second)
         {
             return second;
         }
 
-        public override AttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Accept(
             FullAttributeComponent<TData> first,
             FullAttributeComponent<TData> second)
         {

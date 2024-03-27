@@ -178,7 +178,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static AttributeComponent<TData> operator &(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static IAttributeComponent<TData> operator &(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universe & component;
         }
@@ -189,7 +189,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static AttributeComponent<TData> operator |(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static IAttributeComponent<TData> operator |(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universe | component;
         }
@@ -200,7 +200,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static AttributeComponent<TData> operator /(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static IAttributeComponent<TData> operator /(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universe / component;
         }
@@ -211,7 +211,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static AttributeComponent<TData> operator ^(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static IAttributeComponent<TData> operator ^(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
         {
             return domain.Universe ^ component;
         }

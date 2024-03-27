@@ -10,8 +10,16 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
     public interface INonFictionalAttributeComponentFactory<
         TData,
-        in CTFactoryArgs>
+        in TFactoryValues>
         : IAttributeComponentFactory<TData>
+    {
+        AttributeComponent<TData> CreateNonFictional(
+            TFactoryValues resultElements);
+    }
+
+    public interface INonFictionalAttributeComponentFactory2<
+        TData,
+        in CTFactoryArgs>
         where CTFactoryArgs : AttributeComponentFactoryArgs
     {
         abstract NonFictionalAttributeComponent<TData>
@@ -20,12 +28,26 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 
     public interface INonFictionalAttributeComponentFactory<
         TData,
+        in TFactoryValues,
+        in CTFactoryArgs>
+        : INonFictionalAttributeComponentFactory<TData, TFactoryValues>,
+          INonFictionalAttributeComponentFactory2<TData, CTFactoryArgs>
+        where CTFactoryArgs : AttributeComponentFactoryArgs
+    {
+    }
+
+    public interface INonFictionalAttributeComponentFactory<
+        TData,
+        in TFactoryValues,
         in CTNonFictionalAttributeComponent,
         CTFactoryArgs>
-        : INonFictionalAttributeComponentFactory<TData, CTFactoryArgs>,
+        : INonFictionalAttributeComponentFactory<
+            TData,
+            TFactoryValues, 
+            CTFactoryArgs>,
           ISetOperationResultFactory<
               CTNonFictionalAttributeComponent,
-              IEnumerable<TData>,
+              TFactoryValues,
               CTFactoryArgs,
               AttributeComponent<TData>>
         where CTNonFictionalAttributeComponent : NonFictionalAttributeComponent<TData>
@@ -34,7 +56,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         protected AttributeComponent<TData> 
             ProduceOperationResult_DefaultImpl(
                 CTNonFictionalAttributeComponent first,
-                IEnumerable<TData> resultElements)
+                TFactoryValues resultElements)
         {
             CTFactoryArgs factoryArgs = CreateFactoryArgs(
                 first,
@@ -48,41 +70,46 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         AttributeComponent<TData>
             ISetOperationResultFactory<
                 CTNonFictionalAttributeComponent,
-                IEnumerable<TData>,
+                TFactoryValues,
                 CTFactoryArgs,
                 AttributeComponent<TData>>
             .ProduceOperationResult(
                 CTNonFictionalAttributeComponent first,
-                IEnumerable<TData> resultElements)
+                TFactoryValues resultElements)
         {
             return ProduceOperationResult_DefaultImpl(first, resultElements);
         }
 
-        protected static CTFactoryArgs CreateFactoryArgs_DefaultImpl(
-            CTNonFictionalAttributeComponent first,
-            IEnumerable<TData> resultElements)
-        {
-            return (first.ZipInfo(resultElements, true) as CTFactoryArgs)!;
-        }
-
-        CTFactoryArgs
+        AttributeComponent<TData>
             ISetOperationResultFactory<
                 CTNonFictionalAttributeComponent,
-                IEnumerable<TData>,
+                TFactoryValues,
                 CTFactoryArgs,
                 AttributeComponent<TData>>
-            .CreateFactoryArgs(
-            CTNonFictionalAttributeComponent first,
-            IEnumerable<TData> resultElements)
+            .ProduceOperationResult(
+                TFactoryValues resultElements)
         {
-            return CreateFactoryArgs_DefaultImpl(first, resultElements);
+            CTFactoryArgs factoryArgs = CreateFactoryArgs(
+                resultElements);
+            AttributeComponent<TData> resultComponent =
+                CreateNonFictional(factoryArgs);
+
+            return resultComponent;
         }
 
         sealed AttributeComponent<TData> CreateNonFictional(
             CTNonFictionalAttributeComponent first,
-            IEnumerable<TData> resultElements)
+            TFactoryValues resultElements)
         {
             return ProduceOperationResult(first, resultElements);
+        }
+
+        AttributeComponent<TData>
+            INonFictionalAttributeComponentFactory<TData, TFactoryValues>
+            .CreateNonFictional(
+                TFactoryValues resultElements)
+        {
+            return ProduceOperationResult(resultElements);
         }
     }
 }

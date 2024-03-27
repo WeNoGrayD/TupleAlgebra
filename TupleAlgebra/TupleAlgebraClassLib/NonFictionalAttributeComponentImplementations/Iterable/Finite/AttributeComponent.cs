@@ -24,7 +24,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ite
         /// </summary>
         static FiniteIterableAttributeComponent()
         {
-            Helper.RegisterType<TData, IterableAttributeComponent<TData>>(
+            Helper.RegisterType<TData, FiniteIterableAttributeComponent<TData>>(
                 acFactory: (domain) => new FiniteIterableAttributeComponentFactory<TData>(domain),
                 setOperations: (factory) => new FiniteIterableNonFictionalAttributeComponentOperationExecutorsContainer((IFiniteIterableAttributeComponentFactory<TData>)factory));
 
@@ -74,6 +74,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ite
         private class FiniteIterableNonFictionalAttributeComponentOperationExecutorsContainer
             : NonFictionalAttributeComponentOperationExecutorsContainer<
                 FiniteIterableAttributeComponent<TData>,
+                IEnumerable<TData>,
                 IFiniteIterableAttributeComponentFactory<TData>,
                 FiniteIterableAttributeComponentFactoryArgs<TData>>
         {

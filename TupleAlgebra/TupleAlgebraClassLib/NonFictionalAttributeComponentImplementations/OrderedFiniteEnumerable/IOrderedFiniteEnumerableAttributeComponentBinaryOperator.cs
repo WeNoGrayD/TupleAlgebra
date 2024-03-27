@@ -13,7 +13,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Unorder
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
     public interface IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, in TAttributeComponent, in TOperand2, in TFactory, in TFactoryArgs>
-        : IFactoryBinaryAttributeComponentAcceptor<TData, TAttributeComponent, TOperand2, TFactory, TFactoryArgs, AttributeComponent<TData>>
+        : IFactoryBinaryAttributeComponentAcceptor<TData, IEnumerable<TData>, TAttributeComponent, TOperand2, TFactory, TFactoryArgs, IAttributeComponent<TData>>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
         where TOperand2 : IAttributeComponent<TData>
         where TFactoryArgs : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>

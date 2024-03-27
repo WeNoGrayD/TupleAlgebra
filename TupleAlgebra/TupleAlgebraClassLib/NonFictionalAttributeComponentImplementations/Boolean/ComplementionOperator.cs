@@ -12,10 +12,9 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean
 {
     public class ComplementationOperator
-        : FactoryUnaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs, AttributeComponent<bool>>,
-          IFactoryUnaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs, AttributeComponent<bool>>
+        : AttributeComponentFactoryUnarySetOperator<bool, bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs>
     {
-        public override AttributeComponent<bool> Accept(
+        public override IAttributeComponent<bool> Accept(
             BooleanNonFictionalAttributeComponent first,
             IBooleanAttributeComponentFactory factory)
         {

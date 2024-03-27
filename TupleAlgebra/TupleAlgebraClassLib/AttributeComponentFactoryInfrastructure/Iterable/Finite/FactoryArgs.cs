@@ -10,7 +10,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Iterabl
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite
 {
-    public class FiniteIterableAttributeComponentFactoryArgs<TData>
+    public record FiniteIterableAttributeComponentFactoryArgs<TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         public IEnumerable<TData> Values { get; private set; }

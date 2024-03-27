@@ -15,14 +15,18 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="CTOperand"></typeparam>
     /// <typeparam name="CTFactoryArgs"></typeparam>
-    public class NonFictionalAttributeComponentComplementationOperator<TData, CTOperand, TFactory, CTFactoryArgs>
-        : FactoryUnaryAttributeComponentAcceptor<TData, CTOperand, TFactory, CTFactoryArgs, AttributeComponent<TData>>,
-          IFactoryUnaryAttributeComponentAcceptor<TData, CTOperand, TFactory, CTFactoryArgs, AttributeComponent<TData>>
+    public class NonFictionalAttributeComponentComplementationOperator<
+        TData, 
+        TIntermediateResult, 
+        CTOperand,
+        TFactory, 
+        CTFactoryArgs>
+        : FactoryUnaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, TFactory, CTFactoryArgs, IAttributeComponent<TData>>
         where CTOperand: NonFictionalAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, CTOperand, CTFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand, CTFactoryArgs>
         where CTFactoryArgs : AttributeComponentFactoryArgs
     {
-        public override AttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Accept(
             CTOperand first, 
             TFactory factory)
         {

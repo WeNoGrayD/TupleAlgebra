@@ -59,8 +59,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
         private void SequenceIncludeOrEquals(
             TOperand1 greater,
             TOperand2 lower,
-            out bool include,
-            out bool equals)
+            out bool equals,
+            out bool include)
         {
             IEnumerable<TData> streaming;
             HashSet<TData> buffered, occurences = null;
@@ -82,7 +82,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
             {
                 if (buffered.Count == 0)
                 {
-                    break;
+                    bufferedIsSubsetOfStreaming = true;
+                    if (!equals) break;
                 }
 
                 if (buffered.Contains(data))
@@ -94,7 +95,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
                     equals = false;
             }
 
-            if (equals && buffered.Count > 0)
+            if (!equals && buffered.Count == 0)
+            {
+                bufferedIsSubsetOfStreaming = true;
+            }
+            else if (equals && buffered.Count > 0)
             {
                 equals = false;
                 streamingIsSubsetOfBuffered = true;

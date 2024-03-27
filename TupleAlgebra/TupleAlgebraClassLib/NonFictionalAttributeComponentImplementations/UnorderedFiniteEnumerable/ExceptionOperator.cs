@@ -10,14 +10,25 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.UnorderedFiniteEnumerable
 {
     public sealed class ExceptionOperator<TData>
-        : NonFictionalAttributeComponentExceptionOperator<TData, UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>, IUnorderedFiniteEnumerableAttributeComponentFactory<TData>, UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>,
-          IUnorderedFiniteEnumerableAttributeComponentBinaryOperator<TData>
+        : NonFictionalAttributeComponentExceptionOperator<
+            TData,
+            IEnumerable<TData>,
+            UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
+            IUnorderedFiniteEnumerableAttributeComponentFactory<TData>, 
+            UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>,
+          IUnorderedFiniteEnumerableAttributeComponentBinaryOperator<TData>,
+          IFiniteEnumerableXFilteringExceptionOperator<
+              TData,
+              UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
+              IUnorderedFiniteEnumerableAttributeComponentFactory<TData>,
+              UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
     {
-        public AttributeComponent<TData> Accept(
+        public IAttributeComponent<TData> Accept(
             UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData> first,
             IFiniteEnumerableAttributeComponent<TData> second,
             IUnorderedFiniteEnumerableAttributeComponentFactory<TData> factory)

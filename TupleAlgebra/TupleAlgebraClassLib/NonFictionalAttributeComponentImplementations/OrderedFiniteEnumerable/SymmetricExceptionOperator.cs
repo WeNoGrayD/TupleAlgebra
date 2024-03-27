@@ -13,15 +13,14 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteE
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable
 {
     public abstract class SymmetricExceptionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
-        : NonFictionalAttributeComponentSymmetricExceptionOperator<TData, CTOperand1, TFactory, TFactoryArgs>,
-          IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, CTOperand1, AttributeComponent<TData>, TFactory, TFactoryArgs>,
+        : NonFictionalAttributeComponentSymmetricExceptionOperator<TData, IEnumerable<TData>, CTOperand1, TFactory, TFactoryArgs>,
           IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, CTOperand1, TFactory, TFactoryArgs>,
           IFiniteEnumerableAttributeComponentSymmetricExceptionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
         where CTOperand1 : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
         where TFactoryArgs : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         where TFactory : IOrderedFiniteEnumerableAttributeComponentFactory<TData, CTOperand1, TFactoryArgs>
     {
-        public AttributeComponent<TData> Accept(
+        public IAttributeComponent<TData> Accept(
             CTOperand1 first,
             IOrderedFiniteEnumerableAttributeComponent<TData> second,
             TFactory factory)

@@ -10,6 +10,7 @@ using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.Default;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean
 {
@@ -62,7 +63,10 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
             bool value,
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(power, queryProvider, queryExpression)
+            : base(
+                  power, 
+                  queryProvider ?? new DefaultAttributeComponentQueryProvider(), 
+                  queryExpression)
         {
             Value = value;
 
@@ -116,6 +120,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
         private class BooleanAttributeComponentOperationExecutorsContainer
             : NonFictionalAttributeComponentOperationExecutorsContainer<
                 BooleanNonFictionalAttributeComponent,
+                bool,
                 IBooleanAttributeComponentFactory,
                 BooleanAttributeComponentFactoryArgs>
         {

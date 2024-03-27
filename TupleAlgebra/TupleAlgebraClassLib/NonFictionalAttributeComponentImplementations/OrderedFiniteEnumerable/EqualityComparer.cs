@@ -13,7 +13,6 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 {
     public abstract class EqualityComparer<TData, TAttributeComponent>
         : NonFictionalAttributeComponentEqualityComparer<TData, TAttributeComponent>,
-          IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent, AttributeComponent<TData>>,
           IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent>,
           IFiniteEnumerableAttributeComponentEqualityComparer<TData>,
           ICountableAttributeComponentEqualityComparer<TData>

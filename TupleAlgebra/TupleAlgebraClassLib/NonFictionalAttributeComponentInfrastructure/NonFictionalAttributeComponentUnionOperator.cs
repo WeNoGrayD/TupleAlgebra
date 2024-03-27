@@ -9,13 +9,13 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
-    public abstract class NonFictionalAttributeComponentUnionOperator<TData, CTOperand1, TFactory, CTFactoryArgs>
-        : NonFictionalAttributeComponentSetBinaryOperator<TData, CTOperand1, TFactory, CTFactoryArgs>
+    public abstract class NonFictionalAttributeComponentUnionOperator<TData, TIntermediateResult, CTOperand1, TFactory, CTFactoryArgs>
+        : NonFictionalAttributeComponentSetBinaryOperator<TData, TIntermediateResult, CTOperand1, TFactory, CTFactoryArgs>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, CTOperand1, CTFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand1, CTFactoryArgs>
         where CTFactoryArgs : AttributeComponentFactoryArgs
     {
-        public override AttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Accept(
             NonFictionalAttributeComponent<TData> first,
             EmptyAttributeComponent<TData> second,
             TFactory factory)
@@ -23,7 +23,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
             return first;
         }
 
-        public override AttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Accept(
             NonFictionalAttributeComponent<TData> first,
             FullAttributeComponent<TData> second,
             TFactory factory)

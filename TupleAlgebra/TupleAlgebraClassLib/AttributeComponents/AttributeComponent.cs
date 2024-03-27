@@ -10,7 +10,7 @@ using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 using System.Numerics;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 
 namespace TupleAlgebraClassLib.AttributeComponents
@@ -26,11 +26,12 @@ namespace TupleAlgebraClassLib.AttributeComponents
     public abstract class AttributeComponent<TData>
         : IReproducingQueryable<TData>,
           IReproducingQueryable<AttributeComponentFactoryArgs, TData>,
-          IBitwiseOperators<AttributeComponent<TData>, AttributeComponent<TData>, AttributeComponent<TData>>,
-          IDivisionOperators<AttributeComponent<TData>, AttributeComponent<TData>, AttributeComponent<TData>>,
-          IEqualityOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>,
-          IComparisonOperators<AttributeComponent<TData>, AttributeComponent<TData>, bool>,
-          IAttributeComponent<TData>
+          IAttributeComponent<TData>,
+          IBitwiseOperators<AttributeComponent<TData>, IAttributeComponent<TData>, IAttributeComponent<TData>>,
+          IDivisionOperators<AttributeComponent<TData>, IAttributeComponent<TData>, IAttributeComponent<TData>>,
+          IEqualityOperators<AttributeComponent<TData>, IAttributeComponent<TData>, bool>,
+          IComparisonOperators<AttributeComponent<TData>, IAttributeComponent<TData>, bool>
+    
     {
         #region Instance fields
 
@@ -47,7 +48,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public IAttributeComponentFactory<TData> Factory { get => Helper.GetFactory(this); }
 
-        public ISetOperationExecutorsContainer<AttributeComponent<TData>> SetOperations
+        public ISetOperationExecutorsContainer<IAttributeComponent<TData>> SetOperations
             { get => Helper.GetSetOperations<TData>(this); }
 
         #region IQueryable implemented properties
@@ -180,42 +181,49 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Set operations
 
-        protected AttributeComponent<TData> ComplementThe()
+        public IAttributeComponent<TData> ComplementThe()
         {
             return SetOperations.Complement(this);
         }
 
-        protected AttributeComponent<TData> IntersectWith(AttributeComponent<TData> second)
+        public IAttributeComponent<TData> IntersectWith(
+            IAttributeComponent<TData> second)
         {
             return SetOperations.Intersect(this, second);
         }
 
-        protected AttributeComponent<TData> UnionWith(AttributeComponent<TData> second)
+        public IAttributeComponent<TData> UnionWith(
+            IAttributeComponent<TData> second)
         {
             return SetOperations.Union(this, second);
         }
 
-        protected AttributeComponent<TData> ExceptWith(AttributeComponent<TData> second)
+        public IAttributeComponent<TData> ExceptWith(
+            IAttributeComponent<TData> second)
         {
             return SetOperations.Except(this, second);
         }
 
-        protected AttributeComponent<TData> SymmetricExceptWith(AttributeComponent<TData> second)
+        public IAttributeComponent<TData> SymmetricExceptWith(
+            IAttributeComponent<TData> second)
         {
             return SetOperations.SymmetricExcept(this, second);
         }
 
-        protected bool Includes(AttributeComponent<TData> second)
+        public bool Includes(
+            IAttributeComponent<TData> second)
         {
             return SetOperations.Include(this, second);
         }
 
-        protected bool EqualsTo(AttributeComponent<TData> second)
+        public bool EqualsTo(
+            IAttributeComponent<TData> second)
         {
             return SetOperations.Equal(this, second);
         }
 
-        protected bool IncludesOrEqualsTo(AttributeComponent<TData> second)
+        public bool IncludesOrEqualsTo(
+            IAttributeComponent<TData> second)
         {
             return SetOperations.IncludeOrEqual(this, second);
         }
@@ -273,78 +281,78 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Operators
 
-        public static AttributeComponent<TData> operator ~(
+        public static IAttributeComponent<TData> operator ~(
             AttributeComponent<TData> first)
         {
             return first.ComplementThe();
         }
 
-        public static AttributeComponent<TData> operator &(
+        public static IAttributeComponent<TData> operator &(
             AttributeComponent<TData> first,
-            AttributeComponent<TData> second)
+            IAttributeComponent<TData> second)
         {
             return first.IntersectWith(second);
         }
 
-        public static AttributeComponent<TData> operator |(
+        public static IAttributeComponent<TData> operator |(
             AttributeComponent<TData> first,
-            AttributeComponent<TData> second)
+            IAttributeComponent<TData> second)
         {
             return first.UnionWith(second);
         }
 
-        public static AttributeComponent<TData> operator /(
+        public static IAttributeComponent<TData> operator /(
             AttributeComponent<TData> first,
-            AttributeComponent<TData> second)
+            IAttributeComponent<TData> second)
         {
             return first.ExceptWith(second);
         }
 
-        public static AttributeComponent<TData> operator ^(
+        public static IAttributeComponent<TData> operator ^(
             AttributeComponent<TData> first,
-            AttributeComponent<TData> second)
+            IAttributeComponent<TData> second)
         {
             return first.SymmetricExceptWith(second);
         }
 
         public static bool operator ==(
-            AttributeComponent<TData> first, 
-            AttributeComponent<TData> second)
+            AttributeComponent<TData> first,
+            IAttributeComponent<TData> second)
         {
             return first.EqualsTo(second);
         }
 
         public static bool operator !=(
-            AttributeComponent<TData> first, 
-            AttributeComponent<TData> second)
+            AttributeComponent<TData> first,
+            IAttributeComponent<TData> second)
         {
             return !(first == second);
         }
 
         public static bool operator >(
-            AttributeComponent<TData> first, 
-            AttributeComponent<TData> second)
+            AttributeComponent<TData> first,
+            IAttributeComponent<TData> second)
         {
             return first.Includes(second);
         }
 
         public static bool operator >=(
-            AttributeComponent<TData> first, 
-            AttributeComponent<TData> second)
+            AttributeComponent<TData> first,
+            IAttributeComponent<TData> second)
         {
             return first.IncludesOrEqualsTo(second);
         }
 
         public static bool operator <(
-            AttributeComponent<TData> first, 
-            AttributeComponent<TData> second)
+            AttributeComponent<TData> first,
+            IAttributeComponent<TData> second)
         {
             return second.Includes(first);
         }
 
         public static bool operator <=(
-            AttributeComponent<TData> first, 
-            AttributeComponent<TData> second)
+            AttributeComponent<TData> first,
+            IAttributeComponent<TData> second)
         {
             return second.IncludesOrEqualsTo(first);
         }
@@ -354,27 +362,27 @@ namespace TupleAlgebraClassLib.AttributeComponents
         #region Nested types
 
         public abstract class InstantAttributeComponentOperationExecutorsContainer<CTOperand>
-            : InstantSetOperationExecutorsContainer<AttributeComponent<TData>, CTOperand>
+            : InstantSetOperationExecutorsContainer<IAttributeComponent<TData>, CTOperand>
             where CTOperand : AttributeComponent<TData>
         {
             #region Constructors
 
             public InstantAttributeComponentOperationExecutorsContainer(
-                Func<IInstantUnaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>>>
+                Func<InstantUnaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
                     complementationOperator,
-                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
                     intersectionOperator,
-                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
                     unionOperator,
-                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
                     differenceOperator,
-                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, AttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
                     symmetricExceptionOperator,
-                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
                     inclusionComparer,
-                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
                     equalityComparer,
-                Func<IInstantBinaryAttributeComponentAcceptor<TData, CTOperand, AttributeComponent<TData>, bool>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
                     inclusionOrEquationComparer)
                 : base(complementationOperator,
                        intersectionOperator,

@@ -10,7 +10,7 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean
 {
     public interface IBooleanAttributeComponentBinaryOperator
-        : IFactoryBinaryAttributeComponentAcceptor<bool, BooleanNonFictionalAttributeComponent, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs, AttributeComponent<bool>>
+        : IFactoryBinaryAttributeComponentAcceptor<bool, bool, BooleanNonFictionalAttributeComponent, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs, IAttributeComponent<bool>>
     { }
 
     public interface IBooleanAttributeComponentBooleanOperator

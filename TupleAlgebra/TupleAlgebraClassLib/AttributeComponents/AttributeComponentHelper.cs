@@ -41,7 +41,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
             AttributeComponentFactoryCreationHandler<TData>(
                 AttributeDomain<TData> domain);
 
-        public delegate ISetOperationExecutorsContainer<AttributeComponent<TData>>
+        public delegate ISetOperationExecutorsContainer<IAttributeComponent<TData>>
             AttributeComponentSetOperationsCreationHandler<TData>(
                 IAttributeComponentFactory<TData> factory);
 
@@ -302,11 +302,11 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="ac"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public ISetOperationExecutorsContainer<AttributeComponent<TData>>
+        public ISetOperationExecutorsContainer<IAttributeComponent<TData>>
             GetSetOperations<TData>(
                 AttributeComponent<TData> ac)
         {
-            ISetOperationExecutorsContainer<AttributeComponent<TData>> 
+            ISetOperationExecutorsContainer<IAttributeComponent<TData>> 
                 setOpsContainer;
 
             Type acType = ac.GetType();
@@ -457,7 +457,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
                 Factory
             { get; protected set; }
 
-            public PropertyNode<ISetOperationExecutorsContainer<AttributeComponent<TData>>>
+            public PropertyNode<ISetOperationExecutorsContainer<IAttributeComponent<TData>>>
                 SetOperations
             { get; protected set; }
 

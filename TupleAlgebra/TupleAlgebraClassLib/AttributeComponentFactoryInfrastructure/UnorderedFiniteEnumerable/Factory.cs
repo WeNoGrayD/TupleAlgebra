@@ -11,13 +11,26 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Unorder
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable
 {
     public interface IUnorderedFiniteEnumerableAttributeComponentFactory<TData>
-        : INonFictionalAttributeComponentFactory<
+        : IEnumerableNonFictionalAttributeComponentFactory<
               TData,
               UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
               UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
     {
+        UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+            ISetOperationResultFactory<
+                UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
+                IEnumerable<TData>,
+                UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>,
+                AttributeComponent<TData>>
+            .CreateFactoryArgs(
+                IEnumerable<TData> resultElements)
+        {
+            return new UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(
+                resultElements.ToHashSet());
+        }
+
         NonFictionalAttributeComponent<TData>
-            INonFictionalAttributeComponentFactory<
+            INonFictionalAttributeComponentFactory2<
                 TData,
                 UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
             .CreateSpecificNonFictional(

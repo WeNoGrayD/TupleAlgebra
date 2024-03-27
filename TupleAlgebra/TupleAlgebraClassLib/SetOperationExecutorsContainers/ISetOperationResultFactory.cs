@@ -16,8 +16,14 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
             TOperand1 first,
             TIntermediateOperationResult intermediaryResult);
 
+        abstract TResult ProduceOperationResult(
+            TIntermediateOperationResult intermediaryResult);
+
         protected abstract TOperationResultFactoryArgs CreateFactoryArgs(
             TOperand1 first,
+            TIntermediateOperationResult intermediaryResult);
+
+        protected abstract TOperationResultFactoryArgs CreateFactoryArgs(
             TIntermediateOperationResult intermediaryResult);
     }
 }

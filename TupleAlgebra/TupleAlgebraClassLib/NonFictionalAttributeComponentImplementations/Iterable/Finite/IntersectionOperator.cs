@@ -12,6 +12,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ite
     public class IntersectionOperator<TData>
         : NonFictionalAttributeComponentIntersectionOperator<
             TData,
+            IEnumerable<TData>,
             FiniteIterableAttributeComponent<TData>,
             IFiniteIterableAttributeComponentFactory<TData>,
             FiniteIterableAttributeComponentFactoryArgs<TData>>,

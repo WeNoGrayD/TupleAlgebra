@@ -15,7 +15,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable
 {
-    public abstract class OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+    public abstract record OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         public IEnumerable<TData> Values { get; private set; }

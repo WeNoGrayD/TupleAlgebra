@@ -12,6 +12,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ite
     public class ExceptionOperator<TData>
         : NonFictionalAttributeComponentExceptionOperator<
             TData,
+            IEnumerable<TData>,
             FiniteIterableAttributeComponent<TData>,
             IFiniteIterableAttributeComponentFactory<TData>,
             FiniteIterableAttributeComponentFactoryArgs<TData>>,

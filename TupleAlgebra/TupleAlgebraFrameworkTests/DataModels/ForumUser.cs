@@ -36,6 +36,8 @@ namespace TupleAlgebraFrameworkTests.DataModels
         public Dictionary<DateTime, string> LatestComments { get; set; }
         public ForumUserRank Rank { get; set; }
 
+        public ForumUser() { return; }
+
         public ForumUser(
             int id, string nickname, int likeCount, int postCount,
             int followers, int following,
@@ -59,72 +61,9 @@ namespace TupleAlgebraFrameworkTests.DataModels
             return LikeCount.CompareTo(second.LikeCount);
         }
 
-        public static readonly List<ForumUser> Domain;
-
-        public static Dictionary<DateTime, string> Comments = new Dictionary<DateTime, string>()
-        {
-            { new DateTime(2022, 4, 3), "blah blah" },
-            { new DateTime(2021, 7, 16), "blah blah blah blah" }
-        };
-
         static ForumUser()
         {
-            Comments = new Dictionary<DateTime, string>()
-            {
-                { new DateTime(2022, 4, 3), "blah blah" },
-                { new DateTime(2021, 7, 16), "blah blah blah blah" }
-            };
-
-            Domain = new List<ForumUser>()
-            {
-                new ForumUser(1, "WeNoGrayD", 10, 5, 1, 1,
-                    gainedAchievments : new HashSet<int>(Enumerable.Range(1, 5))),
-                new ForumUser(2, "OwlFromAnimatedFilm", 2500, 1000, 20, 4,
-                    gainedAchievments : new HashSet<int>(Enumerable.Range(1, 20))),
-                new ForumUser(3, "Timemechanic", 200, 45, 2, 3),
-                new ForumUser(4, "PolkovnikNaBelomKone", 50, 65, 3, 0),
-                new ForumUser(5, "NewRevan", 100, 55, 5, 2)
-            };
-
-            Domain[2].LatestProfileVisitors.AddRange(new[] { Domain[4], Domain[1] });
-            Domain[3].LatestProfileVisitors.AddRange(new[] { Domain[1], Domain[0] });
-            Domain[1].LatestComments.Add(new DateTime(2022, 4, 3), Comments[new DateTime(2022, 4, 3)]);
-            Domain[4].LatestComments.Add(new DateTime(2021, 7, 16), Comments[new DateTime(2021, 7, 16)]);
-        }
-
-        public static AttributeDomain<ForumUser> GetDomain()
-        {
-            return new OrderedFiniteEnumerableAttributeDomain<ForumUser>(Domain);
-        }
-
-        public static IEnumerable<ForumUser> GetLatestVisitorsDomain()
-        {
-            return Domain;
-        }
-
-        public static IEnumerable<int> GetGainedAchievmentsDomain()
-        {
-            return Enumerable.Range(1, 100);
-        }
-
-        public static ILookup<DateTime, string> GetLatestCommentsByDateTimeDomain()
-        {
-            return (from fuser in Domain
-                    from comment in fuser.LatestComments
-                    select comment).ToLookup(kvp => kvp.Key, kvp => kvp.Value);
-        }
-
-        public static IDictionary<string, string> GetLatestCommentByNicknameDomain()
-        {
-            return (from fuser in Domain
-                    let comment = fuser.LatestComments.LastOrDefault()
-                    select new { Name = fuser.Nickname, Comment = comment.Value })
-                    .ToDictionary(fuserData => fuserData.Name, fuserData => fuserData.Comment);
-        }
-
-        public static IEnumerable<ForumUserRank> GetForumUserRankDomain()
-        {
-            return Enum.GetValues(typeof(ForumUserRank)).Cast<ForumUserRank>();
+            ForumDatabase.Init();
         }
     }
 }

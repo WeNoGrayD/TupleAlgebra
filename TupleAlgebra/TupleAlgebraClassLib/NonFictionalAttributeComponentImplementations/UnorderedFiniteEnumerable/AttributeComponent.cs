@@ -6,7 +6,6 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.UnorderedFiniteEnumerable;
-using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.UnorderedFiniteEnumerable
 {
@@ -105,6 +104,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Uno
         private class UnorderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer 
             : NonFictionalAttributeComponentOperationExecutorsContainer<
                 UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
+                IEnumerable<TData>,
                 IUnorderedFiniteEnumerableAttributeComponentFactory<TData>,
                 UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
         {

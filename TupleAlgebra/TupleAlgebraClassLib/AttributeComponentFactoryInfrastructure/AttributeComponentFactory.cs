@@ -162,7 +162,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             TFactoryArgs factoryArgs)
             where TFactoryArgs : AttributeComponentFactoryArgs
         {
-            var ac = (this as INonFictionalAttributeComponentFactory<TData, TFactoryArgs>)
+            var ac = (this as INonFictionalAttributeComponentFactory2<TData, TFactoryArgs>)
                 .CreateSpecificNonFictional(factoryArgs);
             ac.Domain = Domain;
 

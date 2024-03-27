@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
 {
@@ -18,26 +18,27 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
         TFactoryArgs>
         : IFactoryBinaryAttributeComponentAcceptor<
             TData,
+            IEnumerable<TData>,
             TOperand1,
             TOperand2,
             TFactory,
             TFactoryArgs,
-            AttributeComponent<TData>>,
+            IAttributeComponent<TData>>,
           ISequenceOperator<
             TData,
             TOperand1,
             TOperand2>
         where TOperand1 : NonFictionalAttributeComponent<TData>
         where TOperand2 : IAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, TOperand1, TFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TOperand1, TFactoryArgs>
         where TFactoryArgs : AttributeComponentFactoryArgs
     {
-        AttributeComponent<TData>
+        IAttributeComponent<TData>
              IFactoryBinaryOperator<
                 TOperand1,
                 TOperand2,
                 TFactory,
-                AttributeComponent<TData>>
+                IAttributeComponent<TData>>
             .Accept(
                 TOperand1 first,
                 TOperand2 second,
@@ -72,6 +73,10 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
                     {
                         buffered.Remove(data);
                         occurences.Add(data);
+                    }
+                    else 
+                    {
+                        yield return data;
                     }
                 }
 

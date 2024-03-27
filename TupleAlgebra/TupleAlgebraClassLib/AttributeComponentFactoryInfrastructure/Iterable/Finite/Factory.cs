@@ -5,17 +5,31 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Iterable.Finite;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite
 {
     public interface IFiniteIterableAttributeComponentFactory<TData>
-        : INonFictionalAttributeComponentFactory<
+        : IEnumerableNonFictionalAttributeComponentFactory<
               TData,
               FiniteIterableAttributeComponent<TData>,
               FiniteIterableAttributeComponentFactoryArgs<TData>>
     {
+        FiniteIterableAttributeComponentFactoryArgs<TData>
+            ISetOperationResultFactory<
+                FiniteIterableAttributeComponent<TData>,
+                IEnumerable<TData>,
+                FiniteIterableAttributeComponentFactoryArgs<TData>,
+                AttributeComponent<TData>>
+            .CreateFactoryArgs(
+            IEnumerable<TData> resultElements)
+        {
+            return new FiniteIterableAttributeComponentFactoryArgs<TData>(
+                resultElements);
+        }
+
         NonFictionalAttributeComponent<TData>
-            INonFictionalAttributeComponentFactory<
+            INonFictionalAttributeComponentFactory2<
                 TData,
                 FiniteIterableAttributeComponentFactoryArgs<TData>>
             .CreateSpecificNonFictional(

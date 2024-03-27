@@ -19,10 +19,12 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
     {
         static LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent()
         {
+            /*
             Helper.RegisterType<
                 IGrouping<TKey, TData>, 
                 LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent<TKey, TData>>(
                     acFactory: (domain) => new LookupBasedAttributeComponentFactory<TKey, TData>(domain));
+            */
 
             return;
         }
@@ -77,6 +79,7 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
         }
     }
 
+    /*
     internal class LookupBasedAttributeComponentFactory<TKey, TData>
         : AttributeComponentWithCompoundDataFactory<IGrouping<TKey, TData>, OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
             where TKey : IComparable<TKey>
@@ -100,4 +103,5 @@ namespace TupleAlgebraClassLib.SpecializedAttributeComponents.OrderedFiniteEnume
                 args.QueryExpression);
         }
     }
+    */
 }

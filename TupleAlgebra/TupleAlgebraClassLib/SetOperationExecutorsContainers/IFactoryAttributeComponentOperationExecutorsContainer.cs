@@ -9,7 +9,7 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 {
     public interface IFactoryAttributeComponentOperationExecutorsContainer<TData>
-        : ISetOperationExecutorsContainer<AttributeComponent<TData>>
+        : ISetOperationExecutorsContainer<IAttributeComponent<TData>>
     {
         public AttributeComponent<TProducedData> Produce<TProducedData>(
             AttributeComponentFactoryArgs factoryArgs);

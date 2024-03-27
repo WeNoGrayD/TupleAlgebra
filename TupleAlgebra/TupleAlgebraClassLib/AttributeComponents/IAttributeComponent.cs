@@ -2,12 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
-    public interface IAttributeComponent : IAlgebraicSetObject, IEnumerable, IQueryable
+    public interface IAttributeComponent 
+        : IAlgebraicSetObject, 
+          IEnumerable, IQueryable
     {
         AttributeComponentPower Power { get; }
 
@@ -20,10 +24,83 @@ namespace TupleAlgebraClassLib.AttributeComponents
         IEnumerator GetBufferizedEnumerator();
     }
 
-    public interface IAttributeComponent<TData> : IAttributeComponent, IEnumerable<TData>, IQueryable<TData>
+    public interface IAttributeComponent<TData> 
+        : IAttributeComponent,
+          IEnumerable<TData>,
+          IQueryable<TData>
     {
         IEnumerator<TData> GetBufferizedEnumerator();
 
         IEnumerator IAttributeComponent.GetBufferizedEnumerator() => GetBufferizedEnumerator();
+
+        public bool Includes(
+            IAttributeComponent<TData> second);
+
+        public bool EqualsTo(
+            IAttributeComponent<TData> second);
+
+        public bool IncludesOrEqualsTo(
+            IAttributeComponent<TData> second);
+
+        /*
+        ISetOperationExecutorsContainer<IAttributeComponent<TData>> SetOperations
+        { get; }
+
+        static IAttributeComponent<TData> operator &(
+            AttributeComponent<TData> left,
+            IAttributeComponent<TData> right)
+        {
+            return left.IntersectWith(right);
+        }
+
+        static IAttributeComponent<TData> operator |(
+            AttributeComponent<TData> left,
+            IAttributeComponent<TData> right)
+        {
+            return left.UnionWith(right);
+        }
+
+        static IAttributeComponent<TData> operator ^(
+            AttributeComponent<TData> left,
+            IAttributeComponent<TData> right)
+        {
+            return left.SymmetricExceptWith(right);
+        }
+
+        static IAttributeComponent<TData> operator /(
+            AttributeComponent<TData> left,
+            IAttributeComponent<TData> right)
+        {
+            return left.ExceptWith(right);
+        }
+
+        static bool operator <(
+            AttributeComponent<TData> left,
+            IAttributeComponent<TData> right)
+        {
+            return right.Includes(left);
+        }
+
+        static bool operator >(
+            AttributeComponent<TData> left,
+            IAttributeComponent<TData> right)
+        {
+            return left.Includes(right);
+        }
+
+        static bool operator <=(
+            AttributeComponent<TData> left,
+            IAttributeComponent<TData> right)
+        {
+            return right.IncludesOrEqualsTo(left);
+        }
+
+        static bool operator >=(
+            AttributeComponent<TData> left,
+            IAttributeComponent<TData> right)
+        {
+            return left.IncludesOrEqualsTo(right);
+        }
+        */
     }
 }

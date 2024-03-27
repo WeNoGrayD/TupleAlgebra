@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.TupleObjectAcceptors;
 using TupleAlgebraClassLib.TupleObjects;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
 {

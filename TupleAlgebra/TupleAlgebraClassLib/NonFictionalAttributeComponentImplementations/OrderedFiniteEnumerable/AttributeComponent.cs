@@ -228,6 +228,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         protected abstract class OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer<TAttributeComponent, TFactory, TFactoryArgs>
             : NonFictionalAttributeComponentOperationExecutorsContainer<
                 TAttributeComponent,
+                IEnumerable<TData>,
                 TFactory,
                 TFactoryArgs>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
@@ -238,19 +239,19 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
             public OrderedFiniteEnumerableNonFictionalAttributeComponentOperationExecutorsContainer(
                 TFactory factory,
-                Func<IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, TAttributeComponent, AttributeComponent<TData>, TFactory, TFactoryArgs>>
+                Func<FactoryBinaryAttributeComponentAcceptor<TData, IEnumerable<TData>, TAttributeComponent, TFactory, TFactoryArgs, IAttributeComponent<TData>>>
                     intersectionOperator,
-                Func<IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, TAttributeComponent, AttributeComponent<TData>, TFactory, TFactoryArgs>>
+                Func<FactoryBinaryAttributeComponentAcceptor<TData, IEnumerable<TData>, TAttributeComponent, TFactory, TFactoryArgs, IAttributeComponent<TData>>>
                     unionOperator,
-                Func<IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, TAttributeComponent, AttributeComponent<TData>, TFactory, TFactoryArgs>>
+                Func<FactoryBinaryAttributeComponentAcceptor<TData, IEnumerable<TData>, TAttributeComponent, TFactory, TFactoryArgs, IAttributeComponent<TData>>>
                     differenceOperator,
-                Func<IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, TAttributeComponent, AttributeComponent<TData>, TFactory, TFactoryArgs>>
+                Func<FactoryBinaryAttributeComponentAcceptor<TData, IEnumerable<TData>, TAttributeComponent, TFactory, TFactoryArgs, IAttributeComponent<TData>>>
                     symmetricExceptionOperator,
-                Func<IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent, AttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, TAttributeComponent, bool>>
                     inclusionComparer,
-                Func<IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent, AttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, TAttributeComponent, bool>>
                     equalityComparer,
-                Func<IOrderedFiniteEnumerableAttributeComponentBooleanOperator<TData, TAttributeComponent, AttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentAcceptor<TData, TAttributeComponent, bool>>
                     inclusionOrEquationComparer)
                 : base(
                       factory,

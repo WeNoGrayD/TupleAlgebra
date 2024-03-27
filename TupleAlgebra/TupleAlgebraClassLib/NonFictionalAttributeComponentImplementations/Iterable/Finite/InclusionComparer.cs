@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
+using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 
@@ -12,7 +14,6 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ite
         : NonFictionalAttributeComponentInclusionComparer<
             TData,
             FiniteIterableAttributeComponent<TData>>,
-          IFiniteEnumerableAttributeComponentInclusionComparer<
-            TData>
+          IFiniteEnumerableAttributeComponentInclusionComparer<TData>
     { }
 }

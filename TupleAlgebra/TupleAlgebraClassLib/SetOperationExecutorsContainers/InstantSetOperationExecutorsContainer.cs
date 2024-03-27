@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentAcceptors;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.HierarchicallyPolymorphicOperators;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 {
@@ -17,33 +17,33 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
     {
         #region Instance fields
 
-        private Lazy<IInstantUnaryOperator<CTOperand, BTOperand>> _complementationOperator;
+        private Lazy<InstantUnaryOperator<CTOperand, BTOperand>> _complementationOperator;
 
-        private Lazy<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _intersectionOperator;
+        private Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _intersectionOperator;
 
-        private Lazy<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _unionOperator;
+        private Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _unionOperator;
 
-        private Lazy<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _differenceOperator;
+        private Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _differenceOperator;
 
-        private Lazy<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _symmetricExceptionOperator;
+        private Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _symmetricExceptionOperator;
 
         #endregion
 
         #region Instance properties
 
-        protected IInstantUnaryOperator<CTOperand, BTOperand> ComplementationOperator
+        protected InstantUnaryOperator<CTOperand, BTOperand> ComplementationOperator
         { get => _complementationOperator.Value; }
 
-        protected IInstantBinaryOperator<CTOperand, BTOperand, BTOperand> IntersectionOperator
+        protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> IntersectionOperator
         { get => _intersectionOperator.Value; }
 
-        protected IInstantBinaryOperator<CTOperand, BTOperand, BTOperand> UnionOperator
+        protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> UnionOperator
         { get => _unionOperator.Value; }
 
-        protected IInstantBinaryOperator<CTOperand, BTOperand, BTOperand> DifferenceOperator
+        protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> DifferenceOperator
         { get => _differenceOperator.Value; }
 
-        protected IInstantBinaryOperator<CTOperand, BTOperand, BTOperand> SymmetricExceptionOperator
+        protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> SymmetricExceptionOperator
         { get => _symmetricExceptionOperator.Value; }
 
         #endregion
@@ -51,27 +51,27 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         #region Constructors
 
         public InstantSetOperationExecutorsContainer(
-            Func<IInstantUnaryOperator<CTOperand, BTOperand>> complementationOperator,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>> intersectionOperator,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>> unionOperator,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>> differenceOperator,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>> symmetricExceptionOperator,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionComparer,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> equalityComparer,
-            Func<IInstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionOrEquationComparer)
+            Func<InstantUnaryOperator<CTOperand, BTOperand>> complementationOperator,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> intersectionOperator,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> unionOperator,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> differenceOperator,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> symmetricExceptionOperator,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionComparer,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> equalityComparer,
+            Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionOrEquationComparer)
             : base(inclusionComparer,
                    equalityComparer,
                    inclusionOrEquationComparer)
         {
-            _complementationOperator = new Lazy<IInstantUnaryOperator<CTOperand, BTOperand>>(
+            _complementationOperator = new Lazy<InstantUnaryOperator<CTOperand, BTOperand>>(
                 complementationOperator);
-            _intersectionOperator = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
+            _intersectionOperator = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
                 intersectionOperator);
-            _unionOperator = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
+            _unionOperator = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
                 unionOperator);
-            _differenceOperator = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
+            _differenceOperator = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
                 differenceOperator);
-            _symmetricExceptionOperator = new Lazy<IInstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
+            _symmetricExceptionOperator = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
                 symmetricExceptionOperator);
 
             return;
