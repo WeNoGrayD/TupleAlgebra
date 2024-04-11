@@ -4,14 +4,66 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
+using System.Reflection;
+using System.Linq.Expressions;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    using static TupleObjectHelper;
+
     public enum AttributeQuery : byte
     {
         None = 0,
         Attached = 1,
         Detached = 2
+    }
+
+    public class FlyweightAttributeInfo<TEntity, TData>
+    {
+        public AttributeGetterHandler<TEntity, TData> AttributeGetter { get; init; }
+
+        public PropertyInfo AttributeProperty { get; init; }
+
+        public AttributeDomain<TData> Domain { get; set; }
+
+        public ITupleObjectAttributeSetupWizard<TData> SetupWizard { get; init; }
+
+        public FlyweightAttributeInfo(
+            AttributeGetterHandler<TEntity, TData> attributeGetter,
+            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr,
+            AttributeDomain<TData> domain,
+            ITupleObjectAttributeSetupWizard<TData> setupWizard)
+        {
+            AttributeGetter = attributeGetter;
+            Domain = domain;
+            SetupWizard = setupWizard;
+
+            return;
+        }
+    }
+
+    public class AttributeGetterInspector : ExpressionVisitor
+    {
+        public PropertyInfo Extract<TEntity, TData>(
+            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
+        {
+            _instance.Visit(attributeGetterExpr);
+
+            return _attributeProperty;
+        }
+    }
+
+    public class AttributePropertyExtractor : ExpressionVisitor
+    {
+        private PropertyInfo _attributeProperty;
+
+        public PropertyInfo Extract<TEntity, TData>(
+            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
+        {
+            _instance.Visit(attributeGetterExpr);
+
+            return _attributeProperty;
+        }
     }
 
     /// <summary>

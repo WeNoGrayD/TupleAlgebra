@@ -9,6 +9,19 @@ using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    using static TupleObjectHelper;
+
+    public static class TupleObjectHelper
+    {
+        #region Delegates
+
+        public delegate TData AttributeGetterHandler<TEntity, TData>(TEntity entity);
+
+        public delegate TEntity EntityFactoryHandler<TEntity>(IEnumerator[] properties);
+
+        #region Constructors
+    }
+
     public sealed class TupleObjectSchema<TEntity>
         : IEnumerable<AttributeInfo>,
           ITupleObjectSchemaProvider
@@ -19,14 +32,14 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         private IDictionary<AttributeInfo, int> _attributeLocations;
 
-        private Func<IEnumerator[], TEntity> _entityFactory;
-
         /*
         /// <summary>
         /// Построитель кортежа.
         /// </summary>
         public readonly TupleObjectBuilder<TEntity> Builder;
         */
+
+        private Lazy<EntityFactoryHandler> _entityFactory;
 
         #endregion
 
@@ -36,17 +49,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public static bool IsEntityPrimitive { get; private set; }
 
-        public Func<IEnumerator[], TEntity> EntityFactory 
+        public EntityFactoryHandler EntityFactory 
         {
             get
             {
-                if (_entityFactory is null)
-                {
-                    System.Reflection.PropertyInfo[] attributes = null; 
-                    _entityFactory = (new EntityFactoryBuilder()).Build<TEntity>(attributes);
-                }
-
-                return _entityFactory;
+                return _entityFactory.Value;
             }
         }
 
@@ -82,8 +89,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public event EventHandler<AttributeChangedEventArgs> AttributeChanged;
 
         #endregion
-
-        #region Constructors
 
         /// <summary>
         /// Статический конструктор.
@@ -121,6 +126,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         #endregion
 
         #region Instance methods
+
+        private EntityFactoryHandler MakeEntityFactoryBuilder()
+        {
+            System.Reflection.PropertyInfo[] attributes = null;
+            return (new EntityFactoryBuilder()).Build<TEntity>(attributes);
+        }
 
         /// <summary>
         /// Инициализация массива индексов атрибутов.

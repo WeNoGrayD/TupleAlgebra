@@ -9,6 +9,8 @@ using System.Reflection;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    using static TupleObjectHelper;
+
     public class EntityFactoryBuilder
     {
         private const string PROP_SOURCE_ENUMS = "properties";
@@ -20,7 +22,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <param name="entityType"></param>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        public Func<IEnumerator[], TEntity>  Build<TEntity>(PropertyInfo[] attributes)
+        public EntityFactoryHandler Build<TEntity>(PropertyInfo[] attributes)
         {
             Type entityType = typeof(TEntity);
 
@@ -52,7 +54,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             LambdaExpression entityFactoryExprTree =
                 Expression.Lambda(constructorExpr, propertySourceEnumeratorsExpr);
 
-            return (entityFactoryExprTree.Compile() as Func<IEnumerator[], TEntity>)!;
+            return (entityFactoryExprTree.Compile() as EntityFactoryHandler)!;
 
             /*
              * Создание массива инициализаторов свойств в порядке, предоставленном

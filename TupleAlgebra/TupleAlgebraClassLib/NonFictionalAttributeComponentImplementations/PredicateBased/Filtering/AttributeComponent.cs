@@ -59,7 +59,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
         {
             _predicateExpression = predicateExpression;
             _predicate = new Lazy<Func<TData, bool>>(
-                () => _predicateExpression.Compile());
+                _predicateExpression.Compile);
 
             return;
         }
