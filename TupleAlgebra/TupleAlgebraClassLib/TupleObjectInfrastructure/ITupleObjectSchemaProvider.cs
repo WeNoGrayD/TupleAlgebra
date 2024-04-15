@@ -6,8 +6,13 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    public interface ITupleObjectAttributeInfo
+    {
+        bool IsPlugged { get; }
+    }
+
     public interface ITupleObjectSchemaProvider
     {
-        AttributeInfo? this[string attributeName] { get; set; }
+        ITupleObjectAttributeInfo this[string attributeName] { get; set; }
     }
 }

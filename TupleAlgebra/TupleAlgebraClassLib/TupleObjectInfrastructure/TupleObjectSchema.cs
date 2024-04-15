@@ -11,17 +11,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     using static TupleObjectHelper;
 
-    public static class TupleObjectHelper
-    {
-        #region Delegates
-
-        public delegate TData AttributeGetterHandler<TEntity, TData>(TEntity entity);
-
-        public delegate TEntity EntityFactoryHandler<TEntity>(IEnumerator[] properties);
-
-        #region Constructors
-    }
-
     public sealed class TupleObjectSchema<TEntity>
         : IEnumerable<AttributeInfo>,
           ITupleObjectSchemaProvider
@@ -90,6 +79,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #endregion
 
+        #region Constructors
+
         /// <summary>
         /// Статический конструктор.
         /// </summary>
@@ -129,8 +120,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         private EntityFactoryHandler MakeEntityFactoryBuilder()
         {
-            System.Reflection.PropertyInfo[] attributes = null;
-            return (new EntityFactoryBuilder()).Build<TEntity>(attributes);
+            System.Reflection.PropertyInfo[] attributeProperties = 
+                _attributes.Values.Select(a => a.AttributeProperty).ToArray();
+            return (new EntityFactoryBuilder()).Build<TEntity>(attributeProperties);
         }
 
         /// <summary>
@@ -149,7 +141,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        public Func<IEnumerator[], TEntity> GetEntityFactory()
+        public EntityFactoryHandler<TEntity> GetEntityFactory()
         {
             return null;
         }

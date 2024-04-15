@@ -9,6 +9,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectHelper;
+
     public class ConjunctiveTuple<TEntity> : SingleTupleObject<TEntity>
         where TEntity : new()
     {
@@ -48,7 +50,7 @@ namespace TupleAlgebraClassLib.TupleObjects
             IEnumerator<TEntity> IterateOverCartesianProduct()
             {
                 IEnumerator[] componentsEnumerators;
-                Func<IEnumerator[], TEntity> entityFactory = Schema.GetEntityFactory();
+                EntityFactoryHandler<TEntity> entityFactory = Schema.GetEntityFactory();
 
                 /*
                  * Если число компонент равно 1, то производится упрощённый перебор значений
@@ -73,6 +75,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
                 /*
                  * TODO: сделать возможность обхода компонентов по желанию пользователя.
+                 * Буферизация перечислителей должна происходить иначе, без допкопирования.
                  */
                 IEnumerator<TEntity> IterateOverManyAttachedAttributes()
                 {
@@ -161,6 +164,10 @@ namespace TupleAlgebraClassLib.TupleObjects
             {
                 if (componentEnumerator.MoveNext())
                 {
+                    /*
+                     * второе условие тут из-за того, что componentsCount передаётся без учёта
+                     * startComponentLoc
+                     */
                     if (j == componentsCount || (j = i + 1) == componentsCount)
                     {
                         yield return entityFactory(componentsEnumerators);

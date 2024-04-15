@@ -8,6 +8,8 @@ using System.Reflection;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    using static TupleObjectHelper;
+
     /// <summary>
     /// Построитель кортежа конкретного типа сущности.
     /// </summary>
@@ -134,7 +136,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <param name="memberAccess"></param>
         /// <returns></returns>
         public ITupleObjectAttributeSetupWizard<TAttribute> Attribute<TAttribute>(
-            Expression<Func<TEntity, TAttribute>> memberAccess)
+            Expression<AttributeGetterHandler<TEntity, TAttribute>> memberAccess)
         {
             return TupleObjectOneToOneAttributeSetupWizard<TAttribute>.Construct(Schema, memberAccess);
         }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
 using System.Reflection;
 using System.Linq.Expressions;
+using UniversalClassLib;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -18,51 +19,60 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         Detached = 2
     }
 
+    public class FlyweightAttributeInfoFactory<TEntity>
+    {
+        private IDictionary<string, object> _resources;
+
+        private AttributePropertyExtractor _attributePropertyExtractor;
+
+        public FlyweightAttributeInfoFactory()
+        {
+            _resources = new Dictionary<string, object>();
+            _attributePropertyExtractor = new AttributePropertyExtractor();
+
+            return;
+        }
+
+        public FlyweightAttributeInfo<TEntity, TData> Get<TData>(
+            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
+        {
+            PropertyInfo attributeProperty = _attributePropertyExtractor.Extract(attributeGetterExpr);
+            string attrName = attributeProperty.Name;
+            FlyweightAttributeInfo<TEntity, TData> attrInfo;
+            object attrInfoRef;
+
+            if (!_resources.TryGet(attrName, out attrInfoRef))
+            {
+                attrInfoRef = new FlyweightAttributeInfo<TEntity, TData>(
+                    attributeGetterExpr.Compile(),
+                    attributeProperty);
+                _resources.Add(attrInfoRef);
+            }
+
+            return (attrInfoRef as FlyweightAttributeInfo<TEntity, TData>)!;
+        }
+
+        public FlyweightAttributeInfo<TEntity, TData> Get<TData>(
+            string attributeName)
+        {
+            return (_resources[attributeName] as FlyweightAttributeInfo<TEntity, TData>)!;
+        }
+    }
+
     public class FlyweightAttributeInfo<TEntity, TData>
     {
         public AttributeGetterHandler<TEntity, TData> AttributeGetter { get; init; }
 
         public PropertyInfo AttributeProperty { get; init; }
 
-        public AttributeDomain<TData> Domain { get; set; }
-
-        public ITupleObjectAttributeSetupWizard<TData> SetupWizard { get; init; }
-
         public FlyweightAttributeInfo(
             AttributeGetterHandler<TEntity, TData> attributeGetter,
-            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr,
-            AttributeDomain<TData> domain,
-            ITupleObjectAttributeSetupWizard<TData> setupWizard)
+            PropertyInfo attributeProperty)
         {
             AttributeGetter = attributeGetter;
-            Domain = domain;
-            SetupWizard = setupWizard;
+            AttributeProperty = attributeProperty;
 
             return;
-        }
-    }
-
-    public class AttributeGetterInspector : ExpressionVisitor
-    {
-        public PropertyInfo Extract<TEntity, TData>(
-            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
-        {
-            _instance.Visit(attributeGetterExpr);
-
-            return _attributeProperty;
-        }
-    }
-
-    public class AttributePropertyExtractor : ExpressionVisitor
-    {
-        private PropertyInfo _attributeProperty;
-
-        public PropertyInfo Extract<TEntity, TData>(
-            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
-        {
-            _instance.Visit(attributeGetterExpr);
-
-            return _attributeProperty;
         }
     }
 
@@ -106,6 +116,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// Тип данных домена.
         /// </summary>
         public Type DomainDataType { get; private set; }
+
+        /// <summary>
+        /// Информация о свойстве сущности.
+        /// </summary>
+        public PropertyInfo AttributeProperty { get; init; }
 
         /// <summary>
         /// Настройщик.
