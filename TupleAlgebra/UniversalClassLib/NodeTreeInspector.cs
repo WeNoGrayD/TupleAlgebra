@@ -1,6 +1,5 @@
-﻿using Microsoft.Analytics.Interfaces;
-using Microsoft.Analytics.Types.Sql;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -52,7 +51,7 @@ namespace UniversalClassLib
             return;
         }
 
-        public static NodeWithMemory<TNode> FromOtherInspectorCurrentNode<TMemory>(
+        public static NodeWithMemory<TNode> Create<TMemory>(
             TNode node,
             TMemory memory)
         {
@@ -63,13 +62,13 @@ namespace UniversalClassLib
             TNode node,
             NodeTreeInspector<TMemory> otherInspector)
         {
-            return new NodeTreeInspector<TNode>(
+            return new NodeWithMemory<TNode>(
                 node,
                 otherInspector.CurrentNode switch
                 {
                     NodeWithMemory<TMemory> nMem => nMem.Node,
                     _ => otherInspector.CurrentNode
-                };
+                });
         }
     }
 
@@ -96,7 +95,7 @@ namespace UniversalClassLib
 
         public Exception OnFailureException { get; init; }
 
-        public SimpleNodeInspectionRule(
+        public NodeWithMemoryInspectionRule(
             Predicate<NodeWithMemory<TNode>> rule,
             Exception onFailureException = null)
         {
@@ -109,6 +108,8 @@ namespace UniversalClassLib
 
     public interface INodeTreeInspector
     {
+        string Name { get; }
+
         object CurrentNode { get; }
 
         bool InspectNode(object currentNode);
@@ -178,20 +179,23 @@ namespace UniversalClassLib
     public class NodeTypeTreeInspector : NodeTreeInspector<object>
     {
         public NodeTypeTreeInspector(params Type[] nodeTypes)
-            : base("Инспектор типов", MakeRules(nodeTypes))
+            : base("Инспектор типов", MakeRules(nodeTypes).ToArray())
         {
             return;
         }
 
-        private static IEnumerable<IInspectionRule<object>> MakeRules(Type[] nodeTypes)
+        private static IEnumerable<IInspectionRule<object>> MakeRules(
+            Type[] nodeTypes)
         {
             Type currentType;
 
             for (int i = 0; i < nodeTypes.Length; i++)
+            {
                 currentType = nodeTypes[i];
                 yield return new SimpleNodeInspectionRule<object>(
-                    d => d is currentType,
-                    new Exception($"В инспекторе типов [{i}] ${d} не является {currentType}."));
+                    d => d.GetType() == currentType,
+                    new Exception($"В инспекторе типов [{i}] не является {currentType}."));
+            }
 
             yield break;
         }
@@ -200,20 +204,23 @@ namespace UniversalClassLib
     public class MetaNodeTreeInspector : NodeTreeInspector<INodeTreeInspector>
     {
         public MetaNodeTreeInspector(params INodeTreeInspector[] inspectors)
-            : base(MakeRules(inspectors))
+            : base("Мета-инспектор", MakeRules(inspectors).ToArray())
         {
             return;
         }
 
-        private static IEnumerable<IInspectionRule<object>> MakeRules(INodeTreeInspector[] inspectors)
+        private static IEnumerable<IInspectionRule<INodeTreeInspector>> MakeRules(
+            INodeTreeInspector[] inspectors)
         {
-            Type currentType;
+            INodeTreeInspector currentInspector;
 
-            for (int i = 0; i < nodeTypes.Length; i++)
-                currentType = nodeTypes[i];
-            yield return new SimpleNodeInspectionRule<INodeTreeInspector>(
-                inspector => inspector.InspectionEndedOk,
-                new Exception($"В мета-инспекторе [{i}] @{d} не завершился корректно."));
+            for (int i = 0; i < inspectors.Length; i++)
+            {
+                currentInspector = inspectors[i];
+                yield return new SimpleNodeInspectionRule<INodeTreeInspector>(
+                    inspector => inspector.InspectionEndedOk(),
+                    new Exception($"В мета-инспекторе [{i}] @{currentInspector.Name} не завершился корректно."));
+            }
 
             yield break;
         }

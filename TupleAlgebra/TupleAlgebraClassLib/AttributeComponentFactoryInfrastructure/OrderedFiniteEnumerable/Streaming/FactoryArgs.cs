@@ -11,7 +11,8 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ordered
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming
 {
     public record StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
-        : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
+        : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>,
+          INonFictionalAttributeComponentFactoryArgs<StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
     {
         public StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs(
             IEnumerable<TData> values,

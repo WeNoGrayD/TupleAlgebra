@@ -11,7 +11,8 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Iterabl
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite
 {
     public record FiniteIterableAttributeComponentFactoryArgs<TData>
-        : NonFictionalAttributeComponentFactoryArgs<TData>
+        : NonFictionalAttributeComponentFactoryArgs<TData>,
+          INonFictionalAttributeComponentFactoryArgs<FiniteIterableAttributeComponentFactoryArgs<TData>>
     {
         public IEnumerable<TData> Values { get; private set; }
 

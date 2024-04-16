@@ -22,7 +22,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <param name="entityType"></param>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        public EntityFactoryHandler Build<TEntity>(PropertyInfo[] attributes)
+        public EntityFactoryHandler<TEntity> Build<TEntity>(PropertyInfo[] attributes)
         {
             Type entityType = typeof(TEntity);
 
@@ -54,7 +54,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             LambdaExpression entityFactoryExprTree =
                 Expression.Lambda(constructorExpr, propertySourceEnumeratorsExpr);
 
-            return (entityFactoryExprTree.Compile() as EntityFactoryHandler)!;
+            return (entityFactoryExprTree.Compile() as EntityFactoryHandler<TEntity>)!;
 
             /*
              * Создание массива инициализаторов свойств в порядке, предоставленном

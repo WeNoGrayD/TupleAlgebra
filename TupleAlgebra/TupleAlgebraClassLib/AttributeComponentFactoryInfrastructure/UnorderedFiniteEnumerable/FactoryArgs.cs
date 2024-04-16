@@ -16,7 +16,8 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations;
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable
 {
     public record UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
-        : NonFictionalAttributeComponentFactoryArgs<TData>
+        : NonFictionalAttributeComponentFactoryArgs<TData>,
+          INonFictionalAttributeComponentFactoryArgs<UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
     {
         public HashSet<TData> Values { get; private set; }
 

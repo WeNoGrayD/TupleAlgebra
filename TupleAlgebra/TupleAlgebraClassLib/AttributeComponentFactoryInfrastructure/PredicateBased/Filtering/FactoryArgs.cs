@@ -10,7 +10,8 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Predica
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering
 {
     public record FilteringAttributeComponentFactoryArgs<TData>
-        : NonFictionalAttributeComponentFactoryArgs<TData>
+        : NonFictionalAttributeComponentFactoryArgs<TData>,
+          INonFictionalAttributeComponentFactoryArgs<FilteringAttributeComponentFactoryArgs<TData>>
     {
         public Expression<Func<TData, bool>> PredicateExpression 
         { get; private set; }

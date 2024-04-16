@@ -41,12 +41,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             FlyweightAttributeInfo<TEntity, TData> attrInfo;
             object attrInfoRef;
 
-            if (!_resources.TryGet(attrName, out attrInfoRef))
+            if (!_resources.TryGetValue(attrName, out attrInfoRef))
             {
                 attrInfoRef = new FlyweightAttributeInfo<TEntity, TData>(
                     attributeGetterExpr.Compile(),
                     attributeProperty);
-                _resources.Add(attrInfoRef);
+                _resources.Add(attrName, attrInfoRef);
             }
 
             return (attrInfoRef as FlyweightAttributeInfo<TEntity, TData>)!;

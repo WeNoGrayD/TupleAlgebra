@@ -28,7 +28,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public readonly TupleObjectBuilder<TEntity> Builder;
         */
 
-        private Lazy<EntityFactoryHandler> _entityFactory;
+        private Lazy<EntityFactoryHandler<TEntity>> _entityFactory;
 
         #endregion
 
@@ -38,7 +38,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public static bool IsEntityPrimitive { get; private set; }
 
-        public EntityFactoryHandler EntityFactory 
+        public EntityFactoryHandler<TEntity> EntityFactory 
         {
             get
             {
@@ -118,7 +118,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #region Instance methods
 
-        private EntityFactoryHandler MakeEntityFactoryBuilder()
+        private EntityFactoryHandler<TEntity> MakeEntityFactoryBuilder()
         {
             System.Reflection.PropertyInfo[] attributeProperties = 
                 _attributes.Values.Select(a => a.AttributeProperty).ToArray();

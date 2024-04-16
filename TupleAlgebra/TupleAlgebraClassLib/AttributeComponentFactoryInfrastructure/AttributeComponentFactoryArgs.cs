@@ -13,6 +13,23 @@ using TupleAlgebraClassLib.FullAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
+    public interface IAttributeComponentFactoryArgs
+    {
+        AttributeComponent<TData>
+            ProvideTo<TData>(IAttributeComponentFactory<TData> factory);
+    }
+
+    public interface INonFictionalAttributeComponentFactoryArgs<TFactoryArgs>
+        : IAttributeComponentFactoryArgs
+        where TFactoryArgs : AttributeComponentFactoryArgs, INonFictionalAttributeComponentFactoryArgs<TFactoryArgs>
+    {
+        AttributeComponent<TData> IAttributeComponentFactoryArgs
+            .ProvideTo<TData>(IAttributeComponentFactory<TData> factory)
+        {
+            return factory.CreateNonFictional((this as TFactoryArgs)!);
+        }
+    }
+
     public abstract record AttributeComponentFactoryArgs
     {
         public AttributeComponentPower Power { get; set; }

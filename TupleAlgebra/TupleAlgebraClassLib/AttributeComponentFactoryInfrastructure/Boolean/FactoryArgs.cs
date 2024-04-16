@@ -15,7 +15,8 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Fini
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
 {
     public record BooleanAttributeComponentFactoryArgs
-        : NonFictionalAttributeComponentFactoryArgs<bool>
+        : NonFictionalAttributeComponentFactoryArgs<bool>,
+          INonFictionalAttributeComponentFactoryArgs<BooleanAttributeComponentFactoryArgs>
     {
         public bool Value { get; private set; }
 
