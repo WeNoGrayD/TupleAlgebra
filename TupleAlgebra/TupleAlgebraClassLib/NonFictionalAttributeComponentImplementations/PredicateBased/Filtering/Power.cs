@@ -4,32 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.Filtering
 {
-    public class FilteringAttributeComponentPower<TData>
-        : NonFictionalAttributeComponentPower<TData>
+    public class FilteringAttributeComponentPower
+        : NonFictionalAttributeComponentPower
     {
-        #region Instance fields
+        #region Static properties
 
-        private AttributeComponentContentType _probableRange;
-
-        #endregion
-
-        #region Instance properties
-
-        public override AttributeComponentContentType ContentType
-        { get => _probableRange; }
+        public static FilteringAttributeComponentPower Instance { get; private set; }
 
         #endregion
 
         #region Constructors
 
-        public FilteringAttributeComponentPower(
-            AttributeComponentContentType probableRange)
+        static FilteringAttributeComponentPower()
         {
-            _probableRange = probableRange;
+            Instance = new FilteringAttributeComponentPower();
 
             return;
         }
@@ -38,13 +31,27 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
 
         #region Instance methods
 
-        protected override int CompareToZero()
+        /// <summary>
+        /// Предполагается усложнение.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <param name="ac"></param>
+        /// <returns></returns>
+        private AttributeComponentContentType GetProbableRange<TData>(
+            AttributeComponent<TData> ac)
         {
-            return _probableRange.CompareToZero();
+            return AttributeComponentContentType.NonFictional;
         }
 
-        protected override int CompareToNonFictional(
-            AttributeComponentPower second)
+        protected override int CompareToZero<TData>(AttributeComponent<TData> ac)
+        {
+            return GetProbableRange(ac).CompareToZero();
+        }
+
+        public override int CompareToNonFictional<TData>(
+            AttributeComponentPower second,
+            AttributeComponent<TData> ac1,
+            AttributeComponent<TData> ac2)
         {
             /*
              * Если вызывается этот метод, то мощность заведомо равняется
@@ -55,9 +62,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
             return 0;
         }
 
-        public override bool EqualsContinuum()
+        public override bool EqualsContinuum<TData>(AttributeComponent<TData> ac)
         {
-            return _probableRange.CompareToContinuum() == 0;
+            return GetProbableRange(ac).CompareToContinuum() == 0;
         }
 
         #endregion

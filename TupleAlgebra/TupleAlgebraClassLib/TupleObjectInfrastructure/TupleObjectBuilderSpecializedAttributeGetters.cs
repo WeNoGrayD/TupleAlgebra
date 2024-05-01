@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    using static TupleObjectHelper;
+
     /// <summary>
     /// Построитель кортежа конкретного типа сущности.
     /// </summary>
@@ -15,33 +17,34 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     public partial class TupleObjectBuilder<TEntity>
     {
         public TupleObjectOneToManyAttributeSetupWizard<TEnumerable, TAttribute> Attribute<TEnumerable, TAttribute>(
-            Expression<Func<TEntity, TEnumerable>> memberAccess)
+            Expression<AttributeGetterHandler<TEntity, TEnumerable>> memberAccess)
             where TEnumerable : IEnumerable<TAttribute>
         {
-            return TupleObjectOneToManyAttributeSetupWizard<TEnumerable, TAttribute>.Construct<TEntity, TEnumerable>(Schema, memberAccess);
+            return null;
+            //return TupleObjectOneToManyAttributeSetupWizard<TEnumerable, TAttribute>.Construct<TEntity, TEnumerable>(Schema, memberAccess);
         }
 
         public TupleObjectOneToManyAttributeSetupWizard<TDictionary, KeyValuePair<TKey, TAttribute>> Attribute<TDictionary, TKey, TAttribute>(
-            Expression<Func<TEntity, TDictionary>> memberAccess)
+            Expression<AttributeGetterHandler<TEntity, TDictionary>> memberAccess)
             where TDictionary : IDictionary<TKey, TAttribute>
         {
             return TupleObjectOneToManyAttributeSetupWizard<TDictionary, TAttribute>.Construct<TEntity, TDictionary, TKey>(Schema, memberAccess);
         }
 
         public TupleObjectOneToManyAttributeSetupWizard<List<TAttribute>, TAttribute> Attribute<TAttribute>(
-            Expression<Func<TEntity, List<TAttribute>>> memberAccess)
+            Expression<AttributeGetterHandler<TEntity, List<TAttribute>>> memberAccess)
         {
             return Attribute<List<TAttribute>, TAttribute>(memberAccess);
         }
 
         public TupleObjectOneToManyAttributeSetupWizard<HashSet<TAttribute>, TAttribute> Attribute<TAttribute>(
-            Expression<Func<TEntity, HashSet<TAttribute>>> memberAccess)
+            Expression<AttributeGetterHandler<TEntity, HashSet<TAttribute>>> memberAccess)
         {
             return Attribute<HashSet<TAttribute>, TAttribute>(memberAccess);
         }
 
         public TupleObjectOneToManyAttributeSetupWizard<Dictionary<TKey, TAttribute>, KeyValuePair<TKey, TAttribute>> Attribute<TAttribute, TKey>(
-            Expression<Func<TEntity, Dictionary<TKey, TAttribute>>> memberAccess)
+            Expression<AttributeGetterHandler<TEntity, Dictionary<TKey, TAttribute>>> memberAccess)
         {
             return Attribute<Dictionary<TKey, TAttribute>, TKey, TAttribute>(memberAccess);
         }

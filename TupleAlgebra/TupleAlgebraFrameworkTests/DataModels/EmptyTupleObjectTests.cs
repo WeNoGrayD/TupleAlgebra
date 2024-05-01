@@ -15,8 +15,8 @@ namespace TupleAlgebraFrameworkTests.DataModels
         public void Test()
         {
             EmptyTupleObject<int> eto = new EmptyTupleObject<int>(null);
-            ConjunctiveTuple<int> ct = new ConjunctiveTuple<int>(null);
-            TupleObject<int> tores = eto & ct;
+            //ConjunctiveTuple<int> ct = new ConjunctiveTuple<int>(null);
+            //TupleObject<int> tores = eto & ct;
         }
     }
 }

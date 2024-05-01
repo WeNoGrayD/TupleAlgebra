@@ -9,12 +9,6 @@ namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 {
     public sealed class EmptyAttributeComponentPower : AttributeComponentPower
     {
-        #region Static fields
-
-        private static Lazy<EmptyAttributeComponentPower> _instance;
-
-        #endregion
-
         #region Instance fields
 
         public override AttributeComponentContentType ContentType
@@ -24,7 +18,8 @@ namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 
         #region Static properties
 
-        public static EmptyAttributeComponentPower Instance { get => _instance.Value; }
+        public static EmptyAttributeComponentPower Instance 
+        { get; private set; }
 
         #endregion
 
@@ -32,7 +27,7 @@ namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 
         static EmptyAttributeComponentPower()
         {
-            _instance = new Lazy<EmptyAttributeComponentPower>(() => new EmptyAttributeComponentPower());
+            Instance = new EmptyAttributeComponentPower();
 
             return;
         }
@@ -43,17 +38,11 @@ namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 
         #region IAttributeComponentPower implementation
 
-        public override int CompareTo(AttributeComponentPower second)
-        {
-            /*
-             * Мощность второй компоненты сравнивается с этой.
-             */
-            return -second.CompareTo(this);
-        }
+        public override bool EqualsZero<TData>(AttributeComponent<TData> ac) 
+            => true;
 
-        public override bool EqualsZero() => true;
-
-        public override bool EqualsContinuum() => false;
+        public override bool EqualsContinuum<TData>(AttributeComponent<TData> ac)
+            => false;
 
         #endregion
     }

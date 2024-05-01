@@ -30,7 +30,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.
 
         protected override AttributeComponentPower CreatePower()
         {
-            return new FiniteEnumerableAttributeComponentPower<TData, FiniteIterableAttributeComponent<TData>>();
+            return FiniteEnumerableAttributeComponentPower.Instance;
         }
     }
 }

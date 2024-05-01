@@ -15,7 +15,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
     public abstract class ExceptionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
         : NonFictionalAttributeComponentExceptionOperator<TData, IEnumerable<TData>, CTOperand1, TFactory, TFactoryArgs>, 
           IOrderedFiniteEnumerableAttributeComponentBinaryOperator<TData, CTOperand1, TFactory, TFactoryArgs>,
-          IFiniteEnumerableAttributeComponentUnionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
+          IFiniteEnumerableAttributeComponentExceptionOperator<TData, CTOperand1, TFactory, TFactoryArgs>
         where CTOperand1 : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
         where TFactoryArgs : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         where TFactory : IOrderedFiniteEnumerableAttributeComponentFactory<TData, CTOperand1, TFactoryArgs>
@@ -25,7 +25,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             IOrderedFiniteEnumerableAttributeComponent<TData> second,
             TFactory factory)
         {
-            IEnumerable<TData> remainedElements = ExceptComponentsElements();
+            OperationResultEnumerableResultProvider<TData> remainedElements = 
+                new OperationResultEnumerableResultProvider<TData>(
+                    ExceptComponentsElements(), true);
 
             return factory.CreateNonFictional(first, remainedElements);
 

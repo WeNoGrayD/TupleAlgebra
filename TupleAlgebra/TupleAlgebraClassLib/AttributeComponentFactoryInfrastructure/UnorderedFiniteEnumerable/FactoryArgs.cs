@@ -35,7 +35,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Unordered
 
         protected override AttributeComponentPower CreatePower()
         {
-            return new FiniteEnumerableAttributeComponentPower<TData, UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>>();
+            return FiniteEnumerableAttributeComponentPower.Instance;
         }
     }
 }

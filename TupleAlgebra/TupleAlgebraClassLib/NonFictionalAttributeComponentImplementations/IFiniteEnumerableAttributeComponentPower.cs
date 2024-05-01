@@ -1,25 +1,33 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
 {
     public interface IFiniteEnumerableAttributeComponentPower
-        : IComparable<IFiniteEnumerableAttributeComponentPower>
     {
-        int NumericalRepresentation { get; }
-
-        int IComparable<IFiniteEnumerableAttributeComponentPower>.CompareTo(
-            IFiniteEnumerableAttributeComponentPower other)
+        int CompareTo<TData>(
+            IFiniteEnumerableAttributeComponentPower second,
+            IFiniteEnumerableAttributeComponent<TData> ac1,
+            IFiniteEnumerableAttributeComponent<TData> ac2)
         {
-            return this.NumericalRepresentation.CompareTo(other.NumericalRepresentation);
+            return GetNumericalRepresentation(ac1)
+                .CompareTo(second.GetNumericalRepresentation(ac2));
         }
 
-        int CompareToZero()
+        int CompareToZero<TData>(IFiniteEnumerableAttributeComponent<TData> ac)
         {
-            return this.NumericalRepresentation.CompareTo(0);
+            return GetNumericalRepresentation(ac).CompareTo(0);
+        }
+
+        int GetNumericalRepresentation<TData>(
+            IFiniteEnumerableAttributeComponent<TData> ac)
+        {
+            return ac.GetCount();
         }
     }
 }

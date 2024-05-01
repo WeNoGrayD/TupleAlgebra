@@ -106,9 +106,9 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
              * является более простой, чем проверка на полноту.
              */
             {
-                if (factoryArgs.Power.EqualsZero())
+                if (factoryArgs.Power.EqualsZero(ac))
                     ac = CreateEmpty(factoryArgs);
-                else if (factoryArgs.Power.EqualsContinuum())
+                else if (factoryArgs.Power.EqualsContinuum(ac))
                     ac = CreateFull(factoryArgs);
             }
 

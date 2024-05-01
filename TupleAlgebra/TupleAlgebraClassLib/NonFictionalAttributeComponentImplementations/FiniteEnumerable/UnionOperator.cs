@@ -41,8 +41,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
                 IFiniteEnumerableAttributeComponent<TData> second,
                 TFactory factory)
         {
-            IEnumerable<TData> unitedElements =
-                Enumerable.Union(first, second);
+            OperationResultEnumerableResultProvider<TData> unitedElements =
+                new OperationResultEnumerableResultProvider<TData>(
+                    Enumerable.Union(first, second), false);
 
             return factory.CreateNonFictional(first, unitedElements);
         }

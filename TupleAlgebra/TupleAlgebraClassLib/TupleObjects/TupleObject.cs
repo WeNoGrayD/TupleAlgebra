@@ -13,6 +13,8 @@ using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectHelper;
+
     /// <summary>
     /// Кортеж данных о сущностях определённого типа.
     /// </summary>
@@ -57,7 +59,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// Конструктор экземпляра.
         /// </summary>
         /// <param name="onTupleBuilding"></param>
-        public TupleObject(Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+        public TupleObject(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : this(new TupleObjectBuilder<TEntity>(), onTupleBuilding)
         {
             return;
@@ -69,11 +71,11 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <param name="onTupleBuilding"></param>
         protected TupleObject(
             TupleObjectBuilder<TEntity> builder,
-            Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
         {
             if (onTupleBuilding is not null) onTupleBuilding(builder);
             Schema = builder.Schema;
-            Schema.AttributeChanged += SchemaAttributeChanged;
+            //Schema.AttributeChanged += SchemaAttributeChanged;
 
             return;
         }
@@ -84,9 +86,16 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <param name="onTupleBuilding"></param>
         protected TupleObject(
             TupleObjectSchema<TEntity> schema,
-            Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : this(new TupleObjectBuilder<TEntity>(schema), onTupleBuilding)
         {
+            return;
+        }
+
+        protected TupleObject(TupleObjectSchema<TEntity> schema)
+        {
+            Schema = schema;
+
             return;
         }
 
@@ -94,9 +103,19 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Static methods
 
-        public static void Configure(Action<TupleObjectBuilder<TEntity>> onTupleBuilding)
+        public static void Configure(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
         {
-            if (onTupleBuilding is not null) onTupleBuilding(TupleObjectBuilder<TEntity>.StaticBuilder);
+            onTupleBuilding += EndSchemaInitialization;
+            onTupleBuilding(TupleObjectBuilder<TEntity>.StaticBuilder);
+
+            return;
+        }
+
+        public static void EndSchemaInitialization(
+            TupleObjectBuilder<TEntity> builder)
+        {
+            builder.Schema.EndInit();
 
             return;
         }
@@ -105,7 +124,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Instance methods
 
-
+        /*
         protected void SchemaAttributeChanged(object sender, AttributeChangedEventArgs eventArgs)
         {
             switch (eventArgs.ChangingEvent)
@@ -151,6 +170,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         {
             return;
         }
+        */
 
         void ProcessDomain<TDomainEntity>(string attributeName, AttributeDomain<TDomainEntity> attribute)
             where TDomainEntity : IComparable<TDomainEntity>
@@ -166,9 +186,11 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// </summary>
         /// <param name="first"></param>
         /// <param name="second"></param>
-        private static TupleObjectSchema<TEntity> Generalize(TupleObject<TEntity> first, TupleObject<TEntity> second)
+        private static TupleObjectSchema<TEntity> Generalize(
+            TupleObject<TEntity> first, TupleObject<TEntity> second)
         {
-            return first.Schema.GeneralizeWith(second.Schema);
+            return null;
+            //return first.Schema.GeneralizeWith(second.Schema);
         }
 
         public abstract TupleObject<TEntity> Diagonal();
@@ -195,7 +217,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <returns></returns>
         public IEnumerator<TEntity> GetEnumerator()
         {
-            return (Provider.Execute<IEnumerable<TEntity>>(Expression) as TupleObject<TEntity>).GetEnumeratorImpl();
+            return GetEnumeratorImpl();//(Provider.Execute<IEnumerable<TEntity>>(Expression) as TupleObject<TEntity>).GetEnumeratorImpl();
         }
 
         /// <summary>
@@ -241,7 +263,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <returns></returns>
         public static TupleObject<TEntity> operator +(TupleObject<TEntity> tuple, string attributeName)
         {
-            tuple.Schema += attributeName;
+            //tuple.Schema += attributeName;
 
             return tuple;
         }
@@ -254,7 +276,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <returns></returns>
         public static TupleObject<TEntity> operator -(TupleObject<TEntity> tuple, string attributeName)
         {
-            tuple.Schema -= attributeName;
+            //tuple.Schema -= attributeName;
 
             return tuple;
         }

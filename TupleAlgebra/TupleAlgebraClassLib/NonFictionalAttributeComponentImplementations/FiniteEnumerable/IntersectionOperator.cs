@@ -41,8 +41,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
                 IFiniteEnumerableAttributeComponent<TData> second,
                 TFactory factory)
         {
-            IEnumerable<TData> intersectedElements =
-                Enumerable.Intersect(first, second);
+            OperationResultEnumerableResultProvider<TData> intersectedElements =
+                new OperationResultEnumerableResultProvider<TData>(
+                    Enumerable.Intersect(first, second), false);
 
             return factory.CreateNonFictional(first, intersectedElements);
         }

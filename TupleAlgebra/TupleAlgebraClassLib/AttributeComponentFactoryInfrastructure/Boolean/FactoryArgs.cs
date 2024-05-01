@@ -34,7 +34,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
 
         protected override AttributeComponentPower CreatePower()
         {
-            return AtomicNonFictionalAttributeComponentPower<bool>.Instance;
+            return AtomicNonFictionalAttributeComponentPower.Instance;
         }
     }
 

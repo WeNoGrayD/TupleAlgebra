@@ -27,13 +27,13 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// Проверка мощности на равенство нулю.
         /// </summary>
         /// <returns></returns>
-        public abstract bool EqualsZero();
+        public abstract bool EqualsZero<TData>(AttributeComponent<TData> ac);
 
         /// <summary>
         /// Проверка мощности на равенство мощности континуума.
         /// </summary>
         /// <returns></returns>
-        public abstract bool EqualsContinuum();
+        public abstract bool EqualsContinuum<TData>(AttributeComponent<TData> ac);
 
         #endregion
 

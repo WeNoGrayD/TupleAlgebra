@@ -24,8 +24,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
     public class AttributeDomain<TData>
         : IEnumerable, 
           IEnumerable<TData>, 
-          IQueryable<TData>, 
-          IAttributeComponentProvider//, IReproducingQueryable<TData>
+          IQueryable<TData> //, IReproducingQueryable<TData>
     {
         #region IQueryable<TData> implemented properties
 
@@ -157,17 +156,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Static methods
 
-        #region IAttributeComponentProvider implementation
-
-        public IAlgebraicSetObject CreateAttributeComponent<TEntity>(AttributeInfo attribute, IEnumerable<TEntity> entitySource)
-        {
-            Func<TEntity, TData> dataSelector = attribute.AttributeGetter<TEntity, TData>();
-
-            return Universe.Reproduce(entitySource.Select(entity => dataSelector(entity)), true) as IAlgebraicSetObject;
-        }
-
-        #endregion
-
         #endregion
 
         #region Operators
@@ -178,7 +166,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static IAttributeComponent<TData> operator &(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static IAttributeComponent<TData> operator &(
+            AttributeDomain<TData> domain, 
+            AttributeComponent<TData> component)
         {
             return domain.Universe & component;
         }
@@ -189,7 +179,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static IAttributeComponent<TData> operator |(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static IAttributeComponent<TData> operator |(
+            AttributeDomain<TData> domain, 
+            AttributeComponent<TData> component)
         {
             return domain.Universe | component;
         }
@@ -200,7 +192,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static IAttributeComponent<TData> operator /(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static IAttributeComponent<TData> operator /(
+            AttributeDomain<TData> domain,
+            AttributeComponent<TData> component)
         {
             return domain.Universe / component;
         }
@@ -211,7 +205,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static IAttributeComponent<TData> operator ^(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static IAttributeComponent<TData> operator ^(
+            AttributeDomain<TData> domain, 
+            AttributeComponent<TData> component)
         {
             return domain.Universe ^ component;
         }
@@ -222,7 +218,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static bool operator ==(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static bool operator ==(
+            AttributeDomain<TData> domain,
+            AttributeComponent<TData> component)
         {
             return domain.Universe == component;
         }
@@ -233,66 +231,66 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="domain"></param>
         /// <param name="component"></param>
         /// <returns></returns>
-        public static bool operator !=(AttributeDomain<TData> domain, NonFictionalAttributeComponent<TData> component)
+        public static bool operator !=(
+            AttributeDomain<TData> domain, 
+            AttributeComponent<TData> component)
         {
             return !(domain == component);
         }
 
         #endregion
+    }
 
-        #region Nested types
+    /// <summary>
+    /// Мощность полной фиктивной компоненты атрибута.
+    /// </summary>
+    public class AttributeUniversePower : AttributeComponentPower
+    {
+        #region Instance fields
+
+        public override AttributeComponentContentType ContentType
+        { get => AttributeComponentContentType.Full; }
+
+        #endregion
+
+        #region Instance properties
+
+        protected AttributeComponentPower NonFictionalPower { get; private set; }
+
+        #endregion
+
+        #region Constructors
+
+        public AttributeUniversePower(AttributeComponentPower nonFictionalPower)
+        {
+            NonFictionalPower = nonFictionalPower;
+
+            return;
+        }
+
+        #endregion
+
+        #region IAttributeComponentPower implementation
+
+        public override bool EqualsZero<TData>(AttributeComponent<TData> ac)
+            => false;
+
+        public override bool EqualsContinuum<TData>(AttributeComponent<TData> ac)
+            => false;
+
+        /*
+         * Переопределять метод сравнения нет необходимости.
+         * Поскольку сравнение производится при помощи ContentType, то всегда this > second.
+         * Для доступа к необходимым полям нефиктивной мощности требуется приводить эту к нужному типу.
+         */
+        //public override int CompareTo(AttributeComponent second);
 
         /// <summary>
-        /// Мощность полной фиктивной компоненты атрибута.
+        /// Подменяет в необходимом контексте себя сохранённой мощнойстью нефиктивной компоненты.
         /// </summary>
-        public class AttributeUniversePower : AttributeComponentPower
-        {
-            #region Instance fields
-
-            public override AttributeComponentContentType ContentType
-            { get => AttributeComponentContentType.Full; }
-
-            #endregion
-
-            #region Instance properties
-
-            protected NonFictionalAttributeComponentPower<TData> NonFictionalPower { get; private set; }
-
-            #endregion
-
-            #region Constructors
-
-            public AttributeUniversePower(NonFictionalAttributeComponentPower<TData> nonFictionalPower)
-            {
-                NonFictionalPower = nonFictionalPower;
-
-                return;
-            }
-
-            #endregion
-
-            #region IAttributeComponentPower implementation
-
-            public override bool EqualsZero() => false;
-
-            public override bool EqualsContinuum() => false;
-
-            /*
-             * Переопределять метод сравнения нет необходимости.
-             * Поскольку сравнение производится при помощи ContentType, то всегда this > second.
-             * Для доступа к необходимым полям нефиктивной мощности требуется приводить эту к нужному типу.
-             */
-            //public override int CompareTo(AttributeComponent second);
-
-            /// <summary>
-            /// Подменяет в необходимом контексте себя сохранённой мощнойстью нефиктивной компоненты.
-            /// </summary>
-            /// <typeparam name="TConverting"></typeparam>
-            /// <returns></returns>
-            public override TConverting As<TConverting>() => (NonFictionalPower as TConverting)!;
-
-            #endregion
-        }
+        /// <typeparam name="TConverting"></typeparam>
+        /// <returns></returns>
+        public override TConverting As<TConverting>() => (NonFictionalPower as TConverting)!;
 
         #endregion
     }

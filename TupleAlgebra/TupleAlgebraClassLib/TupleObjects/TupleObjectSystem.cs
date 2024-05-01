@@ -7,6 +7,8 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectHelper;
+
     public abstract class TupleObjectSystem<TEntity> : TupleObject<TEntity>
         where TEntity : new()
     {
@@ -14,7 +16,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         protected SingleTupleObject<TEntity>[] _tuples;
 
-        public TupleObjectSystem(Action<TupleObjectBuilder<TEntity>> onTupleBuilding)
+        public TupleObjectSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             : base(onTupleBuilding)
         {
 

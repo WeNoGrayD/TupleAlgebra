@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
@@ -16,20 +17,23 @@ namespace TupleAlgebraClassLib.TupleObjects
     {
         #region Constructors
 
-        public ConjunctiveTuple(Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+        public ConjunctiveTuple(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
+        { }
+
+        public ConjunctiveTuple(TupleObjectSchema<TEntity> schema)
+            : base(schema)
         { }
 
         #endregion
 
         #region Instance methods
 
-        protected override AttributeComponent<TData> GetDefaultFictionalAttributeComponentImpl<TData>(AttributeInfo attribute)
+        public override IAttributeComponent<TAttribute>
+            GetDefaultFictionalAttributeComponent<TAttribute>(
+                IAttributeComponentFactory<TAttribute> factory)
         {
-            //var factoryArgs = new AttributeComponentFactoryInfrastructure.AttributeComponentFactoryArgs();
-            //factoryArgs.SetAttributeDomainGetter(() => attribute.GetDomain<TData>());
-            return null;
-            //return AttributeComponent<TData>.FictionalAttributeComponentFactory.CreateFull<TData>(factoryArgs);
+            return factory.CreateFull();
         }
 
         #endregion
@@ -44,13 +48,19 @@ namespace TupleAlgebraClassLib.TupleObjects
              * Иначе производится генерация сущностей с прикреплёнными свойствами-атрибутами.
              */
             return TupleObjectSchema<TEntity>.IsEntityPrimitive ?
-                (_components[0].GetEnumerator() as IEnumerator<TEntity>)! :
+                IterateOverPrimitive() :
                 IterateOverCartesianProduct();
+
+            IEnumerator<TEntity> IterateOverPrimitive()
+            {
+                return (_components[0].GetEnumerator() as IEnumerator<TEntity>)!;
+            }
 
             IEnumerator<TEntity> IterateOverCartesianProduct()
             {
+                int componentsCount = _components.Length;
                 IEnumerator[] componentsEnumerators;
-                EntityFactoryHandler<TEntity> entityFactory = Schema.GetEntityFactory();
+                EntityFactoryHandler<TEntity> entityFactory = Schema.EntityFactory;
 
                 /*
                  * Если число компонент равно 1, то производится упрощённый перебор значений
@@ -58,14 +68,14 @@ namespace TupleAlgebraClassLib.TupleObjects
                  * Если больше 1, то производится поочерёдный перебор значений каждой
                  * компоненты в соответствии с прямым произведением компонент.
                  */
-                return _components.Length > 1 ?
+                return componentsCount > 1 ?
                     IterateOverManyAttachedAttributes() :
                     IterateOverOneAttachedAttribute();
 
                 IEnumerator<TEntity> IterateOverOneAttachedAttribute()
                 {
                     IEnumerator oneComponentEnumerator = _components[0].GetEnumerator();
-                    componentsEnumerators = new[] { oneComponentEnumerator };
+                    componentsEnumerators = [ oneComponentEnumerator ];
 
                     while (oneComponentEnumerator.MoveNext())
                         yield return entityFactory(componentsEnumerators);
@@ -85,8 +95,7 @@ namespace TupleAlgebraClassLib.TupleObjects
                      * Компонента с самой большой мощностью ставится на нулевой индекс
                      * в массиве перечислителей и не буферизируется.
                      */
-                    int componentsCount = _components.Length, 
-                        largestComponentLoc = -1;
+                    int largestComponentLoc = -1;
                     IAttributeComponent largestComponent = _components.MaxBy(cmp => cmp.Power), 
                                         component;
                     IEnumerator largestComponentEnumerator = largestComponent.GetEnumerator();
@@ -147,39 +156,35 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <param name="componentsStack">Стек для обхода компонент.</param>
         /// <returns></returns>
         protected IEnumerable<TEntity> EnumerateCartesianProduct(
-            Func<IEnumerator[], TEntity> entityFactory,
+            EntityFactoryHandler<TEntity> entityFactory,
             IEnumerator[] componentsEnumerators,
             int startComponentLoc = 0,
             Stack<IEnumerator> componentsStack = null)
         {
-            int i, j, componentsCount = componentsEnumerators.Length;
+            int stackPtr = startComponentLoc, 
+                componentsCount = componentsEnumerators.Length - stackPtr;
             IEnumerator componentEnumerator;
+
             if (componentsStack is null)
                 componentsStack = new Stack<IEnumerator>(componentsCount);
-
-            i = j = startComponentLoc;
-            componentsStack.Push(componentEnumerator = componentsEnumerators[i]);
+            componentsStack.Push(componentEnumerator = componentsEnumerators[stackPtr]);
 
             do
             {
                 if (componentEnumerator.MoveNext())
                 {
-                    /*
-                     * второе условие тут из-за того, что componentsCount передаётся без учёта
-                     * startComponentLoc
-                     */
-                    if (j == componentsCount || (j = i + 1) == componentsCount)
+                    if (stackPtr == componentsCount)
                     {
                         yield return entityFactory(componentsEnumerators);
                     }
                     else
                     {
-                        componentsStack.Push(componentsEnumerators[i = j]);
+                        componentsStack.Push(componentsEnumerators[++stackPtr]);
                     }
                 }
                 else
                 {
-                    j = --i;
+                    stackPtr--;
                     /*
                      * Указатель стека переходит на перечислитель предыдущего атрибута,
                      * а перечислитель текущего атрибута перезапускается, чтобы

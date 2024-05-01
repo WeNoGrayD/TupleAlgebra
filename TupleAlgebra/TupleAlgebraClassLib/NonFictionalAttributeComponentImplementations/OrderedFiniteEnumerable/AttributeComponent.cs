@@ -69,8 +69,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             IFiniteEnumerableAttributeComponent<TData>.Values 
             { get => GetFiniteEnumerableValues(); }
 
-        int ICountableAttributeComponent<TData>.Count
-            { get => GetValuesCount(); }
+        public abstract int Count { get; }
 
         #endregion
 
@@ -215,8 +214,6 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
 
         protected abstract IEnumerable<TData>
             GetFiniteEnumerableValues();
-
-        protected abstract int GetValuesCount();
 
         #endregion
 

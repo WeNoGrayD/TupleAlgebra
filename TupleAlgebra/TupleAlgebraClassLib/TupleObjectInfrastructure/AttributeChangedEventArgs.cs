@@ -7,6 +7,7 @@ using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    /*
     public class AttributeChangedEventArgs
     {
         public readonly AttributeName AttributeName;
@@ -33,4 +34,5 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #endregion
     }
+    */
 }

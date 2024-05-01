@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    using static TupleObjectHelper;
+
     public class TupleObjectOneToOneAttributeSetupWizard<TAttribute>
         : TupleObjectAttributeSetupWizard<TAttribute>
     {
@@ -22,16 +24,22 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             : base(schema, attributeName)
         { }
 
+        private TupleObjectOneToOneAttributeSetupWizard(
+            ITupleObjectSchemaProvider schema,
+            AttributeName attributeName)
+            : base(schema, attributeName)
+        { }
+
         public static TupleObjectOneToOneAttributeSetupWizard<TAttribute> Construct<TEntity>(
             ITupleObjectSchemaProvider schema,
-            Expression<Func<TEntity, TAttribute>> memberAccess)
+            Expression<AttributeGetterHandler<TEntity, TAttribute>> memberAccess)
         {
             return new TupleObjectOneToOneAttributeSetupWizard<TAttribute>(schema, memberAccess);
         }
 
         public static TupleObjectOneToOneAttributeSetupWizard<TAttribute> Construct(
             ITupleObjectSchemaProvider schema,
-            string attributeName)
+            AttributeName attributeName)
         {
             return new TupleObjectOneToOneAttributeSetupWizard<TAttribute>(schema, attributeName);
         }

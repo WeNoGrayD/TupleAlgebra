@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean;
 
 namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
 {
@@ -12,9 +13,9 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
     /// </summary>
     public class FullAttributeComponentPower : AttributeComponentPower
     {
-        #region Instance fields
+        #region Static properties
 
-        private AttributeComponentPower _universePower;
+        public static FullAttributeComponentPower Instance { get; private set; }
 
         #endregion
 
@@ -23,30 +24,35 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
         public override AttributeComponentContentType ContentType
         { get => AttributeComponentContentType.Full; }
 
-        public AttributeComponentPower UniversePower { get; set; }
+        //public AttributeComponentPower UniversePower { get; set; }
+
+        #endregion
+
+        #region Constructors
+
+        static FullAttributeComponentPower()
+        {
+            Instance = new FullAttributeComponentPower();
+
+            return;
+        }
 
         #endregion
 
         #region IAttributeComponentPower implementation
 
+        /*
         public override int CompareTo(AttributeComponentPower second)
         {
-            /*
-             * Если вторая компонента тоже полная, то сравнивается мощность представляемая 
-             * ей универсума с универсумом, который представляется этой компонентой.
-             * Если вторая компонента пустая, то универсум этой компоненты сравнивается с ней.
-             * Если вторая компонента нефиктивная, то она сравнивается с универсумом этой компоненты.
-             */
-            return base.CompareTo(second) switch
-            {
-                <0 => _universePower.CompareTo(second),
-                _ => -second.CompareTo(_universePower)
-            };
+            return _universePower.CompareTo(second);
         }
+        */
 
-        public override bool EqualsZero() => false;
+        public override bool EqualsZero<TData>(AttributeComponent<TData> ac)
+            => false;
 
-        public override bool EqualsContinuum() => true;
+        public override bool EqualsContinuum<TData>(AttributeComponent<TData> ac)
+            => true;
 
         #endregion
     }

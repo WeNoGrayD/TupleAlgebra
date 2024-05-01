@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    using static TupleObjectHelper;
+
     public class TupleObjectOneToManyAttributeSetupWizard<TAttributeContainer, TAttribute>
         : TupleObjectAttributeSetupWizard<TAttributeContainer>
     {
@@ -26,7 +28,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public static TupleObjectOneToManyAttributeSetupWizard<TDictionary, KeyValuePair<TKey, TAttribute>> Construct<TEntity, TDictionary, TKey>(
             ITupleObjectSchemaProvider schema,
-            Expression<Func<TEntity, TDictionary>> memberAccess)
+            Expression<AttributeGetterHandler<TEntity, TDictionary>> memberAccess)
             where TDictionary : TAttributeContainer, IDictionary<TKey, TAttribute>
         {
             return new TupleObjectOneToManyAttributeSetupWizard<TDictionary, KeyValuePair<TKey, TAttribute>>(schema, memberAccess);

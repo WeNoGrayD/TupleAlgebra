@@ -5,25 +5,32 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    using static TupleObjectHelper;
+
     public abstract class TupleObjectAttributeSetupWizard<TAttribute> :
         ITupleObjectAttributeSetupWizard<TAttribute>
     {
         public ITupleObjectSchemaProvider Schema { get; protected set; }
 
-        protected string _attributeName;
+        protected AttributeName _attributeName;
+
+        protected virtual ITupleObjectAttributeInfo<TAttribute> AttributeInfo
+        {
+            get => (Schema[_attributeName] as ITupleObjectAttributeInfo<TAttribute>)!;
+            set => Schema[_attributeName] = value;
+        }
 
         protected TupleObjectAttributeSetupWizard(
             ITupleObjectSchemaProvider schema,
             LambdaExpression memberAccess)
         {
-            AttributeGetterImpl(memberAccess);
-            AttributeInfo attribute = schema[_attributeName].Value;
-            attribute.SetAttributeGetter(memberAccess.Compile());
-            schema[_attributeName] = attribute;
             Schema = schema;
+            _attributeName = MemberExtractor.ExtractFrom(memberAccess).Name;
 
             return;
         }
@@ -38,30 +45,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        private void AttributeGetterImpl(LambdaExpression memberAccess)
+        public ITupleObjectAttributeSetupWizard<TAttribute> SetFactory(
+            IAttributeComponentFactory<TAttribute> factory)
         {
-            MemberExpression memberAccessExpr = memberAccess.Body as MemberExpression;
-            _attributeName = memberAccessExpr.Member.Name;
-
-            return;
-        }
-
-        /// <summary>
-        /// Установка домена атрибута.
-        /// Побочным эффектом реализации метода является включение атрибута в схему.  
-        /// </summary>
-        /// <param name="domain"></param>
-        /// <returns></returns>
-        public ITupleObjectAttributeSetupWizard<TAttribute> SetDomain(
-            AttributeDomain<TAttribute> domain)
-        {
-            AttributeInfo attribute = Schema[_attributeName].Value;
-            //Schema[_attributeName] = attribute.CloneWith<TAttribute>(
-                //domain: domain);
+            Schema[_attributeName] = AttributeInfo.SetFactory(factory);
 
             return this;
-
-            return null;
         }
 
         /*
@@ -113,7 +102,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return this;
             */
 
-            return null;
+            return this;
         }
 
         public ITupleObjectAttributeSetupWizard<TAttribute> SetEquivalenceRelation(
@@ -128,7 +117,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return this;
             */
 
-            return null;
+            return this;
         }
 
         public ITupleObjectAttributeSetupWizard<TAttribute> SetEquivalenceRelation(
@@ -143,7 +132,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return this;
             */
 
-            return null;
+            return this;
         }
 
         /// <summary>
@@ -161,7 +150,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return this;
             */
 
-            return null;
+            return this;
         }
 
         /// <summary>
@@ -170,9 +159,52 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <returns></returns>
         public ITupleObjectAttributeSetupWizard<TAttribute> Ignore()
         {
-            Schema[_attributeName] = null;
+            Schema.RemoveAttribute(_attributeName);
 
             return this;
+        }
+
+        public ITupleObjectAttributeSetupWizard<TAttribute> Attach()
+        {
+            Schema.AttachAttribute(_attributeName);
+
+            return this;
+        }
+
+        public ITupleObjectAttributeSetupWizard<TAttribute> Detach()
+        {
+            Schema.DetachAttribute(_attributeName);
+
+            return this;
+        }
+
+        public ITupleObjectAttributeSetupWizard SetComponent(
+            ISingleTupleObject tuple,
+            IAttributeComponent ac)
+        {
+            tuple[_attributeName] = ac;
+
+            return this;
+        }
+
+        public ITupleObjectAttributeSetupWizard SetComponent(
+            ISingleTupleObject tuple,
+            IAttributeComponentFactoryArgs factoryArgs)
+        {
+            IAttributeComponentFactory<TAttribute> factory =
+                AttributeInfo.ComponentFactory;
+            IAttributeComponent ac = factoryArgs.ProvideTo(factory);
+
+            return SetComponent(tuple, ac);
+        }
+
+        public ITupleObjectAttributeSetupWizard SetDefaultFictionalAttributeComponent(
+            ISingleTupleObject tuple)
+        {
+            return SetComponent(
+                tuple, 
+                tuple.GetDefaultFictionalAttributeComponent(
+                    AttributeInfo.ComponentFactory));
         }
     }
 }

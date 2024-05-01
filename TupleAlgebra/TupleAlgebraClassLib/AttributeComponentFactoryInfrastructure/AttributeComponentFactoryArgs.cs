@@ -16,7 +16,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
     public interface IAttributeComponentFactoryArgs
     {
         AttributeComponent<TData>
-            ProvideTo<TData>(IAttributeComponentFactory<TData> factory);
+            ProvideTo<TData>(IAttributeComponentFactory<TData> factory)
+        { return default; }
     }
 
     public interface INonFictionalAttributeComponentFactoryArgs<TFactoryArgs>
@@ -79,7 +80,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
     }
 
     public abstract record NonFictionalAttributeComponentFactoryArgs<TData>
-        : AttributeComponentFactoryArgs
+        : AttributeComponentFactoryArgs, IAttributeComponentFactoryArgs
     {
         public NonFictionalAttributeComponentFactoryArgs(
             bool isQuery,

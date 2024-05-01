@@ -11,5 +11,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
         : IAttributeComponent<TData>
     {
         public IEnumerable<TData> Values { get; }
+
+        int GetCount() => Values.Count();
     }
 }

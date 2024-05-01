@@ -19,6 +19,12 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         : OrderedFiniteEnumerableAttributeComponent<TData, ReadOnlySequence<TData>>,
           IOrderedFiniteEnumerableAttributeComponent<TData>
     {
+        #region Instance properties
+
+        public override int Count { get => Values.GetLength(); }
+
+        #endregion
+
         #region Constructors
 
         static StreamingOrderedFiniteEnumerableAttributeComponent()
@@ -85,11 +91,6 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
             GetFiniteEnumerableValues()
         {
             return Values.ToEnumerable();
-        }
-
-        protected override int GetValuesCount()
-        {
-            return Values.GetLength();
         }
 
         public override AttributeComponentFactoryArgs ZipInfoImpl<TReproducedData>(IEnumerable<TReproducedData> populatingData)

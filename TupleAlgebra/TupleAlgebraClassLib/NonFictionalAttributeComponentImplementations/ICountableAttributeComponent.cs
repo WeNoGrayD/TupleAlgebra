@@ -10,5 +10,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
         : IFiniteEnumerableAttributeComponent<TData>
     {
         int Count { get; }
+
+        int IFiniteEnumerableAttributeComponent<TData>.GetCount() => Count;
     }
 }

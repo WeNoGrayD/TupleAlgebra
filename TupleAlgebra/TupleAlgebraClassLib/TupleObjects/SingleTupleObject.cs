@@ -7,14 +7,27 @@ using System.Threading.Tasks;
 using System.Collections;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectHelper;
+
+    public interface ISingleTupleObject
+    {
+        public IAttributeComponent this[AttributeName attrName] { get; set; }
+
+        public IAttributeComponent<TAttribute> 
+            GetDefaultFictionalAttributeComponent<TAttribute>(
+                IAttributeComponentFactory<TAttribute> factory);
+    }
+
     /// <summary>
     /// Объект алгебры кортежей, представляющий собой один терм.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
-    public abstract class SingleTupleObject<TEntity> : TupleObject<TEntity>
+    public abstract class SingleTupleObject<TEntity> : 
+        TupleObject<TEntity>, ISingleTupleObject
         where TEntity : new()
     {
         protected IAttributeComponent[] _components;
@@ -24,9 +37,10 @@ namespace TupleAlgebraClassLib.TupleObjects
             get => _components[attrLoc];
         }
 
-        public IAttributeComponent this[AttributeInfo attrInfo]
+        public IAttributeComponent this[AttributeName attrName]
         {
-            get => _components[Schema.GetAttributeLoc(attrInfo)];
+            get => _components[Schema.GetAttributeLoc(attrName)];
+            set => _components[Schema.GetAttributeLoc(attrName)] = value;
         }
 
         #region Constructors
@@ -35,7 +49,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// Конструктор экземпляра.
         /// </summary>
         /// <param name="onTupleBuilding"></param>
-        public SingleTupleObject(Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+        public SingleTupleObject(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : this(new TupleObjectBuilder<TEntity>(), onTupleBuilding)
         {
             return;
@@ -47,7 +61,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <param name="onTupleBuilding"></param>
         protected SingleTupleObject(
             TupleObjectBuilder<TEntity> builder,
-            Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(builder, onTupleBuilding)
         {
             return;
@@ -59,9 +73,18 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <param name="onTupleBuilding"></param>
         protected SingleTupleObject(
             TupleObjectSchema<TEntity> schema,
-            Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : this(new TupleObjectBuilder<TEntity>(schema), onTupleBuilding)
         {
+            return;
+        }
+
+        protected SingleTupleObject(TupleObjectSchema<TEntity> schema)
+            : base(schema)
+        {
+            ITupleObjectSchemaProvider schemaProvider = schema;
+            _components = new IAttributeComponent[schemaProvider.PluggedAttributeNames.Count()];
+
             return;
         }
 
@@ -79,7 +102,8 @@ namespace TupleAlgebraClassLib.TupleObjects
             return;
         }
 
-        protected bool ContainsSpecificAttributeComponent(Func<IAttributeComponent, bool> gotcha)
+        protected bool ContainsSpecificAttributeComponent
+            (Func<IAttributeComponent, bool> gotcha)
         {
             bool containsSpecific = false;
             IAttributeComponent component;
@@ -103,12 +127,12 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public bool ContainsEmptyAttributeComponent()
         {
-            return ContainsSpecificAttributeComponent(component => component.Power.EqualsZero());
+            return ContainsSpecificAttributeComponent(component => component.IsEmpty());
         }
 
         public bool ContainsFullAttributeComponent()
         {
-            return ContainsSpecificAttributeComponent(component => component.Power.EqualsContinuum());
+            return ContainsSpecificAttributeComponent(component => component.IsFull());
         }
 
         public void InitAttributes(IDictionary<AttributeName, IAlgebraicSetObject> components)
@@ -118,16 +142,21 @@ namespace TupleAlgebraClassLib.TupleObjects
             return;
         }
 
-        protected IAlgebraicSetObject GetDefaultFictionalAttributeComponent(AttributeInfo attribute)
+        protected IAlgebraicSetObject GetDefaultFictionalAttributeComponent<TAttributeInfo>(
+            ITupleObjectAttributeInfo attribute)
         {
+            /*
             System.Reflection.MethodInfo getDefault = typeof(SingleTupleObject<TEntity>)
                 .GetMethod(nameof(GetDefaultFictionalAttributeComponentImpl), BindingFlags.NonPublic | BindingFlags.Instance)
                 .MakeGenericMethod(attribute.DomainDataType);
-
-            return getDefault.Invoke(this, new object[] { attribute }) as IAlgebraicSetObject;
+            */
+            return null;
+            //return getDefault.Invoke(this, new object[] { attribute }) as IAlgebraicSetObject;
         }
 
-        protected abstract AttributeComponent<TData> GetDefaultFictionalAttributeComponentImpl<TData>(AttributeInfo attribute);
+        public abstract IAttributeComponent<TAttribute> 
+            GetDefaultFictionalAttributeComponent<TAttribute>(
+                IAttributeComponentFactory<TAttribute> factory);
 
 
         #endregion
@@ -136,7 +165,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         protected override void DisposeImpl()
         {
-            Schema.AttributeChanged -= SchemaAttributeChanged;
+            //Schema.AttributeChanged -= SchemaAttributeChanged;
 
             return;
         }

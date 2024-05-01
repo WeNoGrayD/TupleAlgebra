@@ -13,31 +13,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
     public abstract class AttributeGetterExpressionVisitor : ExpressionVisitor
     {
-        protected abstract void VisitImpl(Expression expr);
-
-        public override Expression Visit(Expression expr)
-        {
-            VisitImpl(expr);
-
-            return base.Visit(expr);
-        }
-
-        protected abstract void VisitLambdaImpl(LambdaExpression expr);
-
         protected override Expression VisitLambda<T>(Expression<T> expr)
         {
-            VisitLambdaImpl(expr);
-
             return base.Visit(expr.Body);
-        }
-
-        protected abstract void VisitMemberImpl(MemberExpression expr);
-
-        protected override Expression VisitMember(MemberExpression expr)
-        {
-            VisitMemberImpl(expr);
-
-            return expr;
         }
     }
 
@@ -61,14 +39,42 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        protected override void VisitImpl(Expression expr)
+        public override Expression Visit(Expression expr)
+        {
+            VisitImpl(expr);
+
+            return base.Visit(expr);
+        }
+
+        protected override Expression VisitLambda<T>(Expression<T> expr)
+        {
+            VisitLambdaImpl(expr);
+
+            return base.Visit(expr.Body);
+        }
+
+        protected override Expression VisitParameter(ParameterExpression expr)
+        {
+            VisitParameterImpl(expr);
+
+            return expr;
+        }
+
+        protected override Expression VisitMember(MemberExpression expr)
+        {
+            VisitMemberImpl(expr);
+
+            return expr;
+        }
+
+        protected void VisitImpl(Expression expr)
         {
             _inspector.InspectNode(expr);
 
             return;
         }
 
-        protected override void VisitLambdaImpl(LambdaExpression expr)
+        protected void VisitLambdaImpl(LambdaExpression expr)
         {
             _inspector.InspectNode(expr);
             _instanceParameter = expr.Parameters[0];
@@ -76,7 +82,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        protected override void VisitMemberImpl(MemberExpression expr)
+        protected void VisitParameterImpl(ParameterExpression expr)
         {
             _inspector.InspectNode(
                 NodeWithMemory<Expression>.Create(expr, _instanceParameter));
@@ -84,7 +90,16 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        private static IEnumerable<IInspectionRule<Expression>> InspectAttributeGetterExpr<TMember>()
+        protected void VisitMemberImpl(MemberExpression expr)
+        {
+            _inspector.InspectNode(
+                NodeWithMemory<Expression>.Create(expr, _instanceParameter));
+
+            return;
+        }
+
+        private static IEnumerable<IInspectionRule<Expression>> 
+            InspectAttributeGetterExpr<TMember>()
         {
             IInspectionRule<Expression> nop = new SimpleNodeInspectionRule<Expression>(
                 (e) => true,
@@ -108,10 +123,16 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             yield return new NodeWithMemoryInspectionRule<Expression>(
                 (e) =>
                 {
-                    return e.Node is MemberExpression me &&
+                    return (e.Node is MemberExpression me &&
                         me.Expression == e.Memory &&
-                        me.Member is PropertyInfo pi &&
-                        pi.PropertyType == typeof(TMember);
+                        me.Member switch
+                        {
+                            FieldInfo fi => fi.FieldType == typeof(TMember),
+                            PropertyInfo pi => pi.PropertyType == typeof(TMember),
+                            _ => false
+                        }) || 
+                        (e.Node is ParameterExpression pe &&
+                         pe == e.Memory);
                 },
                 onFailure);
 
@@ -119,29 +140,42 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         }
     }
 
-    public class AttributePropertyExtractor : AttributeGetterExpressionVisitor
+    public class AttributeMemberExtractor : AttributeGetterExpressionVisitor
     {
-        public PropertyInfo _attributeProperty;
-
-        public PropertyInfo Extract<TEntity, TData>(
+        public MemberInfo ExtractFrom<TEntity, TData>(
             Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
         {
-            Visit(attributeGetterExpr);
+            Expression attributeMemberValueExpr =
+                Visit(attributeGetterExpr);
 
-            return _attributeProperty;
+            return attributeMemberValueExpr switch
+            {
+                ConstantExpression ce => (ce.Value as MemberInfo)!,
+                ParameterExpression pe => (pe.Type).GetTypeInfo()
+            };
         }
 
-        protected override void VisitImpl(Expression expr)
-        { }
-
-        protected override void VisitLambdaImpl(LambdaExpression expr)
-        { }
-
-        protected override void VisitMemberImpl(MemberExpression expr)
+        public MemberInfo ExtractFrom(
+            LambdaExpression attributeGetterExpr)
         {
-            _attributeProperty = (expr.Member as PropertyInfo)!;
+            Expression attributeMemberValueExpr =
+                Visit(attributeGetterExpr);
 
-            return;
+            return attributeMemberValueExpr switch
+            {
+                ConstantExpression ce => (ce.Value as MemberInfo)!,
+                ParameterExpression pe => (pe.Type).GetTypeInfo()
+            };
+        }
+
+        protected override Expression VisitParameter(ParameterExpression expr)
+        {
+            return expr;
+        }
+
+        protected override Expression VisitMember(MemberExpression expr)
+        {
+            return Expression.Constant(expr.Member)!;
         }
     }
 }

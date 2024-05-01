@@ -44,7 +44,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
                 TOperand2 second,
                 TFactory factory)
         {
-            IEnumerable<TData> resultElements = SymmetricExcept();
+            OperationResultEnumerableResultProvider<TData> resultElements = 
+                new OperationResultEnumerableResultProvider<TData>(
+                    SymmetricExcept(), false);
 
             return factory.CreateNonFictional(first, resultElements);
 

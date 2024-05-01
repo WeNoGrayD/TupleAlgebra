@@ -12,30 +12,52 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
     /// <summary>
     /// Мощность упорядоченной конечной перечислимой компонентой атрибута.
     /// </summary>
-    public class FiniteEnumerableAttributeComponentPower<TData, TComponent>
-        : CapturingNonFictionalAttributeComponentPower<TData, TComponent>,
+    public class FiniteEnumerableAttributeComponentPower
+        : NonFictionalAttributeComponentPower,
           IFiniteEnumerableAttributeComponentPower
-        where TComponent : NonFictionalAttributeComponent<TData>,
-                           IFiniteEnumerableAttributeComponent<TData>
     {
-        #region Instance properties
+        #region Static properties
 
-        public virtual int NumericalRepresentation { get => Component.Values.Count(); }
+        public static FiniteEnumerableAttributeComponentPower Instance 
+        { get; private set; }
 
         #endregion
 
-        protected override int CompareToZero()
+        #region Constructors
+
+        static FiniteEnumerableAttributeComponentPower()
         {
-            return (this as IFiniteEnumerableAttributeComponentPower)!.CompareToZero();
+            Instance = new FiniteEnumerableAttributeComponentPower();
+
+            return;
         }
 
-        protected override int CompareToNonFictional(AttributeComponentPower second)
+        #endregion
+
+        #region Instance methods
+
+        protected override int CompareToZero<TData>(AttributeComponent<TData> ac)
+        {
+            return (this as IFiniteEnumerableAttributeComponentPower)!
+                .CompareToZero((ac as IFiniteEnumerableAttributeComponent<TData>)!);
+        }
+
+        public override int CompareToNonFictional<TData>(
+            AttributeComponentPower second,
+            AttributeComponent<TData> ac1,
+            AttributeComponent<TData> ac2)
         {
             return second switch
             {
-                IFiniteEnumerableAttributeComponentPower castedSecond => (this as IFiniteEnumerableAttributeComponentPower)!.CompareTo(castedSecond),//-castedSecond.CompareTo(this),
+                IFiniteEnumerableAttributeComponentPower castedSecond => 
+                    (this as IFiniteEnumerableAttributeComponentPower)!
+                        .CompareTo(
+                            castedSecond,
+                            (ac1 as IFiniteEnumerableAttributeComponent<TData>)!,
+                            (ac2 as IFiniteEnumerableAttributeComponent<TData>)!),
                 _ => throw new InvalidCastException("Непустая компонента с конечным перечислимым содержимым сравнивается с непустой компонентой другого вида, в данный момент эта операция не поддерживается.")
             };
         }
+        #endregion
     }
 }

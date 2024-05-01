@@ -31,10 +31,5 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
         {
             return;
         }
-
-        protected override AttributeComponentPower CreatePower()
-        {
-            return new StreamingOrderedFiniteEnumerableAttributeComponentPower<TData>();
-        }
     }
 }

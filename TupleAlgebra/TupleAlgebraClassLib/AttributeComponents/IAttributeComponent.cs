@@ -22,6 +22,10 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// </summary>
         /// <returns></returns>
         IEnumerator GetBufferizedEnumerator();
+
+        bool IsEmpty();
+
+        bool IsFull();
     }
 
     public interface IAttributeComponent<TData> 

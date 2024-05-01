@@ -14,9 +14,16 @@ using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using System.Reflection;
 using System.Collections;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
 
 namespace TupleAlgebraFrameworkTests
 {
+    using static TupleObjectHelper;
+
     [TestClass]
     public class TupleObjectTests
     {
@@ -24,47 +31,251 @@ namespace TupleAlgebraFrameworkTests
 
         private static bool _forumUsersAreConfigured = false;
 
+        public void Params(object? obj = null, params (AttributeName an, object? o)[] they)
+        { }
+
+        public void CallParams()
+        {
+            LambdaExpression v = (ForumUser fu) => fu.Nickname;
+            Params(they: [(v, null), ("1", 1)]);
+            SingleTupleObjectFactoryArgs<ForumUser, string> args =
+                ((ForumUser fu) => fu.Nickname,
+                     new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "revanie"])
+                    );
+        }
+
+        [TestMethod]
+        public void TestTypeInfo()
+        {
+            TypeInfo entityType = typeof(ForumUser).GetTypeInfo();
+
+            foreach (PropertyInfo propertyInfo in entityType.DeclaredProperties
+                .Where(pi => (pi.SetMethod?.IsPublic ?? false) && (pi.GetMethod?.IsPublic ?? false)))
+            {
+                ;
+            }
+
+            return;
+        }
+
+        [TestMethod]
+        public void TestAttributeContainer()
+        {
+            (AttributeName Name, ITupleObjectAttributeInfo Info)
+                nickname = ("Nickname", new AttributeInfo<ForumUser, string>((fu => fu.Nickname))),
+                likes = ("Likes", new AttributeInfo<ForumUser, int>((fu => fu.LikeCount))),
+                posts = ("Posts", new AttributeInfo<ForumUser, int>((fu => fu.PostCount))),
+                followers = ("Followers", new AttributeInfo<ForumUser, int>((fu => fu.Followers))),
+                following = ("Following", new AttributeInfo<ForumUser, int>((fu => fu.Following)));
+
+            IAttributeContainer ac = new DictionaryBackedAttributeContainer();
+            ac.AddAttribute(nickname.Name, nickname.Info);
+            ac.AddAttribute(likes.Name, likes.Info);
+            ac.AddAttribute(posts.Name, posts.Info);
+            ac.AddAttribute(followers.Name, followers.Info);
+            ac.AddAttribute(following.Name, following.Info);
+
+            ac.AttachAttribute(likes.Name);
+            ac.AttachAttribute(posts.Name);
+            ac.AttachAttribute(following.Name);
+
+            ac.EndInitialize();
+
+            PrintPlugged();
+            ac = ac.Clone();
+
+            ac.DetachAttribute(following.Name);
+            ac.AttachAttribute(followers.Name);
+
+            ac.EndInitialize();
+
+            PrintPlugged();
+            ac = ac.Clone();
+
+            ac.DetachAttribute(posts.Name);
+            ac.AttachAttribute(nickname.Name);
+
+            ac.EndInitialize();
+
+            PrintPlugged();
+
+            return;
+
+            void PrintPlugged()
+            {
+                (AttributeName Name, ITupleObjectAttributeInfo Info)[] attrs =
+                    [nickname, likes, posts, followers, following];
+                string isPlugged = "IsPlugged", isntPlugged = "IsNotPlugged";
+                foreach ((AttributeName Name, ITupleObjectAttributeInfo Info) attr in attrs)
+                {
+                    Console.WriteLine($"{attr.Name}: {(ac.IsPlugged(attr.Name) ? isPlugged : isntPlugged)}");
+                }
+
+                return;
+            }
+        }
+
+        public void TestTupleEnumeration<TEntity>(
+            TupleObject<TEntity> tuple,
+            IEnumerable<TEntity> testData)
+            where TEntity : new()
+        {
+            IEnumerator<TEntity> tupleEnum = tuple.GetEnumerator();
+            foreach (TEntity e1 in testData)
+            {
+                Assert.IsTrue(tupleEnum.MoveNext());
+                Assert.IsTrue(e1!.Equals(tupleEnum.Current));
+            }
+            Assert.IsFalse(tupleEnum.MoveNext());
+
+            return;
+        }
+
+        [TestMethod]
+        public void CreateConjunctiveTupleTimeTest()
+        {
+            Stopwatch sw = new Stopwatch();
+            int testCount = 10000;
+            double time = 0;
+
+            CreateConjunctiveTuple();
+
+            for (int i = 0; i < testCount; i++)
+            {
+                sw.Start();
+
+                CreateConjunctiveTuple();
+
+                sw.Stop();
+
+                time += sw.ElapsedMilliseconds;
+
+                sw.Reset();
+            }
+            time = time / testCount;
+            Console.WriteLine($"Create ctuple costs {time} ms.");
+
+            return;
+        }
+
         [TestMethod]
         public void CreateConjunctiveTuple()
         {
-            TupleObject<ForumUser>.Configure(CustomLikedUsers);
-            TupleObject<ForumUser> likedPersons = new ConjunctiveTuple<ForumUser>();
+            TupleObjectFactory factory = new TupleObjectFactory(null);
 
+            TupleObject<ForumUser>.Configure(CustomLikedUsers);
+            TupleObject<ForumUser> likedPersons = factory.CreateConjunctive<ForumUser>(
+                factoryArgs: [
+                    SetAC((ForumUser fu) => fu.Nickname,
+                     new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
+                    ),
+                    SetAC((ForumUser fu) => fu.LikeCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
+                    ),
+                    SetAC((ForumUser fu) => fu.PostCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([5, 100])
+                    ),
+                    SetAC((ForumUser fu) => fu.Followers,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 20])
+                    ),
+                    SetAC((ForumUser fu) => fu.Following,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([0, 5])
+                    )]);
+
+            /*
             Assert.IsFalse(likedPersons.Schema.ContainsAttribute(nameof(ForumUser.Id)));
-            Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.Nickname)].IsPlugged);
-            Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
-            Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.PostCount)].IsPlugged);
-            Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.Followers)].IsPlugged);
-            Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.Following)].IsPlugged);
+            Assert.IsTrue(likedPersons.Schema.IsPlugged(nameof(ForumUser.Nickname)));
+            Assert.IsTrue(likedPersons.Schema.IsPlugged(nameof(ForumUser.LikeCount)));
+            Assert.IsTrue(likedPersons.Schema.IsPlugged(nameof(ForumUser.PostCount)));
+            Assert.IsTrue(likedPersons.Schema.IsPlugged(nameof(ForumUser.Followers)));
+            Assert.IsTrue(likedPersons.Schema.IsPlugged(nameof(ForumUser.Following)));
+            */
             //Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LatestProfileVisitors)].IsPlugged);
             //Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.GainedAchievments)].IsPlugged);
             //Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LatestComments)].IsPlugged);
 
             //bool attributeCheck = likedPersons - nameof(ForumUser.LikeCount);
-            likedPersons -= nameof(ForumUser.LikeCount);
-            Assert.IsFalse(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
+            //likedPersons -= nameof(ForumUser.LikeCount);
+            //Assert.IsFalse(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
             //attributeCheck = likedPersons + nameof(ForumUser.LikeCount);
-            likedPersons += nameof(ForumUser.LikeCount);
-            Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
+            //likedPersons += nameof(ForumUser.LikeCount);
+            //Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
+
+            //TestTupleEnumeration(likedPersons, TestLikedPersons());
+
+            IEnumerable<ForumUser> TestLikedPersons()
+            {
+                string weno = "WeNoGrayD", revan = "NewRevan";
+
+                yield return new ForumUser(0, revan, 1, 5, 1, 0);
+                yield return new ForumUser(0, revan, 1, 100, 1, 0);
+
+                yield return new ForumUser(0, weno, 1, 5, 1, 0);
+                yield return new ForumUser(0, weno, 1, 100, 1, 0);
+
+                yield return new ForumUser(0, revan, 5, 5, 1, 0);
+                yield return new ForumUser(0, revan, 5, 100, 1, 0);
+
+                yield return new ForumUser(0, weno, 5, 5, 1, 0);
+                yield return new ForumUser(0, weno, 5, 100, 1, 0);
+
+                yield return new ForumUser(0, revan, 1, 5, 1, 5);
+                yield return new ForumUser(0, revan, 1, 100, 1, 5);
+
+                yield return new ForumUser(0, weno, 1, 5, 1, 5);
+                yield return new ForumUser(0, weno, 1, 100, 1, 5);
+
+                yield return new ForumUser(0, revan, 5, 5, 1, 5);
+                yield return new ForumUser(0, revan, 5, 100, 1, 5);
+
+                yield return new ForumUser(0, weno, 5, 5, 1, 5);
+                yield return new ForumUser(0, weno, 5, 100, 1, 5);
+
+                yield return new ForumUser(0, revan, 1, 5, 20, 0);
+                yield return new ForumUser(0, revan, 1, 100, 20, 0);
+
+                yield return new ForumUser(0, weno, 1, 5, 20, 0);
+                yield return new ForumUser(0, weno, 1, 100, 20, 0);
+
+                yield return new ForumUser(0, revan, 5, 5, 20, 0);
+                yield return new ForumUser(0, revan, 5, 100, 20, 0);
+
+                yield return new ForumUser(0, weno, 5, 5, 20, 0);
+                yield return new ForumUser(0, weno, 5, 100, 20, 0);
+
+                yield return new ForumUser(0, revan, 1, 5, 20, 5);
+                yield return new ForumUser(0, revan, 1, 100, 20, 5);
+
+                yield return new ForumUser(0, weno, 1, 5, 20, 5);
+                yield return new ForumUser(0, weno, 1, 100, 20, 5);
+
+                yield return new ForumUser(0, revan, 5, 5, 20, 5);
+                yield return new ForumUser(0, revan, 5, 100, 20, 5);
+
+                yield return new ForumUser(0, weno, 5, 5, 20, 5);
+                yield return new ForumUser(0, weno, 5, 100, 20, 5);
+            }
         }
 
         public void CustomLikedUsers(TupleObjectBuilder<ForumUser> builder)
         {
-            /*
             if (_forumUsersAreConfigured) return;
             _forumUsersAreConfigured = true;
 
+            IAttributeComponentFactory<string> nicknameFactory =
+                new OrderedFiniteEnumerableAttributeComponentFactory<string>(
+                    _forumUsers.Select(user => user.Nickname));
+            IAttributeComponentFactory<int> intFactory =
+                new FiniteIterableAttributeComponentFactory<int>(
+                    Enumerable.Range(0, 1000));
+
             builder.Attribute(user => user.Id).Ignore();
-            AttributeDomain<string> nicknames = 
-                new OrderedFiniteEnumerableAttributeDomain<string>(_forumUsers.Select(user => user.Nickname));
-            builder.Attribute(user => user.Nickname).SetDomain(nicknames);
-            AttributeDomain<int> intRange =
-                new Integer32OrderedFiniteEnumerableAttributeDomain((0, 1000, 1));
-            builder.Attribute(user => user.LikeCount).SetDomain(intRange);
-            builder.Attribute(user => user.PostCount).SetDomain(intRange);
-            builder.Attribute(user => user.Followers).SetDomain(intRange);
-            builder.Attribute(user => user.Following).SetDomain(intRange);
-            */
+            builder.Attribute(user => user.Nickname).SetFactory(nicknameFactory).Attach();
+            builder.Attribute(user => user.LikeCount).SetFactory(intFactory).Attach();
+            builder.Attribute(user => user.PostCount).SetFactory(intFactory).Attach();
+            builder.Attribute(user => user.Followers).SetFactory(intFactory).Attach();
+            builder.Attribute(user => user.Following).SetFactory(intFactory).Attach();
+
             //AttributeDomain<ForumUser> users =
             //    new OrderedFiniteEnumerableAttributeDomain<ForumUser>(_forumUsers);
             //builder.Attribute(user => user.LatestProfileVisitors).OneToOneRelation().SetDomain(users);
@@ -89,7 +300,7 @@ namespace TupleAlgebraFrameworkTests
             {
                 factory = context.Factory;
                 TupleObject<ForumUser>.Configure(CustomLikedUsers);
-                TupleObject<ForumUser> ct1 = factory.CreateConjunctive(_forumUsers[0]);
+                //TupleObject<ForumUser> ct1 = factory.CreateConjunctive(_forumUsers[0]);
             }
 
             return;

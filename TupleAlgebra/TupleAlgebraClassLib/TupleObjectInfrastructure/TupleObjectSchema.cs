@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjects;
 
@@ -11,22 +13,528 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     using static TupleObjectHelper;
 
+    public interface IAttributeContainer
+        : IDictionary<AttributeName, ITupleObjectAttributeInfo>
+    {
+        public IEnumerable<AttributeName> PluggedAttributeNames { get; }
+
+        public IEnumerable<ITupleObjectAttributeInfo> PluggedAttributes { get; }
+
+        public int PluggedAttributesCount { get; }
+
+        public bool ContainsAttribute(AttributeName attributeName);
+
+        public bool IsPlugged(AttributeName attrName);
+
+        public int GetAttributeLoc(AttributeName attrName);
+
+        public void AddAttribute(
+            AttributeName attrName,
+            ITupleObjectAttributeInfo attrInfo);
+
+        public void RemoveAttribute(AttributeName attrName);
+
+        public void AttachAttribute(AttributeName attrName);
+
+        public void DetachAttribute(AttributeName attrName);
+
+        public void EndInitialize();
+
+        public ITupleObjectAttributeInfo GetPluggedO1(AttributeName attrName);
+
+        public IAttributeContainer Clone();
+    }
+    public class DictionaryBackedAttributeContainer
+        : Dictionary<AttributeName, ITupleObjectAttributeInfo>,
+          IAttributeContainer
+    {
+        private IDictionary<AttributeName, int> _pluggedAttributes;
+
+        public IEnumerable<AttributeName> PluggedAttributeNames
+        {
+            get => _pluggedAttributes.Keys;
+        }
+
+        public IEnumerable<ITupleObjectAttributeInfo> PluggedAttributes 
+        {
+            get => PluggedAttributeNames.Select(n => this[n]);
+        }
+
+        public int PluggedAttributesCount { get => _pluggedAttributes.Count; }
+
+        public DictionaryBackedAttributeContainer()
+            : base()
+        {
+            Init();
+
+            return;
+        }
+
+        public DictionaryBackedAttributeContainer(
+            IDictionary<AttributeName, ITupleObjectAttributeInfo> source,
+            IDictionary<AttributeName, int> pluggedAttributes)
+            : base(source)
+        {
+            Init();
+            foreach (AttributeName attrName in pluggedAttributes.Keys)
+            {
+                _pluggedAttributes.Add(attrName, -1);
+            }
+
+            return;
+        }
+
+        private void Init()
+        {
+            _pluggedAttributes = new Dictionary<AttributeName, int>();
+
+            return;
+        }
+
+        public bool ContainsAttribute(AttributeName attributeName)
+        {
+            return ContainsKey(attributeName);
+        }
+
+        private void PlugIn(AttributeName attrName)
+        {
+            _pluggedAttributes[attrName] = -1;
+
+            return;
+        }
+
+        private void Unplug(AttributeName attrName)
+        {
+            _pluggedAttributes.Remove(attrName);
+
+            return;
+        }
+
+        public bool IsPlugged(AttributeName attrName)
+        {
+            return _pluggedAttributes.ContainsKey(attrName);
+        }
+
+        public int GetAttributeLoc(AttributeName attrName)
+        {
+            return _pluggedAttributes[attrName];
+        }
+
+        public void AddAttribute(
+            AttributeName attrName,
+            ITupleObjectAttributeInfo attrInfo)
+        {
+            Add(attrName, attrInfo);
+
+            return;
+        }
+
+        public void RemoveAttribute(AttributeName attrName)
+        {
+            this[attrName].RemoveQuery();
+
+            return;
+        }
+
+        private void RemoveAttributeImpl(AttributeName attrName)
+        {
+            _pluggedAttributes.Remove(attrName);
+
+            return;
+        }
+
+        /// <summary>
+        /// Операция прикрепления атрибута будет выполняться чаще чем
+        /// операция открепления. Из этого следует, что атрибуты 
+        /// должны храниться так:
+        /// [unplugged, ..., unplugged, plugged, ..., plugged]
+        /// Таким образом будет выполняться меньше операций копирования
+        /// элементов коллекции, т.к. вставка в конец массива производится
+        /// быстрее всего.
+        /// </summary>
+        /// <param name="attrName"></param>
+        public void AttachAttribute(AttributeName attrName)
+        {
+            this[attrName].AttachQuery();
+
+            return;
+        }
+        public void AttachAttributeImpl(AttributeName attrName)
+        {
+            ITupleObjectAttributeInfo plugged = this[attrName];
+
+            PlugIn(attrName);
+            plugged.UndoQuery();
+
+            return;
+        }
+
+        public void DetachAttribute(AttributeName attrName)
+        {
+            this[attrName].DetachQuery();
+
+            return;
+        }
+
+        public void DetachAttributeImpl(AttributeName attrName)
+        {
+            ITupleObjectAttributeInfo unplugged = this[attrName];
+
+            Unplug(attrName);
+            unplugged.UndoQuery();
+
+            return;
+        }
+
+        public void EndInitialize()
+        {
+            int i;
+            ITupleObjectAttributeInfo attrInfo;
+            Action removeHandler = null;
+
+            foreach (AttributeName attrName in this.Keys)
+            {
+                attrInfo = this[attrName];
+                if (attrInfo.Query == AttributeQuery.Removed)
+                {
+                    removeHandler += () => RemoveAttributeImpl(attrName);
+                }
+            }
+
+            removeHandler?.Invoke();
+
+            foreach (AttributeName attrName in this.Keys)
+            {
+                attrInfo = this[attrName];
+                if (attrInfo.Query == AttributeQuery.Attached)
+                {
+                    AttachAttributeImpl(attrName);
+                }
+            }
+
+            i = 0;
+            foreach (AttributeName attrName in this.Keys)
+            {
+                attrInfo = this[attrName];
+                if (attrInfo.Query == AttributeQuery.Detached)
+                {
+                    DetachAttributeImpl(attrName);
+                }
+                else if (_pluggedAttributes.ContainsKey(attrName))
+                {
+                    _pluggedAttributes[attrName] = i++;
+                }
+            }
+
+            return;
+        }
+
+        public ITupleObjectAttributeInfo GetPluggedO1(AttributeName attrName)
+        {
+            if (!IsPlugged(attrName)) return null;
+
+            return this[attrName];
+        }
+
+        public IAttributeContainer Clone()
+        {
+            return new DictionaryBackedAttributeContainer(
+                this,
+                _pluggedAttributes);
+        }
+    }
+
+    public class AttributeContainer
+        : SortedList<AttributeName, ITupleObjectAttributeInfo>,
+          IAttributeContainer
+    {
+        private AttributeComparer _comparer;
+
+        private IDictionary<AttributeName, int> _pluggedAttributes;
+
+        public IEnumerable<AttributeName> PluggedAttributeNames
+        {
+            get
+            {
+                for (int i = Count - PluggedAttributesCount; i < Count; i++)
+                    yield return GetKeyAtIndex(i);
+
+                yield break;
+            }
+        }
+
+        public IEnumerable<ITupleObjectAttributeInfo> PluggedAttributes
+        {
+            get
+            {
+                for (int i = Count - PluggedAttributesCount; i < Count; i++)
+                    yield return GetValueAtIndex(i);
+
+                yield break;
+            }
+        }
+
+        public int PluggedAttributesCount { get => _pluggedAttributes.Count; }
+
+        public AttributeContainer()
+            : base(new AttributeComparer())
+        {
+            Init();
+
+            return;
+        }
+
+        public AttributeContainer(
+            IDictionary<AttributeName, ITupleObjectAttributeInfo> source,
+            IDictionary<AttributeName, int> pluggedAttributes)
+            : base(new AttributeComparer())
+        {
+            Init(pluggedAttributes);
+
+            foreach (var attr in source)
+            {
+                _comparer.targetIsPlugged = IsPlugged(attr.Key);
+                AddAttribute(attr.Key, attr.Value);
+            }
+
+            return;
+        }
+
+        private void Init(
+            IDictionary<AttributeName, int> pluggedAttributes = null)
+        {
+            _comparer = (Comparer as AttributeComparer)!;
+            _comparer.container = this;
+            if (pluggedAttributes is not null)
+                _pluggedAttributes = new Dictionary<AttributeName, int>(pluggedAttributes);
+            else
+                _pluggedAttributes = new Dictionary<AttributeName, int>();
+
+            return;
+        }
+
+        public bool ContainsAttribute(AttributeName attributeName)
+        {
+            if (_comparer.targetIsPlugged = IsPlugged(attributeName))
+                return true;
+
+            return ContainsKey(attributeName);
+        }
+
+        private void PlugIn(AttributeName attrName)
+        {
+            _comparer.targetAttributeName = attrName;
+            _comparer.targetIsPlugged = true;
+            _pluggedAttributes.Add(attrName, -1);
+
+            return;
+        }
+
+        private void Unplug(AttributeName attrName)
+        {
+            _comparer.targetAttributeName = attrName;
+            _comparer.targetIsPlugged = false;
+            _pluggedAttributes.Remove(attrName);
+
+            return;
+        }
+
+        public bool IsPlugged(AttributeName attrName)
+        {
+            return _pluggedAttributes.ContainsKey(attrName);
+        }
+
+        public int GetAttributeLoc(AttributeName attrName)
+        {
+            return _pluggedAttributes[attrName];
+        }
+
+        public void AddAttribute(
+            AttributeName attrName, 
+            ITupleObjectAttributeInfo attrInfo)
+        {
+            _comparer.targetAttributeName = attrName;
+            Add(attrName, attrInfo);
+
+            return;
+        }
+
+        public void RemoveAttribute(AttributeName attrName)
+        {
+            _comparer.targetAttributeName = attrName;
+            _comparer.targetIsPlugged = IsPlugged(attrName);
+            this[attrName].RemoveQuery();
+
+            return;
+        }
+
+        private void RemoveAttributeImpl(int attrLoc)
+        {
+            AttributeName attrName = GetKeyAtIndex(attrLoc);
+            _comparer.targetAttributeName = attrName;
+            _comparer.targetIsPlugged = IsPlugged(attrName);
+            RemoveAt(attrLoc);
+            _pluggedAttributes.Remove(attrName);
+
+            return;
+        }
+
+        /// <summary>
+        /// Операция прикрепления атрибута будет выполняться чаще чем
+        /// операция открепления. Из этого следует, что атрибуты 
+        /// должны храниться так:
+        /// [unplugged, ..., unplugged, plugged, ..., plugged]
+        /// Таким образом будет выполняться меньше операций копирования
+        /// элементов коллекции, т.к. вставка в конец массива производится
+        /// быстрее всего.
+        /// </summary>
+        /// <param name="attrName"></param>
+        public void AttachAttribute(AttributeName attrName)
+        {
+            _comparer.targetAttributeName = attrName;
+            _comparer.targetIsPlugged = IsPlugged(attrName);
+            this[attrName].AttachQuery();
+
+            return;
+        }
+        public void AttachAttributeImpl(int attrLoc)
+        {
+            AttributeName attrName = GetKeyAtIndex(attrLoc);
+            ITupleObjectAttributeInfo plugged = GetValueAtIndex(attrLoc);
+
+            RemoveAt(attrLoc);
+            PlugIn(attrName);
+            Add(attrName, plugged);
+            plugged.UndoQuery();
+
+            return;
+        }
+
+        public void DetachAttribute(AttributeName attrName)
+        {
+            _comparer.targetAttributeName = attrName;
+            _comparer.targetIsPlugged = IsPlugged(attrName);
+            this[attrName].DetachQuery();
+
+            return;
+        }
+
+        public void DetachAttributeImpl(int attrLoc)
+        {
+            AttributeName attrName = GetKeyAtIndex(attrLoc);
+            ITupleObjectAttributeInfo unplugged = GetValueAtIndex(attrLoc);
+
+            RemoveAt(attrLoc);
+            Unplug(attrName);
+            Add(attrName, unplugged);
+            unplugged.UndoQuery();
+
+            return;
+        }
+
+        public void EndInitialize()
+        {
+            int i, attrLen = this.Count - 1, treshold;
+            ITupleObjectAttributeInfo attrInfo;
+
+            for (i = attrLen; i >= 0; i--)
+            {
+                attrInfo = this.GetValueAtIndex(i);
+                if (attrInfo.Query == AttributeQuery.Removed)
+                {
+                    RemoveAttributeImpl(i);
+                    attrLen--;
+                }
+            }
+
+            treshold = attrLen - PluggedAttributesCount;
+
+            for (i = 0; i <= treshold; i++)
+            {
+                attrInfo = this.GetValueAtIndex(i);
+                if (attrInfo.Query == AttributeQuery.Attached)
+                {
+                    AttachAttributeImpl(i--);
+                }
+            }
+
+            treshold++;
+
+            for (i = treshold; i <= attrLen; i++)
+            {
+                attrInfo = this.GetValueAtIndex(i);
+                if (attrInfo.Query == AttributeQuery.Detached)
+                {
+                    DetachAttributeImpl(i);
+                }
+                else
+                {
+                    _pluggedAttributes[GetKeyAtIndex(i)] = i - treshold;
+                }
+            }
+
+            return;
+        }
+
+        public ITupleObjectAttributeInfo GetPluggedO1(AttributeName attrName)
+        {
+            return GetValueAtIndex(GetAttributeLoc(attrName));
+        }
+
+        private class AttributeComparer : IComparer<AttributeName>
+        {
+            public AttributeContainer container;
+
+            public AttributeName targetAttributeName;
+
+            public bool targetIsPlugged = false;
+
+            public AttributeComparer()
+            {
+                return;
+            }
+
+            public int Compare(AttributeName an1, AttributeName an2)
+            {
+                bool a2IsPlugged = targetIsPlugged,
+                     a1IsPlugged = container.IsPlugged(an1);
+                int cmpRes = a1IsPlugged.CompareTo(a2IsPlugged);
+
+                if (cmpRes == 0)
+                {
+                    /*
+                     * Внутри разделов unplugged и plugged
+                     * имена атрибутов должны быть раздельно
+                     * отсортированы.
+                     */
+                   return an1.CompareTo(an2);
+                }
+
+                /*
+                 * Таблица истинности
+                 *       | false | true |
+                 * false |   0   |  -1  |
+                 * true  |   1   |   0  |
+                 */
+
+                return cmpRes;
+            }
+        }
+
+        public IAttributeContainer Clone()
+        {
+            return new AttributeContainer(
+                this,
+                _pluggedAttributes);
+        }
+    }
+
     public sealed class TupleObjectSchema<TEntity>
-        : IEnumerable<AttributeInfo>,
-          ITupleObjectSchemaProvider
+        : ITupleObjectSchemaProvider
     {
         #region Instance fields
 
-        private IDictionary<AttributeName, AttributeInfo> _attributes;
-
-        private IDictionary<AttributeInfo, int> _attributeLocations;
-
-        /*
-        /// <summary>
-        /// Построитель кортежа.
-        /// </summary>
-        public readonly TupleObjectBuilder<TEntity> Builder;
-        */
+        private IAttributeContainer _attributes;
 
         private Lazy<EntityFactoryHandler<TEntity>> _entityFactory;
 
@@ -34,7 +542,17 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #region Instance properties
 
-        public IDictionary<AttributeName, AttributeInfo> Attributes => _attributes;
+        public IAttributeContainer Attributes => _attributes;
+
+        public IEnumerable<AttributeName> PluggedAttributeNames
+        {
+            get => _attributes.PluggedAttributeNames;
+        }
+
+        public int Count { get => _attributes.Count; }
+
+        public int PluggedAttributesCount 
+        { get => _attributes.PluggedAttributesCount; }
 
         public static bool IsEntityPrimitive { get; private set; }
 
@@ -50,34 +568,33 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #region Indexers
 
-        AttributeInfo? ITupleObjectSchemaProvider.this[string attributeName]
+        public ITupleObjectAttributeInfo this[AttributeName attributeName]
         {
             get
             {
-                return ContainsAttribute(attributeName) ? _attributes[attributeName] : (AttributeInfo?)null;
+                return ContainsAttribute(attributeName) ?
+                    _attributes[attributeName] : 
+                    null;
             }
             set
             {
-                if (value is null)
-                    RemoveAttribute(attributeName);
+                if (ContainsAttribute(attributeName))
+                    _attributes[attributeName] = value;
                 else
-                    _attributes[attributeName] = (AttributeInfo)value;
+                    _attributes.AddAttribute(attributeName, value);
+                return;
             }
-        }
-
-        public AttributeInfo this[string attributeName]
-        {
-            get => _attributes[attributeName];
-            private set => _attributes[attributeName] = value;
         }
 
         #endregion
 
+        /*
         #region Instance events
 
         public event EventHandler<AttributeChangedEventArgs> AttributeChanged;
 
         #endregion
+        */
 
         #region Constructors
 
@@ -93,18 +610,17 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// Конструктор экземпляра.
         /// </summary>
         /// <param name="attributes"></param>
-        public TupleObjectSchema(
-            IDictionary<AttributeName, AttributeInfo> attributes = null)
+        public TupleObjectSchema(IAttributeContainer attributes = null)
         {
             if (attributes is not null)
             {
-                _attributes = attributes;
-                InitAttributeLocations();
+                _attributes = attributes.Clone();
             }
             else
             {
-                _attributes = new Dictionary<AttributeName, AttributeInfo>();
+                _attributes = new AttributeContainer();
             }
+            _entityFactory = new Lazy<EntityFactoryHandler<TEntity>>(MakeEntityFactoryBuilder); 
 
             return;
         }
@@ -113,67 +629,41 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #region Static methods
 
-
         #endregion
 
         #region Instance methods
 
         private EntityFactoryHandler<TEntity> MakeEntityFactoryBuilder()
         {
-            System.Reflection.PropertyInfo[] attributeProperties = 
-                _attributes.Values.Select(a => a.AttributeProperty).ToArray();
+            System.Reflection.MemberInfo[] attributeProperties = 
+                _attributes.PluggedAttributes.Select(a => a.AttributeMember).ToArray();
             return (new EntityFactoryBuilder()).Build<TEntity>(attributeProperties);
-        }
-
-        /// <summary>
-        /// Инициализация массива индексов атрибутов.
-        /// </summary>
-        private void InitAttributeLocations()
-        {
-            int attrLoc = 0;
-            _attributeLocations = new Dictionary<AttributeInfo, int>();
-            
-            foreach (AttributeInfo attrInfo in _attributes.Values)
-            {
-                _attributeLocations.Add(attrInfo, attrLoc++);
-            }
-
-            return;
-        }
-
-        public EntityFactoryHandler<TEntity> GetEntityFactory()
-        {
-            return null;
         }
 
         public TupleObjectSchema<TEntity> Clone()
         {
-            IDictionary<AttributeName, AttributeInfo> attributes =
-                _attributes.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-            return new TupleObjectSchema<TEntity>(attributes); 
+            return new TupleObjectSchema<TEntity>(_attributes);
         }
 
+        /*
         private void OnAttributeChanged(AttributeChangedEventArgs eventArgs)
         {
             AttributeChanged?.Invoke(this, eventArgs);
 
             return;
         }
+        */
 
-        public IDictionary<AttributeName, IAlgebraicSetObject> InitAttributes()
+        public bool IsPlugged(AttributeName attrName)
         {
-            Dictionary<AttributeName, IAlgebraicSetObject> components = 
-                new Dictionary<AttributeName, IAlgebraicSetObject>();
+            return _attributes.IsPlugged(attrName);
+        }
 
-            foreach ((AttributeName attributeName, AttributeInfo attribute) in this.Attributes)
-            {
-                if (!attribute.IsPlugged) continue;
+        public void EndInit()
+        {
+            _attributes.EndInitialize();
 
-                components.Add(attributeName, null);
-            }
-
-            return components;
+            return;
         }
 
         /// <summary>
@@ -182,108 +672,153 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// </summary>
         /// <param name="attrInfo"></param>
         /// <returns></returns>
-        public int GetAttributeLoc(AttributeInfo attrInfo) => _attributeLocations[attrInfo];
-
-        public bool ContainsAttribute(string attributeName)
+        public int GetAttributeLoc(AttributeName attrName)
         {
-            return _attributes.ContainsKey(attributeName);
+            return _attributes.GetAttributeLoc(attrName);
         }
 
-        public void AddAttribute<TDomainEntity>(
-            string attributeName, AttributeDomain<TDomainEntity> attribute = null)
+        public bool ContainsAttribute(AttributeName attributeName)
         {
-            AttributeInfo attributeInfo = AttributeInfo.Construct<TEntity, TDomainEntity>(
-                isPlugged: attribute is not null,
-                domain: attribute);
-            _attributes.Add(attributeName, attributeInfo);
+            return _attributes.ContainsAttribute(attributeName);
+        }
+
+        public void AddAttribute<TAttribute>(
+            Expression<AttributeGetterHandler<TEntity, TAttribute>>
+                attributeGetterExpr,
+            AttributeName attributeName)
+        {
+            ITupleObjectAttributeInfo attributeInfo = 
+                new AttributeInfo<TEntity, TAttribute>(
+                    attributeGetterExpr);
+            _attributes.AddAttribute(attributeName, attributeInfo);
 
             return;
         }
 
-        public void RemoveAttribute(string attributeName)
+        public void RemoveAttribute(AttributeName attributeName)
         {
-            _attributes.Remove(attributeName);
-        }
+            _attributes.RemoveAttribute(attributeName);
 
-        public TupleObjectSchema<TEntity> GeneralizeWith(TupleObjectSchema<TEntity> second)
-        {
-            TupleObjectSchema<TEntity> resultSchema = 
-                this.Clone();
-            AttributeInfo attributeInfo1, attributeInfo2;
-
-            foreach (string attributeName in _attributes.Keys)
-            {
-                (attributeInfo1, attributeInfo2) = (this[attributeName], second[attributeName]);
-                switch ((attributeInfo1.IsPlugged, attributeInfo2.IsPlugged))
-                {
-                    case (true, true):
-                    case (true, false):
-                        {
-                            break;
-                        }
-                    case (_, _):
-                        {
-                            resultSchema.AttachAttribute(attributeName);
-
-                            break;
-                        }
-                }
-            }
-
-            resultSchema.EndInitializingAttributes();
-
-            return resultSchema;
+            return;
         }
 
         /// <summary>
-        /// Выполнение запросов над атрибутами, то есть полноценное прикрепление и открепление
-        /// атрибутов для обязательно новой схемы.
+        /// Применяется только во время инициализации схемы.
         /// </summary>
-        public void EndInitializingAttributes()
+        /// <param name="attributeName"></param>
+        public void AttachAttribute(AttributeName attributeName)
         {
-            foreach (string attributeName in _attributes.Keys)
+            _attributes.AttachAttribute(attributeName);
+
+            return;
+        }
+
+        /// <summary>
+        /// Применяется только во время инициализации схемы.
+        /// </summary>
+        /// <param name="attributeName"></param>
+        public void DetachAttribute(AttributeName attributeName)
+        {
+            _attributes.DetachAttribute(attributeName);
+
+            return;
+        }
+
+        private ITupleObjectAttributeInfo GeneralizeAttributes(
+            AttributeName attrName,
+            IAttributeContainer secondAttributes,
+            out bool gotFirst,
+            out bool gotSecond)
+        {
+            bool secondIsPlugged = secondAttributes.IsPlugged(attrName);
+
+            (ITupleObjectAttributeInfo res, gotFirst, gotSecond) =
+                (_attributes.IsPlugged(attrName), secondIsPlugged) 
+                switch
+                {
+                    (true, _) => (_attributes.GetPluggedO1(attrName), true, secondIsPlugged),
+                    (false, false) => (_attributes[attrName], true, true),
+                    _ => (secondAttributes.GetPluggedO1(attrName), false, true)
+                };
+
+            return res;
+        }
+
+        public TupleObjectBuildingHandler<TEntity> GeneralizeWith(
+            TupleObjectSchema<TEntity> second)
+        {
+            return (this.Equals(second)) ? 
+                (builder) => builder.Schema = this : 
+                GeneralizeWithImpl;
+
+            void GeneralizeWithImpl(TupleObjectBuilder<TEntity> builder)
             {
-                _attributes[attributeName] = _attributes[attributeName].ExecuteQuery();
+                /*
+                 * Совершается попытка выдать обобщённую схему без копирования
+                 * и создания новой.
+                 */
+
+                TupleObjectSchema<TEntity> resultSchema = null;
+                bool thisIsGeneral = true, secondIsGeneral = true,
+                     thisIsGeneralBuf = true, secondIsGeneralBuf = true,
+                     hasGeneral = true;
+                ITupleObjectAttributeInfo currentAttribute = null;
+                IAttributeContainer secondAttributes = second._attributes;
+
+                foreach (AttributeName attributeName in _attributes.Keys)
+                {
+                    currentAttribute = GeneralizeAttributes(
+                        attributeName,
+                        secondAttributes,
+                        out thisIsGeneralBuf,
+                        out secondIsGeneralBuf);
+
+                    if (hasGeneral)
+                    {
+                        thisIsGeneralBuf &= thisIsGeneral;
+                        secondIsGeneralBuf &= secondIsGeneral;
+                        hasGeneral &= HasGeneralOnCurrentStep();
+                    }
+
+                    if (!hasGeneral)
+                    {
+                        if (resultSchema is null)
+                        {
+                            InitGeneralSchema();
+                        }
+                        resultSchema[attributeName] = currentAttribute;
+                    }
+                    else
+                    {
+                        thisIsGeneral = thisIsGeneralBuf;
+                        secondIsGeneral = secondIsGeneralBuf;
+                    }
+                }
+
+                if (hasGeneral)
+                {
+                    if (thisIsGeneral) resultSchema = this;
+                    else resultSchema = second;
+                }
+
+                builder.Schema = resultSchema;
+
+                return;
+
+                void InitGeneralSchema()
+                {
+                    if (thisIsGeneral) resultSchema = this.Clone();
+                    else resultSchema = second.Clone();
+                }
+
+                bool HasGeneralOnCurrentStep() =>
+                    (thisIsGeneralBuf || secondIsGeneralBuf);
             }
-
-            return;
         }
-
-        public void AttachAttribute(string attributeName)
-        {
-            _attributes[attributeName] = _attributes[attributeName].Attach();
-            /*
-            AttributeInfo attached = _attributes[attributeName].Attach();
-            _attributes[attributeName] = attached;
-            OnAttributeChanged(new AttributeChangedEventArgs(
-                attributeName, 
-                attached, 
-                AttributeChangedEventArgs.Event.Attachment));
-            */
-
-            return;
-        }
-
-        public void DetachAttribute(string attributeName)
-        {
-            _attributes[attributeName] = _attributes[attributeName].Detach();
-            /*
-            AttributeInfo detached = _attributes[attributeName].Detach();
-            _attributes[attributeName] = detached;
-            OnAttributeChanged(new AttributeChangedEventArgs(
-                attributeName, 
-                detached, 
-                AttributeChangedEventArgs.Event.Detachment));
-            */
-
-            return;
-        }
-
-        #endregion
 
         #region IEnumerable<AttributeInfo> implementation
 
-        public IEnumerator<AttributeInfo> GetEnumerator()
+        public IEnumerator<ITupleObjectAttributeInfo> GetEnumerator()
         {
             return _attributes.Values.GetEnumerator();
         }
@@ -295,6 +830,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #endregion
 
+        /*
         #region Operators
 
         /// <summary>
@@ -326,6 +862,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
             return schema;
         }
+
+        #endregion
+        */
 
         #endregion
     }

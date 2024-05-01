@@ -41,8 +41,9 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
                 IFiniteEnumerableAttributeComponent<TData> second,
                 TFactory factory)
         {
-            IEnumerable<TData> resultElements =
-                Enumerable.Except(first, second);
+            OperationResultEnumerableResultProvider<TData> resultElements =
+                new OperationResultEnumerableResultProvider<TData>(
+                    Enumerable.Except(first, second), false);
 
             return factory.CreateNonFictional(first, resultElements);
         }

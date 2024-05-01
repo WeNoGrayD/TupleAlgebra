@@ -35,8 +35,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
                     opResultFactoryArgs.PredicateExpression);
 
             return new FilteringAttributeComponentFactoryArgs<TData>(
-                predicateExpr,
-                opResultFactoryArgs.ProbableRange);
+                predicateExpr, opResultFactoryArgs.ContentType);
         }
 
         NonFictionalAttributeComponent<TData>
@@ -65,7 +64,6 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
         {
             return new FilteringAttributeComponentFactoryArgs<TData>(
                 resultElements.PredicateExpression,
-                resultElements.ProbableRange,
                 isQuery: false,
                 queryProvider: first.Provider);
         }

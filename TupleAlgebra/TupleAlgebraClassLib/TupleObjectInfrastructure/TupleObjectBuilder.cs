@@ -16,12 +16,18 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     /// <typeparam name="TEntity"></typeparam>
     public partial class TupleObjectBuilder<TEntity>
     {
+        #region Constants
+
+        private const string ENTITY_PARAM_NAME = "entity";
+
+        #endregion
+
         #region Instance properties
 
         /// <summary>
         /// Индивидуальная схема кортежа типа.
         /// </summary>
-        public TupleObjectSchema<TEntity> Schema { get; private set; }
+        public TupleObjectSchema<TEntity> Schema { get; set; }
 
         #endregion
 
@@ -43,9 +49,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         static TupleObjectBuilder()
         {
             /*
-             * Создания построителя кортежа сущности и схемы кортежа сущности по умолчанию.
+             * Создание построителя кортежа сущности и схемы кортежа сущности по умолчанию.
              */
-            StaticBuilder = new TupleObjectBuilder<TEntity>(new TupleObjectSchema<TEntity>());
+            StaticBuilder = new TupleObjectBuilder<TEntity>(
+                new TupleObjectSchema<TEntity>());
             StaticBuilder.BuildSchemaPattern();
 
             return;
@@ -56,9 +63,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// </summary>
         public TupleObjectBuilder()
         {
-            // Копируется схема кортежа сущности по умолчанию.
-            Schema = StaticBuilder.Schema.Clone();
-
             return;
         }
 
@@ -81,16 +85,17 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// </summary>
         private void BuildSchemaPattern()
         {
-            Type entityType = typeof(TEntity);
-            BindingFlags memberFlags = BindingFlags.Public | BindingFlags.Instance;
-            TupleObjectSchema<TEntity> schemaPattern = Schema;
-            MethodInfo addAttributeToSchema = typeof(TupleObjectSchema<TEntity>)
-                    .GetMethod(nameof(TupleObjectSchema<TEntity>.AddAttribute), memberFlags);
+            TypeInfo entityType = typeof(TEntity).GetTypeInfo();
+            BindingFlags memberFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+            MethodInfo addAttributeToSchema = typeof(TupleObjectBuilder<TEntity>)
+                    .GetMethod(nameof(TupleObjectBuilder<TEntity>.AddAttribute), memberFlags);
 
-            if (TupleObjectSchema<TEntity>.IsEntityPrimitive)
+            if (IsEntityTypePrimitive(entityType))
                 ConstructPrimitiveType();
             else
                 ConstructComplicatedType();
+
+            Schema.EndInit();
 
             return;
 
@@ -107,8 +112,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
              */
             void ConstructPrimitiveType()
             {
-                BuildAddAttributeMethodInfo(entityType)
-                    .Invoke(schemaPattern, new object[] { entityType.Name, null });
+                AddEntityAsAttribute(entityType);
 
                 return;
             }
@@ -118,10 +122,17 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
              */
             void ConstructComplicatedType()
             {
-                foreach (PropertyInfo propertyInfo in entityType.GetProperties(memberFlags))
+                foreach (FieldInfo fieldInfo in entityType.DeclaredFields.Where(fi => fi.IsPublic))
+                {
+                    BuildAddAttributeMethodInfo(fieldInfo.FieldType)
+                        .Invoke(this, new object[] { fieldInfo });
+                }
+
+                foreach (PropertyInfo propertyInfo in entityType.DeclaredProperties
+                    .Where(pi => (pi.SetMethod?.IsPublic ?? false) && (pi.GetMethod?.IsPublic ?? false)))
                 {
                     BuildAddAttributeMethodInfo(propertyInfo.PropertyType)
-                        .Invoke(schemaPattern, new object[] { propertyInfo.Name, null });
+                        .Invoke(this, new object[] { propertyInfo });
                 }
 
                 return;
@@ -129,7 +140,69 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         }
 
         /// <summary>
-        /// Создания мастера по настройке атрибута сущности для кортежа.
+        /// Случай, когда у сущности нет свойств. т.е. это примитивный тип.
+        /// Сущность проецируется сама на себя и становится своим атрибутом.
+        /// </summary>
+        private void AddEntityAsAttribute(Type entityType)
+        {
+            AttributeName attrName = entityType.Name;
+            ParameterExpression entityParameterExpr =
+                Expression.Parameter(entityType, ENTITY_PARAM_NAME);
+            Expression<AttributeGetterHandler<TEntity, TEntity>>
+                attributeGetterExpr = Expression
+                .Lambda<AttributeGetterHandler<TEntity, TEntity>>(
+                    entityParameterExpr,
+                    entityParameterExpr);
+            Schema.AddAttribute(attributeGetterExpr, attrName);
+
+            return;
+        }
+
+        private void AddAttribute<TAttribute>(MemberInfo attributeMember)
+        {
+            AttributeName attrName = attributeMember.Name;
+            ParameterExpression entityParameterExpr =
+                Expression.Parameter(typeof(TEntity), ENTITY_PARAM_NAME);
+            MemberExpression memberGetterExpr =
+                attributeMember.MemberType switch
+                {
+                    MemberTypes.Field => 
+                        Expression.Field(entityParameterExpr, (attributeMember as FieldInfo)!),
+                    MemberTypes.Property => 
+                        Expression.Property(entityParameterExpr, (attributeMember as PropertyInfo)!)
+                };
+            Expression<AttributeGetterHandler<TEntity, TAttribute>> 
+                attributeGetterExpr = Expression
+                .Lambda<AttributeGetterHandler<TEntity, TAttribute>>(
+                    memberGetterExpr, 
+                    entityParameterExpr);
+            Schema.AddAttribute(attributeGetterExpr, attrName);
+
+            return;
+        }
+
+        public void InitDefaultSchema()
+        { 
+            Schema = StaticBuilder.Schema.Clone();
+        }
+
+        /// <summary>
+        /// Создание мастера по настройке атрибута сущности для кортежа.
+        /// Тип атрибута наиболее обобщён, перегрузка используется для обычных атрибутов с отношением "один к одному".
+        /// </summary>
+        /// <typeparam name="TAttribute"></typeparam>
+        /// <param name="memberAccess"></param>
+        /// <returns></returns>
+        public ITupleObjectAttributeSetupWizard Attribute(
+            AttributeName attrName)
+        {
+            var s = Schema[attrName];
+
+            return s.SetupWizardFactory(Schema, attrName);
+        }
+
+        /// <summary>
+        /// Создание мастера по настройке атрибута сущности для кортежа.
         /// Тип атрибута наиболее обобщён, перегрузка используется для обычных атрибутов с отношением "один к одному".
         /// </summary>
         /// <typeparam name="TAttribute"></typeparam>
@@ -138,7 +211,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeSetupWizard<TAttribute> Attribute<TAttribute>(
             Expression<AttributeGetterHandler<TEntity, TAttribute>> memberAccess)
         {
-            return TupleObjectOneToOneAttributeSetupWizard<TAttribute>.Construct(Schema, memberAccess);
+            return (Schema[memberAccess] as ITupleObjectAttributeInfo<TAttribute>)!
+                .SetupWizardFactory(Schema, memberAccess);
         }
 
         #endregion

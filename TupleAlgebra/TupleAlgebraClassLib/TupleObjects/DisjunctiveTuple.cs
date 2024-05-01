@@ -5,28 +5,34 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectHelper;
+
     public class DisjunctiveTuple<TEntity> : SingleTupleObject<TEntity>
         where TEntity : new()
     {
         #region Constructors
 
-        public DisjunctiveTuple(Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+        public DisjunctiveTuple(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
+        { }
+
+        public DisjunctiveTuple(TupleObjectSchema<TEntity> schema)
+            : base(schema)
         { }
 
         #endregion
 
         #region Instance methods
 
-        protected override AttributeComponent<TData> GetDefaultFictionalAttributeComponentImpl<TData>(AttributeInfo attribute)
+        public override IAttributeComponent<TAttribute>
+            GetDefaultFictionalAttributeComponent<TAttribute>(
+                IAttributeComponentFactory<TAttribute> factory)
         {
-            //var factoryArgs = new AttributeComponentFactoryInfrastructure.AttributeComponentFactoryArgs();
-            //factoryArgs.SetAttributeDomainGetter(() => attribute.GetDomain<TData>());
-            return null;
-            //return AttributeComponent<TData>.FictionalAttributeComponentFactory.CreateEmpty<TData>(factoryArgs);
+            return factory.CreateEmpty();
         }
 
         #endregion

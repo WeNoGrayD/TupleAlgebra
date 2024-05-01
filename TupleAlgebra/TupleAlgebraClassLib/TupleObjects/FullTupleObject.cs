@@ -7,10 +7,12 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectHelper;
+
     public class FullTupleObject<TEntity> : TupleObject<TEntity>
         where TEntity : new()
     {
-        public FullTupleObject(Action<TupleObjectBuilder<TEntity>> onTupleBuilding)
+        public FullTupleObject(TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             : base(onTupleBuilding)
         {
 

@@ -12,13 +12,13 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
     /// Мощность компоненты, которая может включать 
     /// </summary>
     /// <typeparam name="TData"></typeparam>
-    public sealed class AtomicNonFictionalAttributeComponentPower<TData>
-        : NonFictionalAttributeComponentPower<TData>,
+    public sealed class AtomicNonFictionalAttributeComponentPower
+        : NonFictionalAttributeComponentPower,
           IFiniteEnumerableAttributeComponentPower
     {
         #region Static properties
 
-        public static AtomicNonFictionalAttributeComponentPower<TData> Instance { get; private set; }
+        public static AtomicNonFictionalAttributeComponentPower Instance { get; private set; }
 
         #endregion
 
@@ -32,7 +32,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
 
         static AtomicNonFictionalAttributeComponentPower()
         {
-            Instance = new AtomicNonFictionalAttributeComponentPower<TData>();
+            Instance = new AtomicNonFictionalAttributeComponentPower();
 
             return;
         }
@@ -46,29 +46,27 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
 
         #region Instance methods
 
-        public override bool EqualsZero()
+        public override bool EqualsZero<TData>(AttributeComponent<TData> ac)
         {
             return false;
         }
 
-        public override bool EqualsContinuum()
+        public override bool EqualsContinuum<TData>(AttributeComponent<TData> ac)
         {
             return false;
         }
 
-        public override void InitWith(NonFictionalAttributeComponent<TData> component)
-        {
-            return;
-        }
-
-        protected override int CompareToZero()
+        protected override int CompareToZero<TData>(AttributeComponent<TData> ac)
         {
             return 1;
         }
 
-        protected override int CompareToNonFictional(AttributeComponentPower second)
+        public override int CompareToNonFictional<TData>(
+            AttributeComponentPower second,
+            AttributeComponent<TData> ac1,
+            AttributeComponent<TData> ac2)
         {
-            if (second is AtomicNonFictionalAttributeComponentPower<TData> second2)
+            if (second is AtomicNonFictionalAttributeComponentPower second2)
                 return 0;
             else
                 throw new InvalidCastException("Непустая булевая компонента сравнивается с непустой компонентой другого вида, в данный момент эта операция не поддерживается.");

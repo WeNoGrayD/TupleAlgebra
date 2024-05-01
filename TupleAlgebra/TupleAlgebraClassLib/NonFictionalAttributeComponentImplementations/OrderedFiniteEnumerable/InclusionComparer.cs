@@ -46,7 +46,11 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                     LesserEnumeratorMoveNextAndReadCurrent();
                 }
 
-                isInclude = !isContinuesLesserEnumerator && (isContinuesGreaterEnumerator || greater.Power > lesser.Power);
+                AttributeComponentPowerContext<TData> greaterContext =
+                    new AttributeComponentPowerContext<TData>(greater),
+                    lesserContext =
+                    new AttributeComponentPowerContext<TData>(lesser);
+                isInclude = !isContinuesLesserEnumerator && (isContinuesGreaterEnumerator || greaterContext > lesserContext);
 
                 return;
             }

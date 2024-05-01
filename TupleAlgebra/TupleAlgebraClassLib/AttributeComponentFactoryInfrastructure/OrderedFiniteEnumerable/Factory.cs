@@ -34,7 +34,9 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
         {
             var factoryArgs =
                 CreateFactoryArgs_DefaultImpl(first, resultElements);
-            factoryArgs.ValuesAreOrdered = true;
+            factoryArgs.ValuesAreOrdered = 
+                (resultElements as IOperationEnumerableResultProvider<TData>)!
+                .KeepsOrder;
 
             return factoryArgs;
         }

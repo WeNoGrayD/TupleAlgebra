@@ -43,7 +43,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
 
             return factory.CreateNonFictional(
                 new FilteringAttributeComponentFactoryArgs<TData>(
-                    predicateExpr, contentType));
+                    predicateExpr));
         }
     }
 }

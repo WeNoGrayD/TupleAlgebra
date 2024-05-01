@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.FullAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.Filtering;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering
@@ -16,20 +18,18 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
         public Expression<Func<TData, bool>> PredicateExpression 
         { get; private set; }
 
-        public AttributeComponentContentType ProbableRange 
-        { get; private set; }
+        public AttributeComponentContentType ContentType { get; }
 
         public FilteringAttributeComponentFactoryArgs(
             Expression<Func<TData, bool>> predicateExpr,
-            AttributeComponentContentType probableRange = 
-                AttributeComponentContentType.NonFictional,
+            AttributeComponentContentType contentType = AttributeComponentContentType.NonFictional,
             bool isQuery = false,
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
             : base(isQuery, queryProvider, queryExpression)
         {
             PredicateExpression = predicateExpr;
-            ProbableRange = probableRange;
+            ContentType = contentType;
             Power = CreatePower();
 
             return;
@@ -37,8 +37,12 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
 
         protected override AttributeComponentPower CreatePower()
         {
-            return new FilteringAttributeComponentPower<TData>(
-                ProbableRange);
+            return ContentType switch
+            {
+                AttributeComponentContentType.Empty => EmptyAttributeComponentPower.Instance,
+                AttributeComponentContentType.Full => FullAttributeComponentPower.Instance,
+                _ => FilteringAttributeComponentPower.Instance
+            };
         }
     }
 }

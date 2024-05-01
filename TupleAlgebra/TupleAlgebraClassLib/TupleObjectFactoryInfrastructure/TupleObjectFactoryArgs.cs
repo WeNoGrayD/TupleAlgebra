@@ -48,16 +48,16 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         /*
         #region Instance methods
 
-        protected void SetOnTupleBuildingHandler<TEntity>(Action<TupleObjectBuilder<TEntity>> onTupleBuilding)
+        protected void SetOnTupleBuildingHandler<TEntity>(TupleObjectBuildingHandler<TEntity> onTupleBuilding)
         {
             _onTupleBuilding = onTupleBuilding;
 
             return;
         }
 
-        public Action<TupleObjectBuilder<TEntity>> GetOnTupleBuildingHandler<TEntity>()
+        public TupleObjectBuildingHandler<TEntity> GetOnTupleBuildingHandler<TEntity>()
         {
-            return _onTupleBuilding as Action<TupleObjectBuilder<TEntity>>;
+            return _onTupleBuilding as TupleObjectBuildingHandler<TEntity>;
         }
 
         #endregion
@@ -84,6 +84,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
     }
     */
 
+    /*
     public class SingleTupleObjectFactoryArgs<TEntity> : TupleObjectFactoryArgs<TEntity>
         where TEntity : new()
     {
@@ -104,4 +105,5 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             : base(queryProvider, queryExpression)
         { }
     }
+    */
 }

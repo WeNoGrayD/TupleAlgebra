@@ -7,73 +7,200 @@ using TupleAlgebraClassLib.AttributeComponents;
 using System.Reflection;
 using System.Linq.Expressions;
 using UniversalClassLib;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     using static TupleObjectHelper;
+
+    public enum AttributeQuery : sbyte
+    {
+        Removed = -2,
+        Detached = -1,
+        None = 0,
+        Attached = 1
+    }
+
+    public record AttributeInfo<TEntity, TAttribute>
+        : ITupleObjectAttributeInfo<TAttribute>
+    {
+        public AttributeName Name { get => AttributeMember.Name; }
+
+        /// <summary>
+        /// Запрос к атрибуту: 
+        /// </summary>
+        public AttributeQuery Query { get; private set; }
+
+        public AttributeGetterHandler<TEntity, TAttribute> AttributeGetter 
+        { get; init; }
+
+        public MemberInfo AttributeMember { get; init; }
+
+        public IAttributeComponentFactory<TAttribute> ComponentFactory { get; init; }
+
+        //public ITupleObjectAttributeSetupWizard<TAttribute> SetupWizard { get; init; }
+
+        public AttributeSetupWizardFactoryHandler<TAttribute>
+            SetupWizardFactory { get; init; }
+
+        /// <summary>
+        /// Отношение эквивалентности.
+        /// </summary>
+        public bool HasEquivalenceRelation { get; private set; }
+
+        public AttributeDomain<TAttribute> Domain { get => ComponentFactory.Domain; }
+
+        /*
+        public AttributeInfo(
+            Expression<AttributeGetterHandler<TEntity, TAttribute>> 
+                attributeGetterExpr,
+            IAttributeComponentFactory<TAttribute> componentFactory = null,
+            ITupleObjectAttributeSetupWizard<TAttribute> setupWizard = null,
+            string attributeName = null,
+            bool hasEquivalenceRelation = false)
+        {
+            Query = AttributeQuery.None;
+            AttributeGetter = attributeGetterExpr.Compile();
+            AttributeMember = MemberExtractor.ExtractFrom(attributeGetterExpr);
+            ComponentFactory = componentFactory;
+            SetupWizard = setupWizard;
+            HasEquivalenceRelation = hasEquivalenceRelation;
+
+            return;
+        }
+        */
+
+        public AttributeInfo(
+            Expression<AttributeGetterHandler<TEntity, TAttribute>>
+                attributeGetterExpr,
+            IAttributeComponentFactory<TAttribute> componentFactory = null,
+            AttributeSetupWizardFactoryHandler<TAttribute> setupWizardFactory = null,
+            bool hasEquivalenceRelation = false)
+        {
+            Query = AttributeQuery.None;
+            AttributeGetter = attributeGetterExpr.Compile();
+            AttributeMember = MemberExtractor.ExtractFrom(attributeGetterExpr);
+            ComponentFactory = componentFactory;
+            //SetupWizard = setupWizard;
+            SetupWizardFactory = setupWizardFactory ??
+                TupleObjectOneToOneAttributeSetupWizard<TAttribute>.Construct;
+            HasEquivalenceRelation = hasEquivalenceRelation;
+
+            return;
+        }
+
+        /*
+        public ITupleObjectAttributeInfo GeneralizeWith(
+            ITupleObjectAttributeInfo second,
+            out bool gotFirst,
+            out bool gotSecond)
+        {
+            if (this.AttributeMember != second.AttributeMember)
+                throw new Exception($"Попытка генерализации двух разных атрибутов: {this.AttributeMember.Name} и {second.AttributeMember.Name}!");
+
+            (ITupleObjectAttributeInfo res, gotFirst, gotSecond) = 
+                (this.IsPlugged, second.IsPlugged) switch
+            {
+                (false, false) or (true, true) => (this, true, true),
+                (true, false) => (this, true, false),
+                _ => (second, false, true)
+            };
+
+            return res;
+        }
+        */
+
+        public ITupleObjectAttributeInfo<TAttribute> SetFactory(
+            IAttributeComponentFactory<TAttribute> factory)
+        {
+            return this with { ComponentFactory = factory };
+        }
+
+        public ITupleObjectAttributeInfo PlugIn()
+        {
+            return null;
+            //return this with
+            //{
+            //    IsPlugged = true
+            //};
+        }
+
+        public ITupleObjectAttributeInfo Unplug()
+        {
+            return null;
+            //return this with
+            //{
+            //    IsPlugged = false
+            //};
+        }
+
+        public ITupleObjectAttributeInfo SetEquivalenceRelation()
+        {
+            return this with
+            {
+                HasEquivalenceRelation = true
+            };
+        }
+
+        public ITupleObjectAttributeInfo UnsetEquivalenceRelation()
+        {
+            return this with
+            {
+                HasEquivalenceRelation = false
+            };
+        }
+
+        public override int GetHashCode() => Name.GetHashCode();
+
+        public void UndoQuery()
+        {
+            Query = AttributeQuery.None;
+
+            return;
+        }
+
+        /// <summary>
+        /// Создание запроса к атрибуту на его прикрепление.
+        /// </summary>
+        /// <returns></returns>
+        public void AttachQuery()
+        {
+            Query = AttributeQuery.Attached;
+
+            return;
+        }
+
+        /// <summary>
+        /// Создание запроса к атрибуту на его открепление.
+        /// </summary>
+        /// <returns></returns>
+        public void DetachQuery()
+        {
+            Query = AttributeQuery.Detached;
+
+            return;
+        }
+
+        /// <summary>
+        /// Создание запроса к атрибуту на его открепление.
+        /// </summary>
+        /// <returns></returns>
+        public void RemoveQuery()
+        {
+            Query = AttributeQuery.Removed;
+
+            return;
+        }
+    }
+
+    /*
 
     public enum AttributeQuery : byte
     {
         None = 0,
         Attached = 1,
         Detached = 2
-    }
-
-    public class FlyweightAttributeInfoFactory<TEntity>
-    {
-        private IDictionary<string, object> _resources;
-
-        private AttributePropertyExtractor _attributePropertyExtractor;
-
-        public FlyweightAttributeInfoFactory()
-        {
-            _resources = new Dictionary<string, object>();
-            _attributePropertyExtractor = new AttributePropertyExtractor();
-
-            return;
-        }
-
-        public FlyweightAttributeInfo<TEntity, TData> Get<TData>(
-            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
-        {
-            PropertyInfo attributeProperty = _attributePropertyExtractor.Extract(attributeGetterExpr);
-            string attrName = attributeProperty.Name;
-            FlyweightAttributeInfo<TEntity, TData> attrInfo;
-            object attrInfoRef;
-
-            if (!_resources.TryGetValue(attrName, out attrInfoRef))
-            {
-                attrInfoRef = new FlyweightAttributeInfo<TEntity, TData>(
-                    attributeGetterExpr.Compile(),
-                    attributeProperty);
-                _resources.Add(attrName, attrInfoRef);
-            }
-
-            return (attrInfoRef as FlyweightAttributeInfo<TEntity, TData>)!;
-        }
-
-        public FlyweightAttributeInfo<TEntity, TData> Get<TData>(
-            string attributeName)
-        {
-            return (_resources[attributeName] as FlyweightAttributeInfo<TEntity, TData>)!;
-        }
-    }
-
-    public class FlyweightAttributeInfo<TEntity, TData>
-    {
-        public AttributeGetterHandler<TEntity, TData> AttributeGetter { get; init; }
-
-        public PropertyInfo AttributeProperty { get; init; }
-
-        public FlyweightAttributeInfo(
-            AttributeGetterHandler<TEntity, TData> attributeGetter,
-            PropertyInfo attributeProperty)
-        {
-            AttributeGetter = attributeGetter;
-            AttributeProperty = attributeProperty;
-
-            return;
-        }
     }
 
     /// <summary>
@@ -208,13 +335,13 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        public ITupleObjectAttributeSetupWizard<TData> GetSetupWizard<TData>()
+        public ITupleObjectAttributeSetupWizard<TAttribute> GetSetupWizard<TAttribute>()
         {
-            return SetupWizard as ITupleObjectAttributeSetupWizard<TData>;
+            return SetupWizard as ITupleObjectAttributeSetupWizard<TAttribute>;
         }
 
-        public void SetSetupWizard<TData>(
-            ITupleObjectAttributeSetupWizard<TData> setupWizard)
+        public void SetSetupWizard<TAttribute>(
+            ITupleObjectAttributeSetupWizard<TAttribute> setupWizard)
         {
             SetupWizard = setupWizard;
 
@@ -228,9 +355,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        public Func<TEntity, TData> AttributeGetter<TEntity, TData>()
+        public Func<TEntity, TAttribute> AttributeGetter<TEntity, TAttribute>()
         {
-            return _attributeGetter as Func<TEntity, TData>;
+            return _attributeGetter as Func<TEntity, TAttribute>;
         }
 
         private AttributeInfo UndoQuery()
@@ -338,6 +465,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             public EquivalenceRelationComparer(Func<T, T, bool> equalityComparison)
             {
                 _equalityComparison = equalityComparison;
+                //_equalityComparison = Comparer<T>.Create(((Comparison<T>)null));
 
                 return;
             }
@@ -352,4 +480,5 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #endregion
     }
+    */
 }

@@ -30,6 +30,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Instance properties
 
+        /*
         public override AttributeDomain<TData> Domain 
         {
             get => base.Domain;
@@ -40,6 +41,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
                     value.Universe.Power;
             }
         }
+        */
 
         #endregion
 

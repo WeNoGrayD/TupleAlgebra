@@ -8,10 +8,12 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrastruct
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectHelper;
+
     public class EmptyTupleObject<TEntity> : TupleObject<TEntity>
         where TEntity : new()
     {
-        public EmptyTupleObject(Action<TupleObjectBuilder<TEntity>> onTupleBuilding)
+        public EmptyTupleObject(TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             : base(onTupleBuilding)
         {
 

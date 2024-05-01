@@ -43,13 +43,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {
-            /*
-             * Нефиктивная компонента допускает приём как мощности нефиктивной компоненты,
-             * так и мощности фиктивной полной. Последняя используется доменами атрибутов
-             * для создания универсумов.
-             */
-            power.As<NonFictionalAttributeComponentPower<TData>>().InitWith(this);
-
             return;
         }
 

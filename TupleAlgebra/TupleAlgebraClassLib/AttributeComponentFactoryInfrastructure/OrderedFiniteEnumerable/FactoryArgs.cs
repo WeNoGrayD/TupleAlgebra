@@ -39,5 +39,10 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
 
             return;
         }
+
+        protected override AttributeComponentPower CreatePower()
+        {
+            return FiniteEnumerableAttributeComponentPower.Instance;
+        }
     }
 }

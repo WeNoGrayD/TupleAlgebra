@@ -7,6 +7,8 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectHelper;
+
     public class ConjunctiveTupleSystem<TEntity> : TupleObjectSystem<TEntity>
         where TEntity : new()
     {
@@ -14,7 +16,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public bool IsOrthogonal { get; set; }
 
-        public ConjunctiveTupleSystem(Action<TupleObjectBuilder<TEntity>> onTupleBuilding = null)
+        public ConjunctiveTupleSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
         { }
 
@@ -28,6 +30,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         }
         */
 
+        /*
         /// <summary>
         /// Обработчик события элиминации атрибута.
         /// </summary>
@@ -35,17 +38,17 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// <param name="eventArgs"></param>
         protected override void OnAttributeDetached(object sender, AttributeChangedEventArgs eventArgs)
         {
-            /*
-             * Если C-система диагональная и не ортогональная, то она может содержать C-кортеж
-             * с полными фиктивными компонентами везде, кроме элиминируемого атрибута.
-             * При элиминации атрибута в этом C-кортеже получается кортеж,
-             * состоящий полностью из фиктивных атрибутов, поэтому такой кортеж требуется
-             * удалить.
-             */
+            // 
+            // * Если C-система диагональная и не ортогональная, то она может содержать C-кортеж
+            // * с полными фиктивными компонентами везде, кроме элиминируемого атрибута.
+            // * При элиминации атрибута в этом C-кортеже получается кортеж,
+            // * состоящий полностью из фиктивных атрибутов, поэтому такой кортеж требуется
+            // * удалить.
+            // 
             if (IsDiagonal && !IsOrthogonal) RemoveTupleOnDetachedAttribute();
-            /*
-             * И лишь после удаления такого кортежа возможно элиминировать атрибут.
-             */
+            //
+            // * И лишь после удаления такого кортежа возможно элиминировать атрибут.
+            // 
             base.OnAttributeDetached(sender, eventArgs);
 
             return;
@@ -58,13 +61,14 @@ namespace TupleAlgebraClassLib.TupleObjects
                 for (int i = 0; i < _tuples.Length; i++)
                 {
                     if ((cTuple = _tuples[i]) is null || 
-                        cTuple[detachedAttrLoc].Power.EqualsContinuum()) continue;
+                        cTuple[detachedAttrLoc].IsFull()) continue;
 
                     _tuples[i] = null;
                     break;
                 }
             }
         }
+        */
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {

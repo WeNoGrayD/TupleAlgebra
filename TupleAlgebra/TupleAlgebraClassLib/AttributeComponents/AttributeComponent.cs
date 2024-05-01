@@ -142,6 +142,10 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #endregion
 
+        bool IAttributeComponent.IsEmpty() => Power.EqualsZero(this);
+
+        bool IAttributeComponent.IsFull() => Power.EqualsContinuum(this);
+
         public IEnumerator<TData> GetEnumerator()
         {
             return ExecuteQueryExpression().GetEnumeratorImpl();

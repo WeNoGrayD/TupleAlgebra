@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -16,13 +17,27 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         private const string PROP_SOURCE_ENUMS = "properties";
         private const string ENUM_CURRENT_ITEM = nameof(IEnumerator.Current);
 
+        public PrimitiveEntityFactoryHandler<TEntity> BuildPrimitive<TEntity>()
+        {
+            return (IEnumerator<TEntity> entityEnumerator) => entityEnumerator.Current;
+        }
+
+        private IEnumerable<TEntity> PrimitiveEntityFactory<TEntity>(
+            IEnumerator<TEntity> entityEnumerator)
+        {
+            while (entityEnumerator.MoveNext())
+                yield return entityEnumerator.Current;
+
+            yield break;
+        }
+
         /// <summary>
         /// Построение генератора сущностей.
         /// </summary>
         /// <param name="entityType"></param>
         /// <param name="attributes"></param>
         /// <returns></returns>
-        public EntityFactoryHandler<TEntity> Build<TEntity>(PropertyInfo[] attributes)
+        public EntityFactoryHandler<TEntity> Build<TEntity>(MemberInfo[] attributes)
         {
             Type entityType = typeof(TEntity);
 
@@ -51,10 +66,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
              *      };
              * }
              */
-            LambdaExpression entityFactoryExprTree =
-                Expression.Lambda(constructorExpr, propertySourceEnumeratorsExpr);
+            Expression<EntityFactoryHandler<TEntity>> entityFactoryExprTree =
+                Expression.Lambda<EntityFactoryHandler<TEntity>>(
+                    constructorExpr, 
+                    propertySourceEnumeratorsExpr);
 
-            return (entityFactoryExprTree.Compile() as EntityFactoryHandler<TEntity>)!;
+            return entityFactoryExprTree.Compile();
 
             /*
              * Создание массива инициализаторов свойств в порядке, предоставленном
@@ -80,7 +97,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
              */
             Expression GetPropertyValueOf(int attrId)
             {
-                Type propertyType = attributes[attrId].PropertyType,
+                Type propertyType = attributes[attrId] switch
+                    {
+                        FieldInfo fi => fi.FieldType,
+                        PropertyInfo pi => pi.PropertyType,
+                        _ => null
+                    },
                      genericEnumerator = typeof(IEnumerator<>).MakeGenericType(propertyType);
                 PropertyInfo getCurrentInfo = genericEnumerator.GetProperty(ENUM_CURRENT_ITEM)!;
                 Expression ithEnumerator =
