@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
@@ -35,8 +36,14 @@ namespace TupleAlgebraClassLib.TupleObjects
             return factory.CreateEmpty();
         }
 
-        #endregion
+        public override TupleObject<TEntity> ToAlternateDiagonal(
+            TupleObjectFactory factory)
+        {
+            return factory.CreateDiagonalConjunctiveSystem<TEntity>(
+                this);
+        }
 
+        #endregion
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {

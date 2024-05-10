@@ -12,12 +12,166 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     using static TupleObjectHelper;
 
+    public class TupleObjectAttributeManager<TAttribute>
+        : ITupleObjectAttributeManager
+    {
+        private ITupleObjectAttributeSetupWizard<TAttribute> _setupWizard;
+
+        private Lazy<IAttributeComponent> _lastSetComponent = null;
+
+        private IAttributeComponent _defaultComponent = null;
+
+        public ITupleObjectSchemaProvider Schema { get => _setupWizard.Schema; }
+
+        private AttributeName _attributeName;
+
+        protected virtual ITupleObjectAttributeInfo<TAttribute> AttributeInfo
+        {
+            get => (Schema[_attributeName] as ITupleObjectAttributeInfo<TAttribute>)!;
+            set => Schema[_attributeName] = value;
+        }
+
+        public TupleObjectAttributeManager(
+            ITupleObjectAttributeSetupWizard<TAttribute> setupWizard)
+        {
+            _setupWizard = setupWizard;
+            _attributeName = setupWizard.AttributeName;
+
+            return;
+        }
+
+        public bool IsEmpty<TEntity>(SingleTupleObject<TEntity> tuple)
+            where TEntity : new()
+        {
+            return tuple[_attributeName].IsEmpty();
+        }
+
+        public bool IsFull<TEntity>(SingleTupleObject<TEntity> tuple)
+            where TEntity : new()
+        {
+            return tuple[_attributeName].IsFull();
+        }
+
+        public ITupleObjectAttributeManager SetComponent(
+            ISingleTupleObject tuple,
+            IAttributeComponent ac)
+        {
+            tuple[_attributeName] = ac;
+
+            return this;
+        }
+
+        public ITupleObjectAttributeManager SetComponentWithComplementionAccumulation(
+            ISingleTupleObject tuple,
+            IAttributeComponent component)
+        {
+            if (_lastSetComponent is null)
+            {
+                _lastSetComponent = new Lazy<IAttributeComponent>(
+                    component.ComplementThe);
+
+                return SetComponent(tuple, component);
+            }
+
+            return SetComponent(tuple, _lastSetComponent.Value);
+        }
+
+        public ITupleObjectAttributeManager SetComponent(
+            ISingleTupleObject tuple,
+            IAttributeComponentFactoryArgs factoryArgs)
+        {
+            IAttributeComponentFactory<TAttribute> factory =
+                AttributeInfo.ComponentFactory;
+            IAttributeComponent ac = factoryArgs.ProvideTo(factory);
+
+            return SetComponent(tuple, ac);
+        }
+
+        public ITupleObjectAttributeManager SetComponentWithComplementionAccumulation(
+            ISingleTupleObject tuple,
+            IAttributeComponentFactoryArgs factoryArgs)
+        {
+            IAttributeComponentFactory<TAttribute> factory =
+                AttributeInfo.ComponentFactory;
+            IAttributeComponent ac = factoryArgs.ProvideTo(factory);
+
+            return SetComponentWithComplementionAccumulation(tuple, ac);
+        }
+
+        public ITupleObjectAttributeManager SetDefaultFictionalAttributeComponent(
+            ISingleTupleObject tuple)
+        {
+            _defaultComponent = _defaultComponent ?? 
+                tuple.GetDefaultFictionalAttributeComponent(
+                    AttributeInfo.ComponentFactory);
+
+            return SetComponent(tuple, _defaultComponent);
+        }
+
+        public ITupleObjectAttributeManager
+                SetComponentToProjectionOfOntoMember<TEntity>(
+                    ISingleTupleObject tuple,
+                    TEntity entity,
+                    bool withTrailingComplement = false)
+        {
+            ITupleObjectAttributeInfo<TEntity, TAttribute> attrInfo =
+                (Schema[_attributeName] as ITupleObjectAttributeInfo<TEntity, TAttribute>)!;
+            if (attrInfo.ComponentFactory is not
+                IEnumerableNonFictionalAttributeComponentFactory<TAttribute> componentFactory)
+            {
+                throw new Exception($"Был создан запрос на создание объекта алгебры кортежей из экземпляра типа {nameof(TEntity)}. Фабрика компонент атрибутов для атрибута {_attributeName} не реализует интерфейс ITupleObjectAttributeInfo<{nameof(TEntity)}, {nameof(TAttribute)}>, что требуется в процессе программы.");
+            }
+
+            return withTrailingComplement ?
+                SetComponentWithComplementionAccumulation(tuple, LookLastSetComponent()) :
+                SetComponent(tuple, CreateNonFictional());
+
+            IAttributeComponent CreateNonFictional()
+            {
+                return componentFactory
+                    .CreateNonFictional([attrInfo.AttributeGetter(entity)]);
+            }
+
+            IAttributeComponent LookLastSetComponent()
+            {
+                return _lastSetComponent is null ?
+                    CreateNonFictional() :
+                    null;
+            }
+        }
+
+        public ITupleObjectAttributeManager
+                SetComponentToProjectionOfOntoMember<TEntity>(
+                    ISingleTupleObject tuple,
+                    IEnumerable<TEntity> entitySet)
+        {
+            ITupleObjectAttributeInfo<TEntity, TAttribute> attrInfo =
+                (Schema[_attributeName] as ITupleObjectAttributeInfo<TEntity, TAttribute>)!;
+            AttributeComponent<TAttribute> component = null;
+            if (attrInfo.ComponentFactory is not
+                IEnumerableNonFictionalAttributeComponentFactory<TAttribute> componentFactory)
+            {
+                throw new Exception($"Был создан запрос на создание объекта алгебры кортежей из перечисления экземпляров типа {nameof(TEntity)}. Фабрика компонент атрибутов для атрибута {_attributeName} не реализует интерфейс ITupleObjectAttributeInfo<{nameof(TEntity)}, {nameof(TAttribute)}>, что требуется в процессе программы.");
+            }
+            else
+                component = componentFactory
+                    .CreateNonFictional(
+                        entitySet.Select(entity => attrInfo.AttributeGetter(entity)));
+
+            return SetComponent(tuple, component);
+        }
+    }
+
     public abstract class TupleObjectAttributeSetupWizard<TAttribute> :
         ITupleObjectAttributeSetupWizard<TAttribute>
     {
         public ITupleObjectSchemaProvider Schema { get; protected set; }
 
+        public AttributeName AttributeName { get => _attributeName; }
+
         protected AttributeName _attributeName;
+
+        private IAttributeComponent _lastSetComponent = null;
 
         protected virtual ITupleObjectAttributeInfo<TAttribute> AttributeInfo
         {
@@ -178,33 +332,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return this;
         }
 
-        public ITupleObjectAttributeSetupWizard SetComponent(
-            ISingleTupleObject tuple,
-            IAttributeComponent ac)
+        public ITupleObjectAttributeManager CreateManager()
         {
-            tuple[_attributeName] = ac;
-
-            return this;
-        }
-
-        public ITupleObjectAttributeSetupWizard SetComponent(
-            ISingleTupleObject tuple,
-            IAttributeComponentFactoryArgs factoryArgs)
-        {
-            IAttributeComponentFactory<TAttribute> factory =
-                AttributeInfo.ComponentFactory;
-            IAttributeComponent ac = factoryArgs.ProvideTo(factory);
-
-            return SetComponent(tuple, ac);
-        }
-
-        public ITupleObjectAttributeSetupWizard SetDefaultFictionalAttributeComponent(
-            ISingleTupleObject tuple)
-        {
-            return SetComponent(
-                tuple, 
-                tuple.GetDefaultFictionalAttributeComponent(
-                    AttributeInfo.ComponentFactory));
+            return new TupleObjectAttributeManager<TAttribute>(this);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using TupleAlgebraClassLib.TupleObjects;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.TupleObjectAcceptors
@@ -15,9 +16,9 @@ namespace TupleAlgebraClassLib.TupleObjectAcceptors
     /// для вызова методов потомков с динамическим приведением второго параметра.
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
-    public abstract class InstantBinaryTupleObjectAcceptor<TEntity, TOperand1, TOperationResult>
-        : InstantBinaryOperator<TOperand1, TupleAlgebraClassLib.TupleObjects.TupleObject<TEntity>, TOperationResult>
+    public abstract class TupleObjectInstantBinaryAcceptor<TEntity, TOperand1, TOperationResult>
+        : InstantBinaryOperator<TOperand1, TupleObject<TEntity>, TOperationResult>
         where TEntity : new()
-        where TOperand1: TupleAlgebraClassLib.TupleObjects.TupleObject<TEntity>
+        where TOperand1: TupleObject<TEntity>
     { }
 }

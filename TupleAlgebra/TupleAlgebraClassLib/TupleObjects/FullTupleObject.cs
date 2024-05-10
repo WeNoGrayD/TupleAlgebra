@@ -18,6 +18,16 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         }
 
+        public override bool IsEmpty()
+        {
+            return false;
+        }
+
+        public override bool IsFull()
+        {
+            return true;
+        }
+
         protected override void DisposeImpl()
         {
             return;

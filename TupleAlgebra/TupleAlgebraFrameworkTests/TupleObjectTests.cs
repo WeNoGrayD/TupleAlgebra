@@ -159,6 +159,27 @@ namespace TupleAlgebraFrameworkTests
         }
 
         [TestMethod]
+        public void CreateConjunctiveTupleFromEntity()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+
+            ForumUser fu = new ForumUser(-1, "WeNoGrayD", 5, 10, 1, 0);
+
+            TupleObject<ForumUser>.Configure(CustomLikedUsers);
+            TupleObject<ForumUser> likedPersons = factory
+                .CreateConjunctive<ForumUser>(fu);
+
+            TupleObject<ForumUser> dLikedPersons = 
+                (likedPersons as SingleTupleObject<ForumUser>)!
+                .ToAlternateDiagonal(factory);
+
+            TupleObject<ForumUser> dSysLikedPersons = factory
+                .CreateDisjunctiveSystem(fu);
+
+            return;
+        }
+
+        [TestMethod]
         public void CreateConjunctiveTuple()
         {
             TupleObjectFactory factory = new TupleObjectFactory(null);
@@ -312,9 +333,9 @@ namespace TupleAlgebraFrameworkTests
             using (TAContext context = new TAContext())
             {
                 factory = context.Factory;
-                TupleObject<int> cts1 = factory.CreateConjunctive<int>(),
-                                 dt1 = factory.CreateDisjunctive<int>(),
-                                 ct1 = cts1 / dt1;
+                //TupleObject<int> cts1 = factory.CreateConjunctive<int>(),
+                //                 dt1 = factory.CreateDisjunctive<int>(),
+                //                 ct1 = cts1 / dt1;
             }
             // factory.Dispose();
             //      cts1.Dispose();

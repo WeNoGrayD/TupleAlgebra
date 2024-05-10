@@ -9,11 +9,11 @@ using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
 {
-    public abstract class CrossTypeInstantBinaryTupleObjectAcceptor<TEntity, TOperand1, TOperationResult>
-        : InstantBinaryTupleObjectAcceptor<TEntity, TOperand1, TOperationResult>,
-          IInstantBinaryTupleObjectAcceptor<TEntity, TOperand1, EmptyTupleObject<TEntity>, TOperationResult>,
-          IInstantBinaryTupleObjectAcceptor<TEntity, TOperand1, TupleObject<TEntity>, TOperationResult>,
-          IInstantBinaryTupleObjectAcceptor<TEntity, TOperand1, FullTupleObject<TEntity>, TOperationResult>
+    public abstract class TupleObjectCrossTypeInstantBinaryAcceptor<TEntity, TOperand1, TOperationResult>
+        : TupleObjectInstantBinaryAcceptor<TEntity, TOperand1, TOperationResult>,
+          ITupleObjectInstantBinaryAcceptor<TEntity, TOperand1, EmptyTupleObject<TEntity>, TOperationResult>,
+          ITupleObjectInstantBinaryAcceptor<TEntity, TOperand1, TupleObject<TEntity>, TOperationResult>,
+          ITupleObjectInstantBinaryAcceptor<TEntity, TOperand1, FullTupleObject<TEntity>, TOperationResult>
         where TEntity : new()
         where TOperand1 : TupleObject<TEntity>
     {

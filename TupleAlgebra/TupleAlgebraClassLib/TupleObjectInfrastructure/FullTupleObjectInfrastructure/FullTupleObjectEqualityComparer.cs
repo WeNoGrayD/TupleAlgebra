@@ -10,9 +10,9 @@ using TupleAlgebraClassLib.TupleObjects;
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastructure
 {
     public sealed class FullTupleObjectEqualityComparer<TEntity>
-        : CrossTypeInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, bool>,
-          IInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, ConjunctiveTuple<TEntity>, bool>,
-          IInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, ConjunctiveTupleSystem<TEntity>, bool>
+        : TupleObjectCrossTypeInstantBinaryAcceptor<TEntity, FullTupleObject<TEntity>, bool>,
+          ITupleObjectInstantBinaryAcceptor<TEntity, FullTupleObject<TEntity>, ConjunctiveTuple<TEntity>, bool>,
+          ITupleObjectInstantBinaryAcceptor<TEntity, FullTupleObject<TEntity>, ConjunctiveTupleSystem<TEntity>, bool>
         where TEntity : new()
     {
         public override bool Accept(

@@ -23,7 +23,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     }
 
     public record AttributeInfo<TEntity, TAttribute>
-        : ITupleObjectAttributeInfo<TAttribute>
+        : ITupleObjectAttributeInfo<TEntity, TAttribute>
     {
         public AttributeName Name { get => AttributeMember.Name; }
 

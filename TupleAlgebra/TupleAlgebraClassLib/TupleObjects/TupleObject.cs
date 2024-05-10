@@ -106,16 +106,18 @@ namespace TupleAlgebraClassLib.TupleObjects
         public static void Configure(
             TupleObjectBuildingHandler<TEntity> onTupleBuilding)
         {
-            onTupleBuilding += EndSchemaInitialization;
-            onTupleBuilding(TupleObjectBuilder<TEntity>.StaticBuilder);
+            TupleObjectBuilder<TEntity> builder =
+                TupleObjectBuilder<TEntity>.StaticBuilder;
+            onTupleBuilding(builder);
+            builder.EndSchemaInitialization();
 
             return;
         }
 
-        public static void EndSchemaInitialization(
+        public void PassSchema(
             TupleObjectBuilder<TEntity> builder)
         {
-            builder.Schema.EndInit();
+            builder.Schema = Schema;
 
             return;
         }
@@ -123,6 +125,10 @@ namespace TupleAlgebraClassLib.TupleObjects
         #endregion
 
         #region Instance methods
+
+        public abstract bool IsEmpty();
+
+        public abstract bool IsFull();
 
         /*
         protected void SchemaAttributeChanged(object sender, AttributeChangedEventArgs eventArgs)

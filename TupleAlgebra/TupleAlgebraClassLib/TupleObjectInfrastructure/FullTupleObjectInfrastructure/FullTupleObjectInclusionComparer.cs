@@ -9,7 +9,7 @@ using TupleAlgebraClassLib.TupleObjects;
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastructure
 {
     public sealed class FullTupleObjectInclusionComparer<TEntity>
-        : CrossTypeInstantBinaryTupleObjectAcceptor<TEntity, FullTupleObject<TEntity>, bool>
+        : TupleObjectCrossTypeInstantBinaryAcceptor<TEntity, FullTupleObject<TEntity>, bool>
         where TEntity : new()
     {
         public override bool Accept(

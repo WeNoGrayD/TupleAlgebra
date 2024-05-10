@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
+using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectAcceptors
 {
-    public interface IInstantUnaryTupleObjectAcceptor<TEntity, in TOperand, out TOperationResult>
-        : UniversalClassLib.HierarchicallyPolymorphicOperators.IInstantUnaryOperator<TOperand, TOperationResult>
+    public interface ITupleObjectInstantUnaryAcceptor<TEntity, in TOperand, out TOperationResult>
+        : IInstantUnaryOperator<TOperand, TOperationResult>
         where TEntity : new()
-        where TOperand : TupleObjects.TupleObject<TEntity>
+        where TOperand : TupleObject<TEntity>
     { }
 
-    public interface IInstantBinaryTupleObjectAcceptor<TEntity, in TOperand1, in TOperand2, out TOperationResult>
-        : UniversalClassLib.HierarchicallyPolymorphicOperators.IInstantBinaryOperator<TOperand1, TOperand2, TOperationResult>
+    public interface ITupleObjectInstantBinaryAcceptor<TEntity, in TOperand1, in TOperand2, out TOperationResult>
+        : IInstantBinaryOperator<TOperand1, TOperand2, TOperationResult>
         where TEntity : new()
-        where TOperand1 : TupleObjects.TupleObject<TEntity>
-        where TOperand2 : TupleObjects.TupleObject<TEntity>
+        where TOperand1 : TupleObject<TEntity>
+        where TOperand2 : TupleObject<TEntity>
     { }
 }

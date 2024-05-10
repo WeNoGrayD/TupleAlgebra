@@ -10,11 +10,19 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     using static TupleObjectHelper;
 
+    public interface TupleObjectBuilder
+    {
+        public ITupleObjectAttributeSetupWizard Attribute(AttributeName name);
+
+        public ITupleObjectAttributeSetupWizard AttributeAt(int i);
+    }
+
     /// <summary>
     /// Построитель кортежа конкретного типа сущности.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     public partial class TupleObjectBuilder<TEntity>
+        : TupleObjectBuilder
     {
         #region Constants
 
@@ -184,6 +192,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public void InitDefaultSchema()
         { 
             Schema = StaticBuilder.Schema.Clone();
+
+            return;
+        }
+
+        public void EndSchemaInitialization()
+        {
+            Schema.EndInit();
+
+            return;
         }
 
         /// <summary>
@@ -196,9 +213,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeSetupWizard Attribute(
             AttributeName attrName)
         {
-            var s = Schema[attrName];
+            return Schema[attrName].SetupWizardFactory(Schema, attrName);
+        }
 
-            return s.SetupWizardFactory(Schema, attrName);
+        public ITupleObjectAttributeSetupWizard AttributeAt(
+            int attrPtr)
+        {
+            AttributeName attrName = Schema.AttributeAt(attrPtr);
+
+            return Schema[attrName].SetupWizardFactory(Schema, attrName);
         }
 
         /// <summary>

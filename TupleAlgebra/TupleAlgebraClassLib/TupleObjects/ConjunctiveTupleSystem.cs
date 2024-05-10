@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
 
-    public class ConjunctiveTupleSystem<TEntity> : TupleObjectSystem<TEntity>
+    public class ConjunctiveTupleSystem<TEntity> 
+        : TupleObjectSystem<TEntity>
         where TEntity : new()
     {
         public bool IsDiagonal { get; set; }
@@ -19,6 +22,25 @@ namespace TupleAlgebraClassLib.TupleObjects
         public ConjunctiveTupleSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
         { }
+
+        public ConjunctiveTupleSystem(
+            TupleObjectSchema<TEntity> schema,
+            int len)
+            : base(schema, len)
+        { }
+
+        public ConjunctiveTupleSystem(
+            TupleObjectSchema<TEntity> schema,
+            IList<SingleTupleObject<TEntity>> tuples)
+            : base(schema, tuples)
+        { }
+
+        public override IAttributeComponent<TAttribute>
+            GetDefaultFictionalAttributeComponent<TAttribute>(
+                IAttributeComponentFactory<TAttribute> factory)
+        {
+            return factory.CreateFull();
+        }
 
         /*
         protected override void OnAttributeAttached(object sender, AttributeChangedEventArgs eventArgs)

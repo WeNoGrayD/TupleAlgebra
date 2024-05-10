@@ -8,6 +8,7 @@ using System.Collections;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
@@ -15,7 +16,11 @@ namespace TupleAlgebraClassLib.TupleObjects
 
     public interface ISingleTupleObject
     {
+        public IAttributeComponent this[int attrPtr] { get; set; }
+
         public IAttributeComponent this[AttributeName attrName] { get; set; }
+
+        public int RowLength { get; }
 
         public IAttributeComponent<TAttribute> 
             GetDefaultFictionalAttributeComponent<TAttribute>(
@@ -35,6 +40,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         public IAttributeComponent this[int attrLoc]
         {
             get => _components[attrLoc];
+            set => _components[attrLoc] = value;
         }
 
         public IAttributeComponent this[AttributeName attrName]
@@ -42,6 +48,8 @@ namespace TupleAlgebraClassLib.TupleObjects
             get => _components[Schema.GetAttributeLoc(attrName)];
             set => _components[Schema.GetAttributeLoc(attrName)] = value;
         }
+
+        public int RowLength { get => _components.Length; }
 
         #region Constructors
 
@@ -91,6 +99,16 @@ namespace TupleAlgebraClassLib.TupleObjects
         #endregion
 
         #region Instance methods
+
+        public override bool IsEmpty()
+        {
+            return false;
+        }
+
+        public override bool IsFull()
+        {
+            return false;
+        }
 
         /// <summary>
         /// Сортировка массива компонент атрибутов кортежа в зависимости от задачи.
@@ -157,6 +175,9 @@ namespace TupleAlgebraClassLib.TupleObjects
         public abstract IAttributeComponent<TAttribute> 
             GetDefaultFictionalAttributeComponent<TAttribute>(
                 IAttributeComponentFactory<TAttribute> factory);
+
+        public abstract TupleObject<TEntity> ToAlternateDiagonal(
+            TupleObjectFactory factory);
 
 
         #endregion

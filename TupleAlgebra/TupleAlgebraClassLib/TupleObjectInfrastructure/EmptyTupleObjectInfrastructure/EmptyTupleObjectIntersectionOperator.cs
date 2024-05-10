@@ -9,7 +9,7 @@ using TupleAlgebraClassLib.TupleObjects;
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrastructure
 {
     public sealed class EmptyTupleObjectIntersectionOperator<TEntity>
-        : CrossTypeInstantBinaryTupleObjectAcceptor<TEntity, EmptyTupleObject<TEntity>, TupleObject<TEntity>>
+        : TupleObjectCrossTypeInstantBinaryAcceptor<TEntity, EmptyTupleObject<TEntity>, TupleObject<TEntity>>
         where TEntity : new()
     {
         public override TupleObject<TEntity> Accept(

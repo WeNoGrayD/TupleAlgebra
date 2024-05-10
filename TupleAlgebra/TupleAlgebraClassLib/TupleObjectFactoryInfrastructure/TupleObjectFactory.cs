@@ -14,6 +14,106 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 {
     using static TupleObjectHelper;
 
+    public readonly struct IndexedComponentFactoryArgs<TComponentSource>
+    {
+        public int Index { get; init; } = -1;
+
+        public ITupleObjectAttributeManager TupleManager { get; init; }
+
+        public TComponentSource ComponentSource { get; init; } = default;
+
+        public IndexedComponentFactoryArgs(
+            ITupleObjectAttributeManager tupleManager) 
+        {
+            TupleManager = tupleManager;
+
+            return;
+        }
+
+        private IndexedComponentFactoryArgs(
+            int index,
+            TComponentSource componentSource)
+        {
+            Index = index;
+            ComponentSource = componentSource;
+
+            return;
+        }
+
+        public IndexedComponentFactoryArgs(
+            int index,
+            TupleObjectBuilder builder,
+            TComponentSource componentSource)
+            : this(index, componentSource)
+        {
+            TupleManager = builder.AttributeAt(index).CreateManager();
+
+            return;
+        }
+
+        public IndexedComponentFactoryArgs(
+            int index,
+            ITupleObjectAttributeManager tupleManager,
+            TComponentSource componentSource)
+            : this(index, componentSource)
+        {
+            TupleManager = tupleManager;
+
+            return;
+        }
+    }
+
+    public readonly struct NamedComponentFactoryArgs<TComponentSource>
+    {
+        public AttributeName Name { get; init; }
+
+        public ITupleObjectAttributeManager TupleManager { get; init; }
+
+        public TComponentSource ComponentSource { get; init; } = default;
+
+        public NamedComponentFactoryArgs() { }
+
+        private NamedComponentFactoryArgs(
+            AttributeName name,
+            TComponentSource componentSource)
+        {
+            Name = name;
+            ComponentSource = componentSource;
+
+            return;
+        }
+
+        public NamedComponentFactoryArgs(
+            AttributeName name,
+            TupleObjectBuilder builder,
+            TComponentSource componentSource)
+            : this (name, componentSource)
+        {
+            TupleManager = builder.Attribute(name).CreateManager();
+
+            return;
+        }
+
+        public NamedComponentFactoryArgs(
+            AttributeName name,
+            ITupleObjectAttributeManager tupleManager,
+            TComponentSource componentSource)
+            : this(name, componentSource)
+        {
+            TupleManager = tupleManager;
+
+            return;
+        }
+
+        /*
+        public static implicit operator (AttributeName Name, TComponentSource ComponentSource)(
+             NamedComponentFactoryArgs<TComponentSource> factoryArgs)
+        {
+            return (factoryArgs.Name, factoryArgs.ComponentSource);
+        }
+        */
+    }
+
     public interface ISingleTupleObjectFactoryArgs
     {
         LambdaExpression Getter { get; }
@@ -22,8 +122,18 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         IAttributeComponentFactoryArgs ComponentFactoryArgs { get; }
 
+        /*
         public (AttributeName Name, IAttributeComponentFactoryArgs ComponentFactoryArgs)
             ToTuple() => (Getter, ComponentFactoryArgs);
+        
+        */
+
+        public NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>
+            ToNamedComponentFactoryArgs<TEntity>(
+                TupleObjectBuilder<TEntity> builder)
+        {
+            return new (AttributeName, builder, ComponentFactoryArgs);
+        }
     }
 
     public record SingleTupleObjectFactoryArgs<TEntity, TAttribute>
@@ -65,11 +175,19 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         private ConjunctiveTupleFactory _cFactory = new ConjunctiveTupleFactory();
 
+        private ConjunctiveTupleSystemFactory _csysFactory;
+
         private DisjunctiveTupleFactory _dFactory = new DisjunctiveTupleFactory();
+
+        private DisjunctiveTupleSystemFactory _dsysFactory;
 
         public TupleObjectFactory(TAContext context)
         {
             _context = context;
+            _csysFactory = new ConjunctiveTupleSystemFactory(_cFactory, _dFactory);
+            _dsysFactory = new DisjunctiveTupleSystemFactory(_dFactory, _cFactory);
+
+            return;
         }
 
         private TupleObjectBuilder<TEntity> GetBuilder<TEntity>()
@@ -84,10 +202,11 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             return null;
         }
 
-        public TupleObject<TEntity> CreateConjunctive<TEntity>()
+        public TupleObject<TEntity> CreateConjunctive<TEntity>(
+            TEntity entity)
             where TEntity : new()
         {
-            return null;
+            return _cFactory.CreateConjunctive(entity);
         }
 
         /*
@@ -147,14 +266,24 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         public TupleObject<TEntity> CreateConjunctive<TEntity>(
             ISingleTupleObjectFactoryArgs[] factoryArgs,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
+            TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
             return _cFactory.CreateConjunctive(
                 factoryArgs,
-                builder,
-                onTupleBuilding);
+                builder);
+        }
+
+        public TupleObject<TEntity> CreateConjunctive<TEntity>(
+            ISingleTupleObjectFactoryArgs[] factoryArgs,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder = null)
+            where TEntity : new()
+        {
+            return _cFactory.CreateConjunctive(
+                factoryArgs,
+                onTupleBuilding,
+                builder);
         }
 
         /*
@@ -169,60 +298,134 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 onTupleBuilding,
                 factoryArgs);
         }
-        */
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>()
+        public TupleObject<TEntity> CreateConjunctiveSystem<TEntity>(
+            IndexedComponentFactoryArgs<IAttributeComponent>[][] factoryArgs,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
+            TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
             return null;
         }
+        */
+
+        public TupleObject<TEntity> CreateDiagonalConjunctiveSystem<TEntity>(
+            DisjunctiveTuple<TEntity> tuple)
+            where TEntity : new()
+        {
+            return _csysFactory.ToAlternateDiagonal(tuple);
+        }
 
         public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            IEnumerable<(AttributeName Name, IAttributeComponentFactoryArgs FactoryArgs)> attributes,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
+            IEnumerable<NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>> attributes,
+            TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
             return _dFactory.CreateDisjunctive(
                 attributes,
-                builder,
-                onTupleBuilding);
+                builder);
         }
 
         public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            IEnumerable<(AttributeName Name, IAttributeComponent Component)> attributes,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
-            where TEntity : new()
-        {
-            return _dFactory.CreateDisjunctive(
-                attributes,
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null,
+            IEnumerable<NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>> attributes,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
-            params (AttributeName Name, IAttributeComponentFactoryArgs FactoryArgs)[] attributes)
+            TupleObjectBuilder<TEntity> builder = null)
+            where TEntity : new()
+        {
+            return _dFactory.CreateDisjunctive(
+                attributes,
+                onTupleBuilding,
+                builder);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+            IEnumerable<NamedComponentFactoryArgs<IAttributeComponent>> attributes,
+            TupleObjectBuilder<TEntity> builder = null)
+            where TEntity : new()
+        {
+            return _dFactory.CreateDisjunctive(
+                attributes,
+                builder);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+            IEnumerable<NamedComponentFactoryArgs<IAttributeComponent>> attributes,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
+            TupleObjectBuilder<TEntity> builder = null)
+            where TEntity : new()
+        {
+            return _dFactory.CreateDisjunctive(
+                attributes,
+                onTupleBuilding,
+                builder);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+            TupleObjectBuilder<TEntity> builder = null,
+            params NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>[] attributes)
             where TEntity : new()
         {
             return _dFactory.CreateDisjunctive(
                 builder,
+                attributes);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
+            TupleObjectBuilder<TEntity> builder = null,
+            params NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>[] attributes)
+            where TEntity : new()
+        {
+            return _dFactory.CreateDisjunctive(
                 onTupleBuilding,
+                builder,
                 attributes);
         }
 
         public TupleObject<TEntity> CreateDisjunctive<TEntity>(
             TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
-            params (AttributeName Name, IAttributeComponent Component)[] attributes)
+            params NamedComponentFactoryArgs<IAttributeComponent>[] attributes)
             where TEntity : new()
         {
             return _dFactory.CreateDisjunctive(
                 builder,
-                onTupleBuilding,
                 attributes);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
+            TupleObjectBuilder<TEntity> builder = null,
+            params NamedComponentFactoryArgs<IAttributeComponent>[] attributes)
+            where TEntity : new()
+        {
+            return _dFactory.CreateDisjunctive(
+                onTupleBuilding,
+                builder,
+                attributes);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctiveSystem<TEntity>(
+            IndexedComponentFactoryArgs<IAttributeComponent>[][] factoryArgs,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
+            where TEntity : new()
+        {
+            return _dsysFactory.CreateDisjunctiveTupleSystem(
+                factoryArgs,
+                onTupleBuilding);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctiveSystem<TEntity>(
+            TEntity entity)
+            where TEntity : new()
+        {
+            return _dsysFactory.CreateDisjunctiveTupleSystem(entity);
+        }
+
+        public TupleObject<TEntity> CreateDiagonalDisjunctiveSystem<TEntity>(
+            ConjunctiveTuple<TEntity> tuple)
+            where TEntity : new()
+        {
+            return _dsysFactory.ToAlternateDiagonal(tuple);
         }
 
         public TupleObject<TEntity> CreateFull<TEntity>()
@@ -239,296 +442,6 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             if (tupleObject is not null) _context.Disposing += () => tupleObject.Dispose();
 
             return;
-        }
-    }
-
-    public abstract class AbstractTupleObjectFactory
-    {
-        protected void DefaultTupleObjectBuildingHandler<TEntity>(
-            TupleObjectBuilder<TEntity> builder)
-        {
-            builder.InitDefaultSchema();
-
-            return;
-        }
-
-        protected TupleObjectBuilder<TEntity> GetBuilder<TEntity>()
-        {
-            return new TupleObjectBuilder<TEntity>();
-        }
-
-        public TupleObject<TEntity> CreateEmpty<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null)
-            where TEntity : new()
-        {
-            return null;
-        }
-
-        public TupleObject<TEntity> CreateFull<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null)
-            where TEntity : new()
-        {
-            return null;
-        }
-    }
-
-    public class SingleTupleObjectFactory
-        : AbstractTupleObjectFactory
-    {
-        protected delegate ITupleObjectAttributeSetupWizard SetComponentHandler<TComponentSource>(
-            ITupleObjectAttributeSetupWizard setupWizard,
-            ISingleTupleObject tuple,
-            TComponentSource componentSource);
-
-        protected delegate TTupleObject SingleTupleObjectFactoryHandler<
-            TEntity,
-            TTupleObject>(
-                TupleObjectSchema<TEntity> schema)
-            where TEntity : new()
-            where TTupleObject : TupleObject<TEntity>, ISingleTupleObject;
-
-        protected TupleObject<TEntity> CreateSingleTupleObject<
-            TEntity,
-            TTupleObject,
-            TComponentSource>(
-            SingleTupleObjectFactoryHandler<TEntity, TTupleObject> factory,
-            IEnumerable<(AttributeName Name, TComponentSource ComponentSource)> factoryArgs,
-            SetComponentHandler<TComponentSource> setComponent,
-            TupleObjectBuilder<TEntity> builder,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
-            where TEntity : new()
-            where TTupleObject : TupleObject<TEntity>, ISingleTupleObject
-        {
-            /*
-             * При непередаче строителя предполагается, что либо
-             * его конфигуратор предпринимает все необходимые изменения,
-             * либо конфигуратор пуст, и строитель нужно конфигурировать стандартно.
-             * В противном случае конфигуратор принимается каким он есть.
-             */
-            (builder, onTupleBuilding) = (builder, onTupleBuilding) switch
-            {
-                (null, _) => (GetBuilder<TEntity>(), 
-                              onTupleBuilding ?? 
-                              DefaultTupleObjectBuildingHandler<TEntity>),
-                (_, _) => (builder, onTupleBuilding)
-            };
-            onTupleBuilding += TupleObject<TEntity>.EndSchemaInitialization;
-            onTupleBuilding(builder);
-
-            /*
-             * Инициализация компонентами тех атрибутов, которые были явно названы.
-             */
-            TTupleObject tuple = factory(builder.Schema);
-            ITupleObjectAttributeSetupWizard setupWizard;
-            foreach (var farg in factoryArgs)
-            {
-                setupWizard = builder.Attribute(farg.Name);
-                setComponent(setupWizard, tuple, farg.ComponentSource);
-            }
-
-            /*
-             * Для тех включённых атрибутов, которые не были явно проинициализированы 
-             * компонентами, происходит инициализация фиктивными компонентами 
-             * по умолчанию.
-             */
-            ITupleObjectSchemaProvider schema = builder.Schema;
-            IEnumerable<AttributeName> pluggedAttributes =
-                schema.PluggedAttributeNames;
-            HashSet<AttributeName> instantiatedAttributes =
-                factoryArgs.Select(a => a.Name).ToHashSet();
-            foreach (AttributeName attrName 
-                 in pluggedAttributes.Where((pa) => !instantiatedAttributes.Contains(pa)))
-            {
-                setupWizard = builder.Attribute(attrName);
-                setupWizard.SetDefaultFictionalAttributeComponent(tuple);
-            }
-            instantiatedAttributes.Clear();
-
-            return tuple;
-        }
-    }
-
-    public class ConjunctiveTupleFactory : SingleTupleObjectFactory
-    {
-        protected TupleObject<TEntity> CreateConjunctive<TEntity, TComponentSource>(
-            IEnumerable<(AttributeName Name, TComponentSource ComponentSource)> factoryArgs,
-            SetComponentHandler<TComponentSource> setComponent,
-            TupleObjectBuilder<TEntity> builder,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
-            where TEntity : new()
-        {
-            return CreateSingleTupleObject(
-                (schema) => new ConjunctiveTuple<TEntity>(schema),
-                factoryArgs,
-                setComponent, 
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
-            IEnumerable<(AttributeName Name, IAttributeComponentFactoryArgs FactoryArgs)> factoryArgs,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
-            where TEntity : new()
-        {
-            return CreateConjunctive(
-                factoryArgs,
-                (setupWizard, tuple, args) => setupWizard.SetComponent(tuple, args),
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
-            IEnumerable<(AttributeName Name, IAttributeComponent Component)> factoryArgs,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
-            where TEntity : new()
-        {
-            return CreateConjunctive(
-                factoryArgs,
-                (setupWizard, tuple, ac) => setupWizard.SetComponent(tuple, ac),
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
-            IEnumerable<ISingleTupleObjectFactoryArgs> factoryArgs,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
-            where TEntity : new()
-        {
-            return CreateConjunctive(
-                factoryArgs.Select(a => a.ToTuple()),
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
-            params (AttributeName Name, IAttributeComponentFactoryArgs FactoryArgs)[] factoryArgs)
-            where TEntity : new()
-        {
-            return CreateConjunctive(
-                factoryArgs,
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
-            params (AttributeName Name, IAttributeComponent Component)[] factoryArgs)
-            where TEntity : new()
-        {
-            return CreateConjunctive(
-                factoryArgs,
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
-            params ISingleTupleObjectFactoryArgs[] factoryArgs)
-            where TEntity : new()
-        {
-            return CreateConjunctive(
-                factoryArgs, 
-                builder,
-                onTupleBuilding);
-        }
-    }
-
-    public class DisjunctiveTupleFactory : SingleTupleObjectFactory
-    {
-        protected TupleObject<TEntity> CreateDisjunctive<TEntity, TComponentSource>(
-            IEnumerable<(AttributeName Name, TComponentSource ComponentSource)> factoryArgs,
-            SetComponentHandler<TComponentSource> setComponent,
-            TupleObjectBuilder<TEntity> builder,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
-            where TEntity : new()
-        {
-            return CreateSingleTupleObject(
-                (schema) => new DisjunctiveTuple<TEntity>(schema),
-                factoryArgs,
-                setComponent,
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            IEnumerable<(AttributeName Name, IAttributeComponentFactoryArgs FactoryArgs)> factoryArgs,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
-            where TEntity : new()
-        {
-            return CreateDisjunctive(
-                factoryArgs,
-                (setupWizard, tuple, args) => setupWizard.SetComponent(tuple, args),
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            IEnumerable<(AttributeName Name, IAttributeComponent Component)> factoryArgs,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
-            where TEntity : new()
-        {
-            return CreateDisjunctive(
-                factoryArgs,
-                (setupWizard, tuple, ac) => setupWizard.SetComponent(tuple, ac),
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            IEnumerable<ISingleTupleObjectFactoryArgs> factoryArgs,
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
-            where TEntity : new()
-        {
-            return CreateDisjunctive(
-                factoryArgs.Select(fa => fa.ToTuple()),
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
-            params (AttributeName Name, IAttributeComponentFactoryArgs FactoryArgs)[] factoryArgs)
-            where TEntity : new()
-        {
-            return CreateDisjunctive(
-                factoryArgs,
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
-            params (AttributeName Name, IAttributeComponent Component)[] factoryArgs)
-            where TEntity : new()
-        {
-            return CreateDisjunctive(
-                factoryArgs,
-                builder,
-                onTupleBuilding);
-        }
-
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
-            TupleObjectBuilder<TEntity> builder = null,
-            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
-            params ISingleTupleObjectFactoryArgs[] factoryArgs)
-            where TEntity : new()
-        {
-            return CreateDisjunctive(
-                factoryArgs,
-                builder,
-                onTupleBuilding);
         }
     }
 }

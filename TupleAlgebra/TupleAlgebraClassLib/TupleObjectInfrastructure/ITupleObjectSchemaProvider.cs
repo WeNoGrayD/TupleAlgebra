@@ -77,6 +77,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             IAttributeComponentFactory<TAttribute> factory);
     }
 
+    public interface ITupleObjectAttributeInfo<TEntity, TAttribute>
+        : ITupleObjectAttributeInfo<TAttribute>
+    {
+        public AttributeGetterHandler<TEntity, TAttribute> AttributeGetter { get; }
+    }
+
     public interface ITupleObjectAttributeWithEqualityRelationInfo<T>
         : ITupleObjectAttributeInfo
     {

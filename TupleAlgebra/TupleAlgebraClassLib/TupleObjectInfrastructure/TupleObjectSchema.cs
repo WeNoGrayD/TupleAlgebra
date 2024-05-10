@@ -16,7 +16,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     public interface IAttributeContainer
         : IDictionary<AttributeName, ITupleObjectAttributeInfo>
     {
-        public IEnumerable<AttributeName> PluggedAttributeNames { get; }
+        public AttributeName[] PluggedAttributeNames { get; }
 
         public IEnumerable<ITupleObjectAttributeInfo> PluggedAttributes { get; }
 
@@ -50,9 +50,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     {
         private IDictionary<AttributeName, int> _pluggedAttributes;
 
-        public IEnumerable<AttributeName> PluggedAttributeNames
+        private Lazy<AttributeName[]> _pluggedAttributeNames;
+
+        public AttributeName[] PluggedAttributeNames
         {
-            get => _pluggedAttributes.Keys;
+            get => _pluggedAttributeNames.Value;
         }
 
         public IEnumerable<ITupleObjectAttributeInfo> PluggedAttributes 
@@ -226,7 +228,24 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 }
             }
 
+            _pluggedAttributeNames = new Lazy<AttributeName[]>(
+                InitPluggedAttributeNames);
+
             return;
+
+            AttributeName[] InitPluggedAttributeNames()
+            {
+                AttributeName[] pluggedAttributeNames = 
+                    new AttributeName[PluggedAttributesCount];
+                int j = 0;
+
+                foreach (AttributeName attrName in _pluggedAttributes.Keys)
+                {
+                    pluggedAttributeNames[j++] = attrName;
+                }
+
+                return pluggedAttributeNames;
+            }
         }
 
         public ITupleObjectAttributeInfo GetPluggedO1(AttributeName attrName)
@@ -252,14 +271,13 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         private IDictionary<AttributeName, int> _pluggedAttributes;
 
-        public IEnumerable<AttributeName> PluggedAttributeNames
+        private Lazy<AttributeName[]> _pluggedAttributeNames;
+
+        public AttributeName[] PluggedAttributeNames
         {
             get
             {
-                for (int i = Count - PluggedAttributesCount; i < Count; i++)
-                    yield return GetKeyAtIndex(i);
-
-                yield break;
+                return _pluggedAttributeNames.Value;
             }
         }
 
@@ -309,8 +327,23 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 _pluggedAttributes = new Dictionary<AttributeName, int>(pluggedAttributes);
             else
                 _pluggedAttributes = new Dictionary<AttributeName, int>();
+            _pluggedAttributeNames = new Lazy<AttributeName[]>(
+                GetPluggedAttributeNames);
 
             return;
+
+            IEnumerable<AttributeName> GetPluggedAttributeNamesIter()
+            {
+                for (int i = Count - PluggedAttributesCount; i < Count; i++)
+                    yield return GetKeyAtIndex(i);
+
+                yield break;
+            }
+
+            AttributeName[] GetPluggedAttributeNames()
+            {
+                return GetPluggedAttributeNamesIter().ToArray();
+            }
         }
 
         public bool ContainsAttribute(AttributeName attributeName)
@@ -473,7 +506,24 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 }
             }
 
+            _pluggedAttributeNames = new Lazy<AttributeName[]>(
+                InitPluggedAttributeNames);
+
             return;
+
+            AttributeName[] InitPluggedAttributeNames()
+            {
+                AttributeName[] pluggedAttributeNames =
+                    new AttributeName[PluggedAttributesCount];
+                int j = 0;
+
+                for (int k = Count - PluggedAttributesCount; k < Count; k++)
+                {
+                    pluggedAttributeNames[j++] = GetKeyAtIndex(k);
+                }
+
+                return pluggedAttributeNames;
+            }
         }
 
         public ITupleObjectAttributeInfo GetPluggedO1(AttributeName attrName)
@@ -553,6 +603,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public int PluggedAttributesCount 
         { get => _attributes.PluggedAttributesCount; }
+
+        public IEnumerable<ITupleObjectAttributeInfo> PluggedAttributes
+        {
+            get => _attributes.PluggedAttributes;
+        }
 
         public static bool IsEntityPrimitive { get; private set; }
 
@@ -653,6 +708,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
         */
+
+        public AttributeName AttributeAt(
+            int attrPtr)
+        {
+            return _attributes.PluggedAttributeNames[attrPtr];
+        }
 
         public bool IsPlugged(AttributeName attrName)
         {

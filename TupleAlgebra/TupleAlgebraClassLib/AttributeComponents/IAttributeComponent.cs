@@ -26,6 +26,36 @@ namespace TupleAlgebraClassLib.AttributeComponents
         bool IsEmpty();
 
         bool IsFull();
+
+        new IAttributeComponent ComplementThe();
+
+        IAttributeComponent IntersectWith(IAttributeComponent second);
+
+        IAttributeComponent UnionWith(IAttributeComponent second);
+
+        IAttributeComponent ExceptWith(IAttributeComponent second);
+
+        IAttributeComponent SymmetricExceptWith(IAttributeComponent second);
+
+
+        IAlgebraicSetObject IAlgebraicSetObject.ComplementThe()
+            => ComplementThe();
+
+        IAlgebraicSetObject IAlgebraicSetObject.IntersectWith(
+            IAlgebraicSetObject second)
+            => IntersectWith(second);
+
+        IAlgebraicSetObject IAlgebraicSetObject.UnionWith(
+            IAlgebraicSetObject second)
+            => UnionWith(second);
+
+        IAlgebraicSetObject IAlgebraicSetObject.ExceptWith(
+            IAlgebraicSetObject second)
+            => ExceptWith(second);
+
+        IAlgebraicSetObject IAlgebraicSetObject.SymmetricExceptWith(
+            IAlgebraicSetObject second)
+            => SymmetricExceptWith(second);
     }
 
     public interface IAttributeComponent<TData> 

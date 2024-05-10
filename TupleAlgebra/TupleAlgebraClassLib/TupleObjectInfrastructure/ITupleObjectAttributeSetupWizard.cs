@@ -9,20 +9,54 @@ using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
-    public interface ITupleObjectAttributeSetupWizard
+    public interface ITupleObjectAttributeManager
     {
-        //ITupleObjectAttributeSetupWizard Set(ITupleObjectAttributeInfo attrInfo);
+        public bool IsEmpty<TEntity>(SingleTupleObject<TEntity> tuple)
+            where TEntity : new();
 
-        public ITupleObjectAttributeSetupWizard SetComponent(
+        public bool IsFull<TEntity>(SingleTupleObject<TEntity> tuple)
+            where TEntity : new();
+
+        public ITupleObjectAttributeManager SetComponent(
             ISingleTupleObject tuple,
             IAttributeComponent ac);
 
-        public ITupleObjectAttributeSetupWizard SetComponent(
+        public ITupleObjectAttributeManager SetComponent(
             ISingleTupleObject tuple,
             IAttributeComponentFactoryArgs factoryArgs);
 
-        public ITupleObjectAttributeSetupWizard SetDefaultFictionalAttributeComponent(
+        public ITupleObjectAttributeManager SetComponentWithComplementionAccumulation(
+            ISingleTupleObject tuple,
+            IAttributeComponent component);
+
+        public ITupleObjectAttributeManager SetComponentWithComplementionAccumulation(
+            ISingleTupleObject tuple,
+            IAttributeComponentFactoryArgs factoryArgs);
+
+        public ITupleObjectAttributeManager SetDefaultFictionalAttributeComponent(
             ISingleTupleObject tuple);
+
+        public ITupleObjectAttributeManager
+                SetComponentToProjectionOfOntoMember<TEntity>(
+                    ISingleTupleObject tuple,
+                    TEntity entity,
+                    bool withTrailingComplement = false);
+
+        public ITupleObjectAttributeManager
+                SetComponentToProjectionOfOntoMember<TEntity>(
+                    ISingleTupleObject tuple,
+                    IEnumerable<TEntity> entitySet);
+    }
+
+    public interface ITupleObjectAttributeSetupWizard
+    {
+        public ITupleObjectSchemaProvider Schema { get; }
+
+        public AttributeName AttributeName { get; }
+
+        public ITupleObjectAttributeManager CreateManager();
+
+        //ITupleObjectAttributeSetupWizard Set(ITupleObjectAttributeInfo attrInfo);
     }
 
     /// <summary>

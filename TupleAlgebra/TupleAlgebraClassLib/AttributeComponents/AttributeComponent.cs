@@ -234,33 +234,33 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #endregion
 
-        #region IAlgebraicSetObject implementation
+        #region IAttributeComponent implementation
 
-        IAlgebraicSetObject IAlgebraicSetObject.ComplementThe()
+        IAttributeComponent IAttributeComponent.ComplementThe()
         {
             return this.ComplementThe();
         }
 
-        IAlgebraicSetObject IAlgebraicSetObject.IntersectWith(
-            IAlgebraicSetObject second)
+        IAttributeComponent IAttributeComponent.IntersectWith(
+            IAttributeComponent second)
         {
             return this.IntersectWith(second as AttributeComponent<TData>);
         }
 
-        IAlgebraicSetObject IAlgebraicSetObject.UnionWith(
-            IAlgebraicSetObject second)
+        IAttributeComponent IAttributeComponent.UnionWith(
+            IAttributeComponent second)
         {
             return this.UnionWith(second as AttributeComponent<TData>);
         }
 
-        IAlgebraicSetObject IAlgebraicSetObject.ExceptWith(
-            IAlgebraicSetObject second)
+        IAttributeComponent IAttributeComponent.ExceptWith(
+            IAttributeComponent second)
         {
             return this.ExceptWith(second as AttributeComponent<TData>);
         }
 
-        IAlgebraicSetObject IAlgebraicSetObject.SymmetricExceptWith(
-            IAlgebraicSetObject second)
+        IAttributeComponent IAttributeComponent.SymmetricExceptWith(
+            IAttributeComponent second)
         {
             return this.SymmetricExceptWith(second as AttributeComponent<TData>);
         }
