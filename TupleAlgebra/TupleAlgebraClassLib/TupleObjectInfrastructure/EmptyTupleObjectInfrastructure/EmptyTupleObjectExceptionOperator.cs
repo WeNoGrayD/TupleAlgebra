@@ -8,7 +8,7 @@ using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrastructure
 {
-    public sealed class EmptyTupleObjectDifferenceOperator<TEntity>
+    public sealed class EmptyTupleObjectExceptionOperator<TEntity>
         : TupleObjectCrossTypeInstantBinaryAcceptor<TEntity, EmptyTupleObject<TEntity>, TupleObject<TEntity>>
         where TEntity : new()
     {
@@ -19,7 +19,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrast
             return first;
         }
 
-        protected override TupleObject<TEntity> AcceptDefault(
+        public override TupleObject<TEntity> AcceptDefault(
             EmptyTupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {

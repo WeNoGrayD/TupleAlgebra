@@ -33,6 +33,13 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return an1.CompareTo(an2);
         }
 
+        public override bool Equals(object second)
+        {
+            if (second is AttributeName name2)
+                return _value.Equals(name2._value);
+            return false;
+        }
+
         public override int GetHashCode()
         {
             return _value.GetHashCode();

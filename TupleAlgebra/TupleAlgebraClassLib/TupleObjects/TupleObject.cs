@@ -10,10 +10,17 @@ using System.Reflection;
 using System.Globalization;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.SetOperationExecutorsContainers;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
+using TupleAlgebraClassLib.TupleObjectAcceptors;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
+    using static TupleObjectStaticDataStorage;
 
     /// <summary>
     /// Кортеж данных о сущностях определённого типа.
@@ -37,6 +44,9 @@ namespace TupleAlgebraClassLib.TupleObjects
         public virtual Type ElementType { get => typeof(TEntity); }
 
         public virtual IQueryProvider Provider { get; protected set; }
+
+        public ISetOperationExecutorsContainer<TupleObject<TEntity>> SetOperations
+        { get => Storage.GetSetOperations<TEntity>(this); }
 
         /// <summary>
         /// Схема кортежа. Содержит данные 
@@ -178,6 +188,11 @@ namespace TupleAlgebraClassLib.TupleObjects
         }
         */
 
+        public abstract TupleObject<TEntity> AlignWithSchema(
+            TupleObjectSchema<TEntity> schema,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder);
+
         void ProcessDomain<TDomainEntity>(string attributeName, AttributeDomain<TDomainEntity> attribute)
             where TDomainEntity : IComparable<TDomainEntity>
         {
@@ -201,15 +216,52 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public abstract TupleObject<TEntity> Diagonal();
 
-        protected abstract TupleObject<TEntity> ComplementThe();
+        public TupleObject<TEntity> ComplementThe()
+        {
+            return SetOperations.Complement(this);
+        }
 
-        protected abstract TupleObject<TEntity> IntersectWith(TupleObject<TEntity> second);
+        public TupleObject<TEntity> IntersectWith(
+            TupleObject<TEntity> second)
+        {
+            return SetOperations.Intersect(this, second);
+        }
 
-        protected abstract TupleObject<TEntity> UnionWith(TupleObject<TEntity> second);
+        public TupleObject<TEntity> UnionWith(
+            TupleObject<TEntity> second)
+        {
+            return SetOperations.Union(this, second);
+        }
 
-        protected abstract TupleObject<TEntity> ExceptWith(TupleObject<TEntity> second);
+        public TupleObject<TEntity> ExceptWith(
+            TupleObject<TEntity> second)
+        {
+            return SetOperations.Except(this, second);
+        }
 
-        protected abstract TupleObject<TEntity> SymmetricExceptWith(TupleObject<TEntity> second);
+        public TupleObject<TEntity> SymmetricExceptWith(
+            TupleObject<TEntity> second)
+        {
+            return SetOperations.SymmetricExcept(this, second);
+        }
+
+        public bool Includes(
+            TupleObject<TEntity> second)
+        {
+            return SetOperations.Include(this, second);
+        }
+
+        public bool EqualsTo(
+            TupleObject<TEntity> second)
+        {
+            return SetOperations.Equal(this, second);
+        }
+
+        public bool IncludesOrEqualsTo(
+            TupleObject<TEntity> second)
+        {
+            return SetOperations.IncludeOrEqual(this, second);
+        }
 
         public abstract TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal);
 
@@ -287,7 +339,7 @@ namespace TupleAlgebraClassLib.TupleObjects
             return tuple;
         }
 
-        public static TupleObject<TEntity> operator !(TupleObject<TEntity> first)
+        public static TupleObject<TEntity> operator ~(TupleObject<TEntity> first)
         {
             return first.ComplementThe();
         }
@@ -318,6 +370,132 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObject<TEntity> second)
         {
             return first.SymmetricExceptWith(second);
+        }
+
+        public static bool operator >(
+            TupleObject<TEntity> first,
+            TupleObject<TEntity> second)
+        {
+            return first.Includes(second);
+        }
+
+        public static bool operator ==(
+            TupleObject<TEntity> first,
+            TupleObject<TEntity> second)
+        {
+            return first.EqualsTo(second);
+        }
+
+        public static bool operator >=(
+            TupleObject<TEntity> first,
+            TupleObject<TEntity> second)
+        {
+            return first.IncludesOrEqualsTo(second);
+        }
+
+        public static bool operator <(
+            TupleObject<TEntity> first,
+            TupleObject<TEntity> second)
+        {
+            return second.Includes(first);
+        }
+
+        public static bool operator !=(
+            TupleObject<TEntity> first,
+            TupleObject<TEntity> second)
+        {
+            return !first.EqualsTo(second);
+        }
+
+        public static bool operator <=(
+            TupleObject<TEntity> first,
+            TupleObject<TEntity> second)
+        {
+            return second.IncludesOrEqualsTo(first);
+        }
+
+        #endregion
+
+        #region Nested types
+
+        public abstract class FictionalTupleObjectOperationExecutorsContainer<CTOperand>
+            : InstantSetOperationExecutorsContainer<TupleObject<TEntity>, CTOperand, TupleObjectFactory>
+        where CTOperand : TupleObject<TEntity>
+        {
+            #region Constructors
+
+            public FictionalTupleObjectOperationExecutorsContainer(
+                TupleObjectFactory factory,
+                Func<TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>>
+                    complementationOperator,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                    intersectionOperator,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                    unionOperator,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                    differenceOperator,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                    symmetricExceptionOperator,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                    inclusionComparer,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                    equalityComparer,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                    inclusionOrEquationComparer)
+                : base(factory,
+                       complementationOperator,
+                       intersectionOperator,
+                       unionOperator,
+                       differenceOperator,
+                       symmetricExceptionOperator,
+                       inclusionComparer,
+                       equalityComparer,
+                       inclusionOrEquationComparer)
+            {
+                return;
+            }
+
+            #endregion
+        }
+
+        public abstract class NonFictionalTupleObjectOperationExecutorsContainer<CTOperand>
+            : FactorySetOperationExecutorsContainer<TupleObject<TEntity>, CTOperand, TupleObjectFactory>
+        where CTOperand : TupleObject<TEntity>
+        {
+            #region Constructors
+
+            public NonFictionalTupleObjectOperationExecutorsContainer(
+                TupleObjectFactory factory,
+                Func<TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>>
+                    complementationOperator,
+                Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                    intersectionOperator,
+                Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                    unionOperator,
+                Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                    differenceOperator,
+                Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                    symmetricExceptionOperator,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                    inclusionComparer,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                    equalityComparer,
+                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                    inclusionOrEquationComparer)
+                : base(factory,
+                       complementationOperator,
+                       intersectionOperator,
+                       unionOperator,
+                       differenceOperator,
+                       symmetricExceptionOperator,
+                       inclusionComparer,
+                       equalityComparer,
+                       inclusionOrEquationComparer)
+            {
+                return;
+            }
+
+            #endregion
         }
 
         #endregion

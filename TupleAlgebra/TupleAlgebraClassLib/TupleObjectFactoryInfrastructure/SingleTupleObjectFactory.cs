@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
@@ -193,6 +194,73 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 factoryArgs,
                 setComponent,
                 builder);
+        }
+
+
+
+        /*
+         * Попытка в асинхронные методы создания кортежей
+         */
+
+        protected TupleObject<TEntity> CreateSingleTupleObjectAsync<
+            TEntity,
+            TComponentSource>(
+            IEnumerable<IndexedComponentFactoryArgs<TComponentSource>> factoryArgs,
+            SetComponentHandler<TComponentSource> setComponent,
+            TupleObjectBuilder<TEntity> builder,
+            CancellationToken cancellationToken)
+            where TEntity : new()
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            IndexedComponentFactoryArgs<TComponentSource> farg;
+            using var fargsEnumerator = factoryArgs.GetEnumerator();
+            bool proceedInitPrepared = fargsEnumerator.MoveNext();
+            farg = fargsEnumerator.Current;
+
+            SingleTupleObject<TEntity> tuple =
+                SingleTupleObjectFactoryImpl(builder.Schema);
+            ITupleObjectAttributeManager tupleManager;
+            bool isRedundant = true;
+            for (int i = 0; i < builder.Schema.PluggedAttributesCount; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                /*
+                 * Инициализация компонентами тех атрибутов, которые были явно названы.
+                 */
+                if (proceedInitPrepared && i == farg.Index)
+                {
+                    tupleManager = farg.TupleManager;
+                    setComponent(tupleManager, tuple, farg.ComponentSource);
+                    if (AttributeComponentStopsBuilding(tupleManager, tuple))
+                    {
+                        fargsEnumerator.Dispose();
+                        return ReduceSingleTupleObjectToFictional(builder, true);
+                    }
+                    isRedundant &= AttributeComponentIsDefault(tupleManager, tuple);
+
+                    proceedInitPrepared = fargsEnumerator.MoveNext();
+                    if (proceedInitPrepared)
+                        farg = fargsEnumerator.Current;
+                }
+                /*
+                 * Для тех включённых атрибутов, которые не были явно проинициализированы 
+                 * компонентами, происходит инициализация фиктивными компонентами 
+                 * по умолчанию.
+                 */
+                else
+                {
+                    tupleManager = builder.AttributeAt(i).CreateManager();
+                    tupleManager.SetDefaultFictionalAttributeComponent(tuple);
+                }
+            }
+
+            fargsEnumerator.Dispose();
+
+            if (isRedundant)
+                return ReduceSingleTupleObjectToFictional(builder, false);
+
+            return tuple;
         }
     }
 }

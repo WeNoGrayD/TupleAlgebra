@@ -53,7 +53,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         static FullAttributeComponent()
         {
             Helper.RegisterType<TData, FullAttributeComponent<TData>>(
-                setOperations: (_) => new FullAttributeComponentOperationExecutorsContainer());
+                setOperations: (factory) => new FullAttributeComponentOperationExecutorsContainer(factory));
 
             return;
         }
@@ -101,15 +101,17 @@ namespace TupleAlgebraClassLib.AttributeComponents
         private class FullAttributeComponentOperationExecutorsContainer
             : InstantAttributeComponentOperationExecutorsContainer<FullAttributeComponent<TData>>
         {
-            public FullAttributeComponentOperationExecutorsContainer() : base(
-                () => new FullAttributeComponentComplementationOperator<TData>(),
-                () => new FullAttributeComponentIntersectionOperator<TData>(),
-                () => new FullAttributeComponentUnionOperator<TData>(),
-                () => new FullAttributeComponentExceptionOperator<TData>(),
-                () => new FullAttributeComponentExceptionOperator<TData>(),
-                () => new FullAttributeComponentInclusionComparer<TData>(),
-                () => new FullAttributeComponentEqualityComparer<TData>(),
-                () => new FullAttributeComponentInclusionOrEqualityComparer<TData>())
+            public FullAttributeComponentOperationExecutorsContainer(
+                IAttributeComponentFactory<TData> factory) : base(
+                    factory,
+                    () => new FullAttributeComponentComplementationOperator<TData>(),
+                    () => new FullAttributeComponentIntersectionOperator<TData>(),
+                    () => new FullAttributeComponentUnionOperator<TData>(),
+                    () => new FullAttributeComponentExceptionOperator<TData>(),
+                    () => new FullAttributeComponentExceptionOperator<TData>(),
+                    () => new FullAttributeComponentInclusionComparer<TData>(),
+                    () => new FullAttributeComponentEqualityComparer<TData>(),
+                    () => new FullAttributeComponentInclusionOrEqualityComparer<TData>())
             { }
         }
 

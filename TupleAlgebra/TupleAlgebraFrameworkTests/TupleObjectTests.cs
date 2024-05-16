@@ -19,6 +19,7 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFinite
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.AttributeContainers;
 
 namespace TupleAlgebraFrameworkTests
 {
@@ -159,6 +160,37 @@ namespace TupleAlgebraFrameworkTests
         }
 
         [TestMethod]
+        public void Intersect()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<ForumUser>.Configure(CustomLikedUsers);
+
+            ForumUser fu = new ForumUser(-1, "WeNoGrayD", 5, 10, 1, 0);
+            TupleObject<ForumUser> weno1 = factory.CreateConjunctive(fu),
+                weno2 = factory.CreateConjunctive<ForumUser>(
+                factoryArgs: [
+                    SetAC((ForumUser fu) => fu.Nickname,
+                     new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
+                    ),
+                    SetAC((ForumUser fu) => fu.LikeCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
+                    ),
+                    SetAC((ForumUser fu) => fu.PostCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([10, 100])
+                    ),
+                    SetAC((ForumUser fu) => fu.Followers,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 20])
+                    ),
+                    SetAC((ForumUser fu) => fu.Following,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([0, 5])
+                    )]);
+
+            TupleObject<ForumUser> res = weno1 & weno2;
+
+            return;
+        }
+
+        [TestMethod]
         public void CreateConjunctiveTupleFromEntity()
         {
             TupleObjectFactory factory = new TupleObjectFactory(null);
@@ -174,7 +206,7 @@ namespace TupleAlgebraFrameworkTests
                 .ToAlternateDiagonal(factory);
 
             TupleObject<ForumUser> dSysLikedPersons = factory
-                .CreateDisjunctiveSystem(fu);
+                .CreateDisjunctive(fu);
 
             return;
         }
@@ -183,6 +215,7 @@ namespace TupleAlgebraFrameworkTests
         public void CreateConjunctiveTuple()
         {
             TupleObjectFactory factory = new TupleObjectFactory(null);
+            //TupleObjectBuilder<ForumUser> builder = factory.GetDefaultBuilder<ForumUser>();
 
             TupleObject<ForumUser>.Configure(CustomLikedUsers);
             TupleObject<ForumUser> likedPersons = factory.CreateConjunctive<ForumUser>(

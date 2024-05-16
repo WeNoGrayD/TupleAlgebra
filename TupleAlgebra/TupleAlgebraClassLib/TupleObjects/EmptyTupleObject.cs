@@ -3,20 +3,43 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrastructure;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
+    using static TupleObjectStaticDataStorage;
 
     public class EmptyTupleObject<TEntity> : TupleObject<TEntity>
         where TEntity : new()
     {
+        static EmptyTupleObject()
+        {
+            Storage.RegisterType<TEntity, EmptyTupleObject<TEntity>>(
+                (factory) => new EmptyTupleObjectOperationExecutorsContainer(factory));
+
+            return;
+        }
+
         public EmptyTupleObject(TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             : base(onTupleBuilding)
         {
 
+        }
+
+        public EmptyTupleObject(TupleObjectSchema<TEntity> schema)
+            : base(schema)
+        { }
+
+        public override TupleObject<TEntity> AlignWithSchema(
+            TupleObjectSchema<TEntity> schema,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder = null)
+        {
+            return factory.CreateEmpty<TEntity>(schema.PassToBuilder);
         }
 
         public override bool IsEmpty()
@@ -44,37 +67,36 @@ namespace TupleAlgebraClassLib.TupleObjects
             throw new NotImplementedException();
         }
 
-        protected override TupleObject<TEntity> ComplementThe()
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> IntersectWith(TupleObject<TEntity> second)
-        {
-            EmptyTupleObjectIntersectionOperator<TEntity> i = new EmptyTupleObjectIntersectionOperator<TEntity>();
-            
-
-            return i.Accept(this, second);
-        }
-
-        protected override TupleObject<TEntity> UnionWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> ExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> SymmetricExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
         public override TupleObject<TEntity> Diagonal()
         {
             throw new NotImplementedException();
         }
+
+        #region Nested types
+
+        public class EmptyTupleObjectOperationExecutorsContainer
+            : FictionalTupleObjectOperationExecutorsContainer<EmptyTupleObject<TEntity>>
+        {
+            #region Constructors
+
+            public EmptyTupleObjectOperationExecutorsContainer(
+                TupleObjectFactory factory)
+                : base(factory,
+                       () => new EmptyTupleObjectComplementionOperator<TEntity>(),
+                       () => new EmptyTupleObjectIntersectionOperator<TEntity>(),
+                       () => new EmptyTupleObjectUnionOperator<TEntity>(),
+                       () => new EmptyTupleObjectExceptionOperator<TEntity>(),
+                       () => new EmptyTupleObjectSymmetricExceptionOperator<TEntity>(),
+                       () => new EmptyTupleObjectInclusionComparer<TEntity>(),
+                       () => new EmptyTupleObjectEqualityComparer<TEntity>(),
+                       () => new EmptyTupleObjectInclusionOrEqualityComparer<TEntity>())
+            {
+                return;
+            }
+
+            #endregion
+        }
+
+        #endregion
     }
 }

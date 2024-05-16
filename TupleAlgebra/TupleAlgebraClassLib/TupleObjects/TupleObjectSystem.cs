@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
@@ -14,6 +15,9 @@ namespace TupleAlgebraClassLib.TupleObjects
     public interface ITupleObjectSystem
     {
         //public ISingleTupleObject this[int tuplePtr] { get; set; }
+
+        public ISingleTupleObject this[int tuplePtr]
+        { get; }
 
         public IAttributeComponent this[int tuplePtr, int attrPtr] 
         { get; set; }
@@ -26,20 +30,26 @@ namespace TupleAlgebraClassLib.TupleObjects
                 IAttributeComponentFactory<TAttribute> factory);
     }
 
-    public abstract class TupleObjectSystem<TEntity> 
+    public abstract class TupleObjectSystem<TEntity, TSingleTupleObject> 
         : TupleObject<TEntity>, ITupleObjectSystem
         where TEntity : new()
+        where TSingleTupleObject : SingleTupleObject<TEntity>
     {
         //private IEnumerable<SingleTupleObject<TEntity>> _tuples = Enumerable.Empty<SingleTupleObject<TEntity>>();
 
-        protected SingleTupleObject<TEntity>[] _tuples;
+        protected TSingleTupleObject[] _tuples;
 
-        public SingleTupleObject<TEntity>[] Tuples
+        public TSingleTupleObject[] Tuples
         {
             get => _tuples;
         }
 
-        public SingleTupleObject<TEntity> this[int tuplePtr]
+        ISingleTupleObject ITupleObjectSystem.this[int tuplePtr]
+        {
+            get => this[tuplePtr];
+        }
+
+        public TSingleTupleObject this[int tuplePtr]
         {
             get => _tuples[tuplePtr];
             set => _tuples[tuplePtr] = value;
@@ -57,6 +67,12 @@ namespace TupleAlgebraClassLib.TupleObjects
             set => _tuples[tuplePtr][attrName] = value;
         }
 
+        public int RowLength { get => Schema.PluggedAttributesCount; }
+
+        public int ColumnLength { get => _tuples.Length; }
+
+        public bool IsOrthogonal { get; set; } = false;
+
         public TupleObjectSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             : base(onTupleBuilding)
         {
@@ -69,7 +85,7 @@ namespace TupleAlgebraClassLib.TupleObjects
             int len)
             : base(schema)
         {
-            _tuples = new SingleTupleObject<TEntity>[len];
+            _tuples = new TSingleTupleObject[len];
 
             return;
         }
@@ -79,9 +95,32 @@ namespace TupleAlgebraClassLib.TupleObjects
             IList<SingleTupleObject<TEntity>> tuples)
             : base(schema)
         {
-            _tuples = tuples.ToArray();
+            _tuples = tuples.OfType<TSingleTupleObject>().ToArray();
 
             return;
+        }
+
+        public override TupleObject<TEntity> AlignWithSchema(
+            TupleObjectSchema<TEntity> schema,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder = null)
+        {
+            if (object.ReferenceEquals(Schema, schema)) return this;
+
+            builder = builder ?? factory.GetBuilder<TEntity>();
+
+            return factory.CreateConjunctive(
+                AlignTuples(), 
+                schema.PassToBuilder, 
+                builder);
+
+            IEnumerable<TupleObject<TEntity>> AlignTuples()
+            {
+                for (int i = 0; i < _tuples.Length; i++)
+                {
+                    yield return _tuples[i].AlignWithSchema(schema, factory, builder);
+                }
+            }
         }
 
         public override bool IsEmpty()
@@ -101,6 +140,12 @@ namespace TupleAlgebraClassLib.TupleObjects
 
             return;
         }
+
+        public abstract TupleObject<TEntity> Reproduce(
+            IEnumerable<TupleObject<TEntity>> tuples,
+            TupleObjectFactory factory,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder);
 
         /// <summary>
         /// Освобождение ресурсов 

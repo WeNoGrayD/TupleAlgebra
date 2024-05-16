@@ -16,7 +16,10 @@ namespace TupleAlgebraClassLib.TupleObjectAcceptors
     /// для вызова методов потомков с динамическим приведением второго параметра.
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
-    public abstract class TupleObjectInstantBinaryAcceptor<TEntity, TOperand1, TOperationResult>
+    public abstract class TupleObjectInstantBinaryAcceptor<
+        TEntity, 
+        TOperand1, 
+        TOperationResult>
         : InstantBinaryOperator<TOperand1, TupleObject<TEntity>, TOperationResult>
         where TEntity : new()
         where TOperand1: TupleObject<TEntity>

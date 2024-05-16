@@ -16,14 +16,14 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastr
             FullTupleObject<TEntity> first,
             EmptyTupleObject<TEntity> second)
         {
-            return false;
+            return true;
         }
 
-        protected override bool AcceptDefault(
+        public override bool AcceptDefault(
             FullTupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {
-            return false;
+            return true;
         }
 
         public override bool Accept(

@@ -36,6 +36,15 @@ namespace TupleAlgebraClassLib.TupleObjects
             return factory.CreateEmpty();
         }
 
+        public override TupleObject<TEntity> Reproduce(
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> components,
+            TupleObjectFactory factory,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder)
+        {
+            return factory.CreateDisjunctive(components, onTupleBuilding, builder);
+        }
+
         public override TupleObject<TEntity> ToAlternateDiagonal(
             TupleObjectFactory factory)
         {
@@ -53,31 +62,6 @@ namespace TupleAlgebraClassLib.TupleObjects
         public override TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal)
         {
             throw new NotImplementedException();
-        }
-
-        protected override TupleObject<TEntity> ComplementThe()
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> IntersectWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> UnionWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> ExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> SymmetricExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
         }
 
         public override TupleObject<TEntity> Diagonal()

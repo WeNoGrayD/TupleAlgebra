@@ -19,18 +19,18 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrast
             return first;
         }
 
-        protected override TupleObject<TEntity> AcceptDefault(
+        public override TupleObject<TEntity> AcceptDefault(
             EmptyTupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {
-            return first;
+            return second;
         }
 
         public override TupleObject<TEntity> Accept(
             EmptyTupleObject<TEntity> first,
             FullTupleObject<TEntity> second)
         {
-            return first;
+            return second;
         }
     }
 }

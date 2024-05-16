@@ -14,7 +14,7 @@ namespace TupleAlgebraClassLib.TupleObjects
     using static TupleObjectHelper;
 
     public class DisjunctiveTupleSystem<TEntity> 
-        : TupleObjectSystem<TEntity>
+        : TupleObjectSystem<TEntity, DisjunctiveTuple<TEntity>>
         where TEntity : new()
     {
         public DisjunctiveTupleSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
@@ -40,6 +40,15 @@ namespace TupleAlgebraClassLib.TupleObjects
             return factory.CreateEmpty();
         }
 
+        public override TupleObject<TEntity> Reproduce(
+            IEnumerable<TupleObject<TEntity>> tuples,
+            TupleObjectFactory factory,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder)
+        {
+            return factory.CreateDisjunctive(tuples, onTupleBuilding, builder);
+        }
+
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {
             return null;
@@ -48,31 +57,6 @@ namespace TupleAlgebraClassLib.TupleObjects
         public override TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal)
         {
             throw new NotImplementedException();
-        }
-
-        protected override TupleObject<TEntity> ComplementThe()
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> IntersectWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> UnionWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> ExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> SymmetricExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
         }
 
         public override TupleObject<TEntity> Diagonal()

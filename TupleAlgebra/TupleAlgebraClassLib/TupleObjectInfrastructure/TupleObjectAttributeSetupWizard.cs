@@ -171,8 +171,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         protected AttributeName _attributeName;
 
-        private IAttributeComponent _lastSetComponent = null;
-
         protected virtual ITupleObjectAttributeInfo<TAttribute> AttributeInfo
         {
             get => (Schema[_attributeName] as ITupleObjectAttributeInfo<TAttribute>)!;

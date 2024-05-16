@@ -67,8 +67,15 @@ namespace TupleAlgebraFrameworkTests.DataModels
             ForumDatabase.Init();
         }
 
+        /// <summary>
+        /// Здесь какая-то ерунда.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public override bool Equals(object? obj)
         {
+            if (obj is null) return false;
+
             return (obj is ForumUser fu2) && this == fu2;
         }
 

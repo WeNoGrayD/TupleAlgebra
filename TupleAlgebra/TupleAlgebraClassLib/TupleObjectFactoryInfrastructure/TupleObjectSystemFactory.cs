@@ -40,13 +40,13 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             return;
         }
 
-        protected abstract TupleObjectSystem<TEntity>
+        protected abstract TupleObject<TEntity>
             TupleObjectSystemFactoryImpl<TEntity>(
                 TupleObjectSchema<TEntity> schema,
                 int len)
                 where TEntity : new();
 
-        protected abstract TupleObjectSystem<TEntity>
+        protected abstract TupleObject<TEntity>
             TupleObjectSystemFactoryImpl<TEntity>(
                 TupleObjectSchema<TEntity> schema,
                 IList<SingleTupleObject<TEntity>> tuples)
@@ -111,10 +111,13 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         }
         */
 
-        protected TupleObject<TEntity> ToAlternateDiagonal<TEntity>(
+        protected TupleObject<TEntity> ToAlternateDiagonal<
+            TEntity,
+            TSingleTupleObject>(
             SingleTupleObject<TEntity> tuple,
             TupleObjectBuilder<TEntity> builder)
             where TEntity : new()
+            where TSingleTupleObject : SingleTupleObject<TEntity>
         {
             int len = tuple.RowLength;
             IndexedComponentFactoryArgs<IAttributeComponent>[] tupleSysFactoryArgs =
@@ -124,7 +127,10 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 tupleSysFactoryArgs[i] = new(i, builder, tuple[i]);
             }
 
-            return CreateDiagonalTupleObjectSystemStrategy(
+            return CreateDiagonalTupleObjectSystemStrategy<
+                TEntity,
+                TSingleTupleObject,
+                IAttributeComponent>(
                 tupleSysFactoryArgs,
                 SingleTupleObjectFactoryWithTrailingComplementImpl,
                 //SingleTupleObjectFactoryImpl,
@@ -132,18 +138,22 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        protected TupleObject<TEntity> ToAlternateDiagonal<TEntity>(
+        protected TupleObject<TEntity> ToAlternateDiagonal<
+            TEntity,
+            TSingleTupleObject>(
             SingleTupleObject<TEntity> tuple)
             where TEntity : new()
+            where TSingleTupleObject : SingleTupleObject<TEntity>
         {
             TupleObjectBuilder<TEntity> builder =
                 GetDefaultBuilder<TEntity>();
 
-            return ToAlternateDiagonal(tuple, builder);
+            return ToAlternateDiagonal<TEntity, TSingleTupleObject>(tuple, builder);
         }
 
         protected TupleObject<TEntity> CreateDiagonalTupleObjectSystemStrategy<
             TEntity,
+            TSingleTupleObject,
             TComponentSource>(
             IndexedComponentFactoryArgs<TComponentSource>[] tupleSysFactoryArgs,
             SingleTupleObjectFactoryHandler<
@@ -155,12 +165,15 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
             TupleObjectBuilder<TEntity> builder)
             where TEntity : new()
+            where TSingleTupleObject : SingleTupleObject<TEntity>
         {
             BuildTuple(ref builder, onTupleBuilding);
 
             int len = tupleSysFactoryArgs.Length, i, j, k = 0;
-            TupleObjectSystem<TEntity> tupleSystem =
-                TupleObjectSystemFactoryImpl(builder.Schema, len);
+            TupleObjectSystem<TEntity, TSingleTupleObject> tupleSystem =
+                TupleObjectSystemFactoryImpl(
+                    builder.Schema, len)
+                as TupleObjectSystem<TEntity, TSingleTupleObject>;
 
             TupleObject<TEntity> tuple = null;
             IndexedComponentFactoryArgs<TComponentSource> farg;
@@ -182,7 +195,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                     return ReduceTupleObjectSystemToFictional<TEntity>(builder);
                 if (SingleTupleObjectIsRedundant(tuple))
                     continue;
-                tupleSystem[k++] = (tuple as SingleTupleObject<TEntity>)!;
+                tupleSystem[k++] = (tuple as TSingleTupleObject)!;
             }
 
             /*
@@ -203,6 +216,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             if (k == 1) return tuple;
 
             tupleSystem.TrimRedundantRows(k);
+            tupleSystem.IsOrthogonal = true;
 
             return tupleSystem;
         }
@@ -302,6 +316,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         protected TupleObject<TEntity> CreateTupleObjectSystem<
             TEntity,
+            TSingleTupleObject,
             TComponentFactoryArgs>(
             IndexedComponentFactoryArgs<TComponentFactoryArgs>[] factoryArgs,
             SingleTupleObjectFactoryHandler<
@@ -313,11 +328,14 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             where TEntity : new()
+            where TSingleTupleObject : SingleTupleObject<TEntity>
         {
-            return CreateDiagonalTupleObjectSystemStrategy(
+            return CreateDiagonalTupleObjectSystemStrategy<
+                TEntity,
+                TSingleTupleObject,
+                TComponentFactoryArgs>(
                 factoryArgs,
                 singleTupleObjectFactory,
-                //lastSingleTupleObjectFactory,
                 onTupleBuilding,
                 builder);
         }

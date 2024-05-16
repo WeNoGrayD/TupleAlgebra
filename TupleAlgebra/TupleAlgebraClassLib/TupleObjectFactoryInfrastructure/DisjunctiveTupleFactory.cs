@@ -121,6 +121,8 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
+            builder ??= GetDefaultBuilder<TEntity>();
+
             return CreateDisjunctive(
                 factoryArgs.Select(fa => fa.ToNamedComponentFactoryArgs(builder)),
                 builder);
@@ -132,6 +134,8 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
+            builder ??= GetDefaultBuilder<TEntity>();
+
             return CreateDisjunctive(
                 factoryArgs.Select(fa => fa.ToNamedComponentFactoryArgs(builder)),
                 onTupleBuilding,

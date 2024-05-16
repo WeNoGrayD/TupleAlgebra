@@ -49,10 +49,12 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder)
             where TEntity : new()
         {
+            if (builder is null) BuildTuple(ref builder, null);
+
             return CreateSingleTupleObject(
-                factoryArgs,
-                setComponent,
-                builder);
+                    factoryArgs,
+                    setComponent,
+                    builder);
         }
 
         protected TupleObject<TEntity> CreateConjunctive<TEntity, TComponentSource>(
@@ -74,6 +76,8 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
+            builder ??= GetDefaultBuilder<TEntity>();
+
             return CreateConjunctive(
                 factoryArgs,
                 (setupWizard, tuple, args) => setupWizard.SetComponent(tuple, args),
@@ -86,6 +90,8 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
+            builder ??= GetDefaultBuilder<TEntity>();
+
             return CreateConjunctive(
                 factoryArgs,
                 (setupWizard, tuple, args) => setupWizard.SetComponent(tuple, args),
@@ -98,6 +104,8 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
+            builder ??= GetDefaultBuilder<TEntity>();
+
             return CreateConjunctive(
                 factoryArgs,
                 (setupWizard, tuple, ac) => setupWizard.SetComponent(tuple, ac),
@@ -110,6 +118,8 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
+            builder ??= GetDefaultBuilder<TEntity>();
+
             return CreateConjunctive(
                 factoryArgs,
                 (setupWizard, tuple, ac) => setupWizard.SetComponent(tuple, ac),
@@ -119,9 +129,11 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         public TupleObject<TEntity> CreateConjunctive<TEntity>(
             IEnumerable<ISingleTupleObjectFactoryArgs> factoryArgs,
-            TupleObjectBuilder<TEntity> builder)
+            TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
+            builder ??= GetDefaultBuilder<TEntity>();
+
             return CreateConjunctive(
                 factoryArgs.Select(a => a.ToNamedComponentFactoryArgs(builder)),
                 builder);
@@ -130,9 +142,11 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         public TupleObject<TEntity> CreateConjunctive<TEntity>(
             IEnumerable<ISingleTupleObjectFactoryArgs> factoryArgs,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
-            TupleObjectBuilder<TEntity> builder)
+            TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
+            builder ??= GetDefaultBuilder<TEntity>();
+
             return CreateConjunctive(
                 factoryArgs.Select(a => a.ToNamedComponentFactoryArgs(builder)),
                 onTupleBuilding,

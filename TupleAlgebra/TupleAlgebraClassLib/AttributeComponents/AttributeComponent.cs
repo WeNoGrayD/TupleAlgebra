@@ -366,14 +366,15 @@ namespace TupleAlgebraClassLib.AttributeComponents
         #region Nested types
 
         public abstract class InstantAttributeComponentOperationExecutorsContainer<CTOperand>
-            : InstantSetOperationExecutorsContainer<IAttributeComponent<TData>, CTOperand>
+            : InstantSetOperationExecutorsContainer<IAttributeComponent<TData>, CTOperand, IAttributeComponentFactory<TData>>
             where CTOperand : AttributeComponent<TData>
         {
             #region Constructors
 
             public InstantAttributeComponentOperationExecutorsContainer(
-                Func<InstantUnaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
-                    complementationOperator,
+                IAttributeComponentFactory<TData> factory,
+                Func<AttributeComponentFactoryUnarySetOperator<TData, CTOperand>>
+                    complementionOperator,
                 Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
                     intersectionOperator,
                 Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
@@ -388,7 +389,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
                     equalityComparer,
                 Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
                     inclusionOrEquationComparer)
-                : base(complementationOperator,
+                : base(factory,
+                       complementionOperator,
                        intersectionOperator,
                        unionOperator,
                        differenceOperator,

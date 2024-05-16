@@ -10,7 +10,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     using static TupleObjectHelper;
 
-    public interface TupleObjectBuilder
+    public interface ITupleObjectBuilder
     {
         public ITupleObjectAttributeSetupWizard Attribute(AttributeName name);
 
@@ -22,7 +22,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     public partial class TupleObjectBuilder<TEntity>
-        : TupleObjectBuilder
+        : ITupleObjectBuilder
     {
         #region Constants
 
@@ -103,7 +103,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             else
                 ConstructComplicatedType();
 
-            Schema.EndInit();
+            EndSchemaInitialization();
 
             return;
 
@@ -192,6 +192,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public void InitDefaultSchema()
         { 
             Schema = StaticBuilder.Schema.Clone();
+            EndSchemaInitialization();
 
             return;
         }
@@ -213,19 +214,18 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeSetupWizard Attribute(
             AttributeName attrName)
         {
-            return Schema[attrName].SetupWizardFactory(Schema, attrName);
+            return Schema.GetSetupWizard(attrName);
         }
 
         public ITupleObjectAttributeSetupWizard AttributeAt(
             int attrPtr)
         {
-            AttributeName attrName = Schema.AttributeAt(attrPtr);
-
-            return Schema[attrName].SetupWizardFactory(Schema, attrName);
+            return Schema.GetSetupWizard(attrPtr);
         }
 
         /// <summary>
         /// Создание мастера по настройке атрибута сущности для кортежа.
+        /// Нужно только для настройки схемы пользователем.
         /// Тип атрибута наиболее обобщён, перегрузка используется для обычных атрибутов с отношением "один к одному".
         /// </summary>
         /// <typeparam name="TAttribute"></typeparam>

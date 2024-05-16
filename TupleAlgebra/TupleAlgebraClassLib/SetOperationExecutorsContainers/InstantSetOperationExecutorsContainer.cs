@@ -11,13 +11,12 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 {
     public abstract class InstantSetOperationExecutorsContainer<
         BTOperand, 
-        CTOperand>
-        : SetOperationExecutorsContainer<BTOperand, CTOperand>
+        CTOperand,
+        TOperationResultFactory>
+        : SetOperationExecutorsContainer<BTOperand, CTOperand, TOperationResultFactory>
         where CTOperand : class, BTOperand
     {
         #region Instance fields
-
-        private Lazy<InstantUnaryOperator<CTOperand, BTOperand>> _complementationOperator;
 
         private Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> _intersectionOperator;
 
@@ -30,9 +29,6 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         #endregion
 
         #region Instance properties
-
-        protected InstantUnaryOperator<CTOperand, BTOperand> ComplementationOperator
-        { get => _complementationOperator.Value; }
 
         protected InstantBinaryOperator<CTOperand, BTOperand, BTOperand> IntersectionOperator
         { get => _intersectionOperator.Value; }
@@ -51,7 +47,8 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         #region Constructors
 
         public InstantSetOperationExecutorsContainer(
-            Func<InstantUnaryOperator<CTOperand, BTOperand>> complementationOperator,
+            TOperationResultFactory factory,
+            Func<FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>> complementionOperator,
             Func<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> intersectionOperator,
             Func<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> unionOperator,
             Func<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>> differenceOperator,
@@ -59,12 +56,12 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
             Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionComparer,
             Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> equalityComparer,
             Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> inclusionOrEquationComparer)
-            : base(inclusionComparer,
+            : base(factory,
+                   complementionOperator,
+                   inclusionComparer,
                    equalityComparer,
                    inclusionOrEquationComparer)
         {
-            _complementationOperator = new Lazy<InstantUnaryOperator<CTOperand, BTOperand>>(
-                complementationOperator);
             _intersectionOperator = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
                 intersectionOperator);
             _unionOperator = new Lazy<InstantBinaryOperator<CTOperand, BTOperand, BTOperand>>(
@@ -80,11 +77,6 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         #endregion
 
         #region Instance methods
-
-        public override BTOperand Complement(BTOperand first)
-        {
-            return ComplementationOperator.Accept((first as CTOperand)!);
-        }
 
         public override BTOperand Intersect(BTOperand first, BTOperand second)
         {

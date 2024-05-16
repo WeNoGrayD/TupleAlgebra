@@ -8,15 +8,25 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
+    using static TupleObjectStaticDataStorage;
 
     public class ConjunctiveTuple<TEntity> : SingleTupleObject<TEntity>
         where TEntity : new()
     {
         #region Constructors
+
+        static ConjunctiveTuple()
+        {
+            Storage.RegisterType<TEntity, ConjunctiveTuple<TEntity>>(
+                (factory) => new ConjunctiveTupleOperationExecutorsContainer(factory));
+
+            return;
+        }
 
         public ConjunctiveTuple(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
@@ -35,6 +45,15 @@ namespace TupleAlgebraClassLib.TupleObjects
                 IAttributeComponentFactory<TAttribute> factory)
         {
             return factory.CreateFull();
+        }
+
+        public override TupleObject<TEntity> Reproduce(
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> components,
+            TupleObjectFactory factory,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder)
+        {
+            return factory.CreateConjunctive(components, onTupleBuilding, builder);
         }
 
         public override TupleObject<TEntity> ToAlternateDiagonal(
@@ -210,34 +229,36 @@ namespace TupleAlgebraClassLib.TupleObjects
             throw new NotImplementedException();
         }
 
-        protected override TupleObject<TEntity> ComplementThe()
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> IntersectWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> UnionWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> ExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> SymmetricExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
         public override TupleObject<TEntity> Diagonal()
         {
             throw new NotImplementedException();
         }
+
+        #region Nested types
+
+        public class ConjunctiveTupleOperationExecutorsContainer
+            : NonFictionalTupleObjectOperationExecutorsContainer<ConjunctiveTuple<TEntity>>
+        {
+            #region Constructors
+
+            public ConjunctiveTupleOperationExecutorsContainer(
+                TupleObjectFactory factory)
+                : base(factory,
+                       () => new ConjunctiveTupleComplementionOperator<TEntity>(),
+                       () => new ConjunctiveTupleIntersectionOperator<TEntity>(),
+                       () => new ConjunctiveTupleUnionOperator<TEntity>(),
+                       () => new ConjunctiveTupleExceptionOperator<TEntity>(),
+                       () => new ConjunctiveTupleSymmetricExceptionOperator<TEntity>(),
+                       () => new ConjunctiveTupleInclusionComparer<TEntity>(),
+                       () => new ConjunctiveTupleEqualityComparer<TEntity>(),
+                       () => new ConjunctiveTupleInclusionOrEqualityComparer<TEntity>())
+            {
+                return;
+            }
+
+            #endregion
+        }
+
+        #endregion
     }
 }

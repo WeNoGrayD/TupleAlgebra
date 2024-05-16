@@ -15,11 +15,13 @@ namespace TupleAlgebraClassLib.AttributeComponents
     /// <summary>
     /// Класс для хранения статических переменных типов компонент атрибутов.
     /// </summary>
-    public class AttributeComponentHelper : ITypeHierarchyRegistrar<AttributeComponentHelper>
+    public class AttributeComponentHelper 
+        : ITypeHierarchyRegistrar<AttributeComponentHelper>
     {
         #region Static fields
 
-        private ITypeHierarchyRegistrar<AttributeComponentHelper> _registrar { get => this; }
+        private ITypeHierarchyRegistrar<AttributeComponentHelper> _registrar 
+        { get => this; }
 
         /// <summary>
         /// Фабрики специфических компонент атрибутов.

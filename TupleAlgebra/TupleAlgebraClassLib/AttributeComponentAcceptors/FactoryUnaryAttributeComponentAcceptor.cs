@@ -17,6 +17,11 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
         where CTFactoryArgs : AttributeComponentFactoryArgs
     { }
 
+    public abstract class AttributeComponentFactoryUnarySetOperator<TData, CTOperand>
+        : FactoryUnaryOperator<CTOperand, IAttributeComponentFactory<TData>, IAttributeComponent<TData>>
+        where CTOperand : AttributeComponent<TData>
+    { }
+
     public abstract class AttributeComponentFactoryUnarySetOperator<TData, TIntermediateResult, CTOperand, TFactory, CTFactoryArgs>
         : FactoryUnaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, TFactory, CTFactoryArgs, IAttributeComponent<TData>>
         where CTOperand : NonFictionalAttributeComponent<TData>

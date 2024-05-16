@@ -19,7 +19,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrast
             return true;
         }
 
-        protected override bool AcceptDefault(
+        public override bool AcceptDefault(
             EmptyTupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {

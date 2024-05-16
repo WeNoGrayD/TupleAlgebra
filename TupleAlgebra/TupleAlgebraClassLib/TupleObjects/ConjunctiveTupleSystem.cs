@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
@@ -12,7 +13,7 @@ namespace TupleAlgebraClassLib.TupleObjects
     using static TupleObjectHelper;
 
     public class ConjunctiveTupleSystem<TEntity> 
-        : TupleObjectSystem<TEntity>
+        : TupleObjectSystem<TEntity, ConjunctiveTuple<TEntity>>
         where TEntity : new()
     {
         public bool IsDiagonal { get; set; }
@@ -40,6 +41,15 @@ namespace TupleAlgebraClassLib.TupleObjects
                 IAttributeComponentFactory<TAttribute> factory)
         {
             return factory.CreateFull();
+        }
+
+        public override TupleObject<TEntity> Reproduce(
+            IEnumerable<TupleObject<TEntity>> tuples,
+            TupleObjectFactory factory,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder)
+        {
+            return factory.CreateConjunctive(tuples, onTupleBuilding, builder);
         }
 
         /*
@@ -94,37 +104,17 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {
-            return null;
+            for (int i = 0; i < _tuples.Length; i++)
+            {
+                foreach (TEntity entity in _tuples[i]) yield return entity;
+            }
+
+            yield break;
         }
 
         public override TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal)
         {
             throw new NotImplementedException();
-        }
-
-        protected override TupleObject<TEntity> ComplementThe()
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> IntersectWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> UnionWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> ExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
-        }
-
-        protected override TupleObject<TEntity> SymmetricExceptWith(TupleObject<TEntity> second)
-        {
-            return null;
         }
 
         public override TupleObject<TEntity> Diagonal()

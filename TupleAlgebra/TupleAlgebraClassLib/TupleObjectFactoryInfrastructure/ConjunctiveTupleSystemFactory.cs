@@ -22,7 +22,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             : base(cTupleFactory, dTupleFactory)
         { }
 
-        protected override TupleObjectSystem<TEntity>
+        protected override TupleObject<TEntity>
             TupleObjectSystemFactoryImpl<TEntity>(
                 TupleObjectSchema<TEntity> schema,
             int len)
@@ -30,7 +30,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             return new ConjunctiveTupleSystem<TEntity>(schema, len);
         }
 
-        protected override TupleObjectSystem<TEntity>
+        protected override TupleObject<TEntity>
             TupleObjectSystemFactoryImpl<TEntity>(
                 TupleObjectSchema<TEntity> schema,
                 IList<SingleTupleObject<TEntity>> tuples)
@@ -134,23 +134,48 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         }
 
         public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
+            IEnumerable<TupleObject<TEntity>> tupleSysFactoryArgs,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return CreateTupleObjectSystemStrategy(
+                tupleSysFactoryArgs,
+                (tuple, b) => tuple,
+                onTupleBuilding,
+                builder);
+        }
+
+        public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
+            ISquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> tupleSysFactoryArgs,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return CreateTupleObjectSystem(
+                tupleSysFactoryArgs,
+                builder,
+                onTupleBuilding);
+        }
+
+        public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
             ISquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> tupleSysFactoryArgs)
             where TEntity : new()
         {
             TupleObjectBuilder<TEntity> builder =
                 GetDefaultBuilder<TEntity>();
 
-            return CreateTupleObjectSystem(
+            return CreateConjunctiveTupleSystem(
                 tupleSysFactoryArgs,
-                builder,
-                null);
+                null,
+                builder);
         }
 
         public TupleObject<TEntity> ToAlternateDiagonal<TEntity>(
             DisjunctiveTuple<TEntity> tuple)
             where TEntity : new()
         {
-            return base.ToAlternateDiagonal(tuple);
+            return base.ToAlternateDiagonal<TEntity, ConjunctiveTuple<TEntity>>(tuple);
         }
     }
 }

@@ -73,8 +73,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
             : FactorySetOperationExecutorsContainer<
                 IAttributeComponent<TData>,
                 CTOperand,
-                TIntermediateResult,
-                CTFactoryArgs,
+                //TIntermediateResult,
+                //CTFactoryArgs,
                 CTFactory>
             where CTOperand : NonFictionalAttributeComponent<TData>
             where CTFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand, CTFactoryArgs>

@@ -26,7 +26,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         static EmptyAttributeComponent()
         {
             Helper.RegisterType<TData, EmptyAttributeComponent<TData>>(
-                setOperations: (_) => new EmptyAttributeComponentOperationExecutorsContainer());
+                setOperations: (factory) => new EmptyAttributeComponentOperationExecutorsContainer(factory));
 
             return;
         }
@@ -68,15 +68,17 @@ namespace TupleAlgebraClassLib.AttributeComponents
         private class EmptyAttributeComponentOperationExecutorsContainer
             : InstantAttributeComponentOperationExecutorsContainer<EmptyAttributeComponent<TData>>
         {
-            public EmptyAttributeComponentOperationExecutorsContainer() : base(
-                () => new EmptyAttributeComponentComplementationOperator<TData>(),
-                () => new EmptyAttributeComponentIntersectionOperator<TData>(),
-                () => new EmptyAttributeComponentUnionOperator<TData>(),
-                () => new EmptyAttributeComponentExceptionOperator<TData>(),
-                () => new EmptyAttributeComponentSymmetricExceptionOperator<TData>(),
-                () => new EmptyAttributeComponentInclusionComparer<TData>(),
-                () => new EmptyAttributeComponentEqualityComparer<TData>(),
-                () => new EmptyAttributeComponentInclusionOrEqualityComparer<TData>())
+            public EmptyAttributeComponentOperationExecutorsContainer(
+                IAttributeComponentFactory<TData> factory) : base(
+                    factory,
+                    () => new EmptyAttributeComponentComplementationOperator<TData>(),
+                    () => new EmptyAttributeComponentIntersectionOperator<TData>(),
+                    () => new EmptyAttributeComponentUnionOperator<TData>(),
+                    () => new EmptyAttributeComponentExceptionOperator<TData>(),
+                    () => new EmptyAttributeComponentSymmetricExceptionOperator<TData>(),
+                    () => new EmptyAttributeComponentInclusionComparer<TData>(),
+                    () => new EmptyAttributeComponentEqualityComparer<TData>(),
+                    () => new EmptyAttributeComponentInclusionOrEqualityComparer<TData>())
             { }
         }
 

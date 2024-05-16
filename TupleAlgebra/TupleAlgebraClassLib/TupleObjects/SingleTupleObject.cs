@@ -100,6 +100,33 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Instance methods
 
+        public override TupleObject<TEntity> AlignWithSchema(
+            TupleObjectSchema<TEntity> schema,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder = null)
+        {
+            if (object.ReferenceEquals(Schema, schema)) return this;
+
+            builder = builder ?? factory.GetBuilder<TEntity>();
+
+            int len = schema.PluggedAttributesCount;
+            IndexedComponentFactoryArgs<IAttributeComponent>[] components =
+                new IndexedComponentFactoryArgs<IAttributeComponent>[len];
+
+            int attrLoc = 0;
+            for (attrLoc = 0; attrLoc < len; attrLoc++)
+            {
+                components[attrLoc] = new();
+            }
+            for (int i = 0; i < Schema.PluggedAttributesCount; i++)
+            {
+                attrLoc = schema.GetAttributeLoc(Schema.AttributeAt(i));
+                components[attrLoc] = new(attrLoc, builder, this[i]);
+            }
+
+            return Reproduce(components, factory, schema.PassToBuilder, builder);
+        }
+
         public override bool IsEmpty()
         {
             return false;
@@ -175,6 +202,12 @@ namespace TupleAlgebraClassLib.TupleObjects
         public abstract IAttributeComponent<TAttribute> 
             GetDefaultFictionalAttributeComponent<TAttribute>(
                 IAttributeComponentFactory<TAttribute> factory);
+
+        public abstract TupleObject<TEntity> Reproduce(
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> components,
+            TupleObjectFactory factory,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder);
 
         public abstract TupleObject<TEntity> ToAlternateDiagonal(
             TupleObjectFactory factory);

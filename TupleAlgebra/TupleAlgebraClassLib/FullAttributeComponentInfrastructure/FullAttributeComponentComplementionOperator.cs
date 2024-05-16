@@ -12,12 +12,15 @@ namespace TupleAlgebraClassLib.FullAttributeComponentInfrastructure
     using static AttributeComponentHelper;
 
     public sealed class FullAttributeComponentComplementationOperator<TData>
-        : InstantUnaryAttributeComponentAcceptor<TData, FullAttributeComponent<TData>, IAttributeComponent<TData>>
+        : AttributeComponentFactoryUnarySetOperator<
+            TData,
+            FullAttributeComponent<TData>>
     {
         public override IAttributeComponent<TData> Accept(
-            FullAttributeComponent<TData> first)
+            FullAttributeComponent<TData> first,
+            IAttributeComponentFactory<TData> factory)
         {
-            return first.Factory.CreateEmpty();
+            return factory.CreateEmpty();
         }
     }
 }

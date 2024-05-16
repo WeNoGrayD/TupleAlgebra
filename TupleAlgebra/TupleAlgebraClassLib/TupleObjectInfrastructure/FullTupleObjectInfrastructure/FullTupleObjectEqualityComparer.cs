@@ -22,23 +22,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastr
             return false;
         }
 
-        protected override bool AcceptDefault(
+        public override bool AcceptDefault(
             FullTupleObject<TEntity> first,
             TupleObject<TEntity> second)
-        {
-            return false;
-        }
-
-        public bool Accept(
-            FullTupleObject<TEntity> first,
-            ConjunctiveTuple<TEntity> second)
-        {
-            return false;
-        }
-
-        public bool Accept(
-            FullTupleObject<TEntity> first,
-            ConjunctiveTupleSystem<TEntity> second)
         {
             return false;
         }

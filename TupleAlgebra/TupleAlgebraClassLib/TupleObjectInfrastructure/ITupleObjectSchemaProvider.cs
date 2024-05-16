@@ -102,6 +102,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public void DetachAttribute(AttributeName attributeName);
 
         public void RemoveAttribute(AttributeName attributeName);
+
+        public ITupleObjectAttributeSetupWizard GetSetupWizard(AttributeName attrName);
+
+        public ITupleObjectAttributeSetupWizard GetSetupWizard(int attrLoc);
     }
 
     /*

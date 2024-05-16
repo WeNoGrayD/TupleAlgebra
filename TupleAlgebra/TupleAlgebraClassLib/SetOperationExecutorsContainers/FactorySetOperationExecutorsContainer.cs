@@ -13,20 +13,20 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
     public abstract class FactorySetOperationExecutorsContainer<
         BTOperand, 
         CTOperand, 
-        TIntermediateOperationResult,
-        TOperationResultFactoryArgs,
+        //TIntermediateOperationResult,
+        //TOperationResultFactoryArgs,
         TOperationResultFactory>
-        : SetOperationExecutorsContainer<BTOperand, CTOperand>
+        : SetOperationExecutorsContainer<BTOperand, CTOperand, TOperationResultFactory>
         where CTOperand : class, BTOperand
+        /*
         where TOperationResultFactory : ISetOperationResultFactory<
             CTOperand,
             TIntermediateOperationResult,
             TOperationResultFactoryArgs,
             BTOperand>
+        */
     {
         #region Instance fields
-
-        private Lazy<FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>> _complementationOperator;
 
         private Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>> _intersectionOperator;
 
@@ -39,11 +39,6 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         #endregion
 
         #region Instance properties
-
-        protected TOperationResultFactory Factory { get; private set; }
-
-        protected FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand> ComplementationOperator
-        { get => _complementationOperator.Value; }
 
         protected FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand> IntersectionOperator
         { get => _intersectionOperator.Value; }
@@ -64,7 +59,7 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         public FactorySetOperationExecutorsContainer(
             TOperationResultFactory factory,
             Func<FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>
-                complementationOperator,
+                complementionOperator,
             Func<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
                 intersectionOperator,
             Func<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>
@@ -79,14 +74,12 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
                 equalityComparer,
             Func<InstantBinaryOperator<CTOperand, BTOperand, bool>> 
                 inclusionOrEquationComparer)
-            : base(inclusionComparer,
+            : base(factory,
+                   complementionOperator,
+                   inclusionComparer,
                    equalityComparer,
                    inclusionOrEquationComparer)
         {
-            Factory = factory;
-
-            _complementationOperator = new Lazy<FactoryUnaryOperator<CTOperand, TOperationResultFactory, BTOperand>>(
-                complementationOperator);
             _intersectionOperator = new Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
                 intersectionOperator);
             _unionOperator = new Lazy<FactoryBinaryOperator<CTOperand, BTOperand, TOperationResultFactory, BTOperand>>(
@@ -102,11 +95,6 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
         #endregion
 
         #region Instance methods
-
-        public override BTOperand Complement(BTOperand first)
-        {
-            return ComplementationOperator.Accept((first as CTOperand)!, Factory);
-        }
 
         public override BTOperand Intersect(BTOperand first, BTOperand second)
         {

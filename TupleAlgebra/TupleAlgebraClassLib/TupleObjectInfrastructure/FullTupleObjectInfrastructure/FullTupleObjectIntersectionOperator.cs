@@ -19,7 +19,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastr
             return second;
         }
 
-        protected override TupleObject<TEntity> AcceptDefault(
+        public override TupleObject<TEntity> AcceptDefault(
             FullTupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {

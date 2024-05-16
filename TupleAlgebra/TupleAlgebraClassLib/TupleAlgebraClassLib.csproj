@@ -26,4 +26,8 @@
     <ProjectReference Include="..\LINQProvider\LINQProvider.csproj" />
     <ProjectReference Include="..\UniversalClassLib\UniversalClassLib.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TupleObjectInfrastructure\ConjunctiveTupleSystemInfrastructure\" />
+    <Folder Include="TupleObjectInfrastructure\DisjunctiveTupleSystemInfrastructure\" />
+  </ItemGroup>
 </Project>
