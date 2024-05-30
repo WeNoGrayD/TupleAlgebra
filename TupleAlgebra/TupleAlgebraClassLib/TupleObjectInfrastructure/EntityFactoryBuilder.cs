@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using UniversalClassLib;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {

@@ -10,6 +10,8 @@ using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.FullAttributeComponentInfrastructure;
+using LINQProvider;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.Default;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
@@ -33,6 +35,9 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 
     public abstract record AttributeComponentFactoryArgs
     {
+        protected static IQueryProvider _queryProvider =
+            new DefaultAttributeComponentQueryProvider();
+
         public AttributeComponentPower Power { get; set; }
 
         public bool IsQuery { get; set; }
@@ -71,9 +76,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         : AttributeComponentFactoryArgs
     {
         public EmptyAttributeComponentFactoryArgs(
-            IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(EmptyAttributeComponentPower.Instance, false, queryProvider, queryExpression)
+            : base(EmptyAttributeComponentPower.Instance, false, _queryProvider, queryExpression)
         {
             return;
         }
@@ -100,9 +104,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         : AttributeComponentFactoryArgs
     {
         public FullAttributeComponentFactoryArgs(
-            IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(new FullAttributeComponentPower(), false, queryProvider, queryExpression)
+            : base(new FullAttributeComponentPower(), false, _queryProvider, queryExpression)
         {
             return;
         }

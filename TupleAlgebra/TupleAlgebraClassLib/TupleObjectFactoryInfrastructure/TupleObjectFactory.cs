@@ -19,19 +19,23 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
     {
         private TAContext _context;
 
-        private ConjunctiveTupleFactory _cFactory = new ConjunctiveTupleFactory();
+        private ConjunctiveTupleFactory _cFactory;
 
         private ConjunctiveTupleSystemFactory _csysFactory;
 
-        private DisjunctiveTupleFactory _dFactory = new DisjunctiveTupleFactory();
+        private DisjunctiveTupleFactory _dFactory;
 
         private DisjunctiveTupleSystemFactory _dsysFactory;
+
+        protected override TupleObjectFactory _factory { get => this; }
 
         public TupleObjectFactory(TAContext context)
         {
             _context = context;
-            _csysFactory = new ConjunctiveTupleSystemFactory(_cFactory, _dFactory);
-            _dsysFactory = new DisjunctiveTupleSystemFactory(_dFactory, _cFactory);
+            _cFactory = new ConjunctiveTupleFactory(this);
+            _dFactory = new DisjunctiveTupleFactory(this);
+            _csysFactory = new ConjunctiveTupleSystemFactory(this, _cFactory, _dFactory);
+            _dsysFactory = new DisjunctiveTupleSystemFactory(this, _dFactory, _cFactory);
 
             return;
         }
@@ -39,13 +43,27 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         public TupleObject<TEntity> CreateEmpty<TEntity>()
             where TEntity : new()
         {
-            TupleObject<TEntity> empty = null;
-            SubscribeOnContextDisposing(empty);
+            //TupleObject<TEntity> empty = null;
+            //SubscribeOnContextDisposing(empty);
 
             return null;
         }
 
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
+        public override TupleObject<TEntity> CreateEmpty<TEntity>(
+            TupleObjectBuilder<TEntity> builder = null)
+        {
+            return new EmptyTupleObject<TEntity>(
+                builder.Schema);
+        }
+
+        public override TupleObject<TEntity> CreateEmpty<TEntity>(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
+        {
+            return new EmptyTupleObject<TEntity>(
+                onTupleBuilding);
+        }
+
+        public TupleObject<TEntity> CreateConjunctiveTuple<TEntity>(
             TEntity entity)
             where TEntity : new()
         {
@@ -107,7 +125,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         }
         */
 
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
+        public TupleObject<TEntity> CreateConjunctiveTuple<TEntity>(
             IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> attributes,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null)
@@ -119,7 +137,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
+        public TupleObject<TEntity> CreateConjunctiveTuple<TEntity>(
             ISingleTupleObjectFactoryArgs[] factoryArgs,
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
@@ -129,7 +147,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
+        public TupleObject<TEntity> CreateConjunctiveTuple<TEntity>(
             ISingleTupleObjectFactoryArgs[] factoryArgs,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
             TupleObjectBuilder<TEntity> builder = null)
@@ -141,7 +159,17 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
+        public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
+            ISingleTupleObjectFactoryArgs[][] tupleSysFactoryArgs,
+            TupleObjectBuilder<TEntity> builder = null)
+            where TEntity : new()
+        {
+            return _csysFactory.CreateConjunctiveTupleSystem(
+                tupleSysFactoryArgs,
+                builder);
+        }
+
+        public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
             ISquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> tuples,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null)
@@ -176,14 +204,29 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         }
         */
 
-        public TupleObject<TEntity> CreateDiagonalConjunctiveSystem<TEntity>(
+        public TupleObject<TEntity> CreateDiagonalConjunctiveTupleSystem<TEntity>(
             DisjunctiveTuple<TEntity> tuple)
             where TEntity : new()
         {
             return _csysFactory.ToAlternateDiagonal(tuple);
         }
 
-        public TupleObject<TEntity> CreateConjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDiagonalConjunctiveTupleSystem<TEntity>(
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+            tupleSysFactoryArgs,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder,
+            bool makeOrthogonal)
+            where TEntity : new()
+        {
+            return _csysFactory.CreateDiagonalConjunctiveTupleSystem(
+                tupleSysFactoryArgs,
+                onTupleBuilding,
+                builder,
+                makeOrthogonal);
+        }
+
+        public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
             IEnumerable<TupleObject<TEntity>> tupleSysFactoryArgs,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
             TupleObjectBuilder<TEntity> builder)
@@ -195,7 +238,15 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
+            IEnumerable<TEntity> tupleSysFactoryArgs)
+            where TEntity : new()
+        {
+            return _csysFactory.CreateConjunctiveTupleSystem(
+                tupleSysFactoryArgs);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             IEnumerable<NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>> attributes,
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
@@ -205,7 +256,17 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTupleSystem<TEntity>(
+            ISingleTupleObjectFactoryArgs[][] tupleSysFactoryArgs,
+            TupleObjectBuilder<TEntity> builder = null)
+            where TEntity : new()
+        {
+            return _dsysFactory.CreateDisjunctiveTupleSystem(
+                tupleSysFactoryArgs,
+                builder);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             IEnumerable<NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>> attributes,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null)
@@ -217,7 +278,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             IEnumerable<NamedComponentFactoryArgs<IAttributeComponent>> attributes,
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
@@ -227,7 +288,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             IEnumerable<NamedComponentFactoryArgs<IAttributeComponent>> attributes,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null)
@@ -239,7 +300,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> attributes,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null)
@@ -251,7 +312,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             TupleObjectBuilder<TEntity> builder = null,
             params NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>[] attributes)
             where TEntity : new()
@@ -261,7 +322,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 attributes);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null,
             params NamedComponentFactoryArgs<IAttributeComponentFactoryArgs>[] attributes)
@@ -273,7 +334,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 attributes);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             TupleObjectBuilder<TEntity> builder = null,
             params NamedComponentFactoryArgs<IAttributeComponent>[] attributes)
             where TEntity : new()
@@ -283,7 +344,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 attributes);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null,
             params NamedComponentFactoryArgs<IAttributeComponent>[] attributes)
@@ -295,7 +356,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 attributes);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTupleSystem<TEntity>(
             IndexedComponentFactoryArgs<IAttributeComponent>[][] factoryArgs,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             where TEntity : new()
@@ -305,21 +366,21 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 onTupleBuilding);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTupleSystem<TEntity>(
             TEntity entity)
             where TEntity : new()
         {
-            return _dsysFactory.CreateDisjunctiveTupleSystem(entity);
+            return _dsysFactory.CreateDiagonalDisjunctiveTupleSystem(entity);
         }
 
-        public TupleObject<TEntity> CreateDiagonalDisjunctiveSystem<TEntity>(
+        public TupleObject<TEntity> CreateDiagonalDisjunctiveTupleSystem<TEntity>(
             ConjunctiveTuple<TEntity> tuple)
             where TEntity : new()
         {
             return _dsysFactory.ToAlternateDiagonal(tuple);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTupleSystem<TEntity>(
             ISquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> tuples,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null)
@@ -331,7 +392,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
-        public TupleObject<TEntity> CreateDisjunctive<TEntity>(
+        public TupleObject<TEntity> CreateDisjunctiveTupleSystem<TEntity>(
             IEnumerable<TupleObject<TEntity>> tupleSysFactoryArgs,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
             TupleObjectBuilder<TEntity> builder)
@@ -343,11 +404,27 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
+        public override TupleObject<TEntity> CreateFull<TEntity>(
+            TupleObjectBuilder<TEntity> builder = null)
+        {
+            return new FullTupleObject<TEntity>(
+                builder.Schema,
+                _cFactory.CreateFullConjunctive(builder));
+        }
+
+        public override TupleObject<TEntity> CreateFull<TEntity>(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
+        {
+            return new FullTupleObject<TEntity>(
+                onTupleBuilding,
+                _cFactory.CreateFullConjunctive(GetBuilder<TEntity>(onTupleBuilding)));
+        }
+
         public TupleObject<TEntity> CreateFull<TEntity>()
             where TEntity : new()
         {
-            TupleObject<TEntity> full= null;
-            SubscribeOnContextDisposing(full);
+            //TupleObject<TEntity> full= null;
+            //SubscribeOnContextDisposing(full);
 
             return null;
         }

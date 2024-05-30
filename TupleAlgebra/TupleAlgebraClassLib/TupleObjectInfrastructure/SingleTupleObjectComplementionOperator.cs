@@ -10,6 +10,7 @@ using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
+    /*
     public abstract class SingleTupleObjectComplementionOperator<TEntity, TOperand>
         : TupleObjectFactoryUnarySetOperator<TEntity, TOperand>
         where TEntity : new()
@@ -40,4 +41,5 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             TupleObjectFactory factory,
             TupleObjectBuilder<TEntity> builder);
     }
+    */
 }

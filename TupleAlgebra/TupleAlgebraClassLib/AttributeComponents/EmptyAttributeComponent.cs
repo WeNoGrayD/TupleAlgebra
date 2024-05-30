@@ -33,7 +33,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public EmptyAttributeComponent(
             EmptyAttributeComponentPower power,
-            IQueryProvider queryProvider = null,
+            IQueryProvider queryProvider,
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {

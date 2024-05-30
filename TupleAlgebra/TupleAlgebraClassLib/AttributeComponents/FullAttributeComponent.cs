@@ -66,7 +66,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="queryExpression"></param>
         public FullAttributeComponent(
             FullAttributeComponentPower power,
-            IQueryProvider queryProvider = null,
+            IQueryProvider queryProvider,
             Expression queryExpression = null)
             : base(power, queryProvider, queryExpression)
         {

@@ -29,7 +29,14 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                 new OperationResultEnumerableResultProvider<TData>(
                     ExceptComponentsElements(), true);
 
-            return factory.CreateNonFictional(first, remainedElements);
+            /*
+             * Этот вызов перенаправляет на вызов метода 
+             * IStreamingOrderedEnumerableNonFictional...Factory.CreateNonFictional.
+             * Нужно доработать этот момент, чтобы фабрика буферизирующих перечислимых компонент 
+             * обязана быть реализована совместно с фабрикой потоковых.
+             */
+
+            return factory.CreateNonFictional(remainedElements);
 
             IEnumerable<TData> ExceptComponentsElements()
             {

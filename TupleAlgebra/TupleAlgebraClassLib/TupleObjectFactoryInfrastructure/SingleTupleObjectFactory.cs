@@ -15,6 +15,14 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
     public abstract class SingleTupleObjectFactory
         : AbstractTupleObjectFactory
     {
+        public SingleTupleObjectFactory(
+            TupleObjectFactory factory)
+        {
+            _factory = factory;
+
+            return;
+        }
+
         /*
         protected delegate TTupleObject SingleTupleObjectFactoryHandler<
             TEntity,
@@ -118,13 +126,21 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 if (proceedInitPrepared && i == farg.Index)
                 {
                     tupleManager = farg.TupleManager;
-                    setComponent(tupleManager, tuple, farg.ComponentSource);
-                    if (AttributeComponentStopsBuilding(tupleManager, tuple))
+
+                    if (farg.IsDefault)
                     {
-                        fargsEnumerator.Dispose();
-                        return ReduceSingleTupleObjectToFictional(builder, true);
+                        tupleManager.SetDefaultFictionalAttributeComponent(tuple);
                     }
-                    isRedundant &= AttributeComponentIsDefault(tupleManager, tuple);
+                    else
+                    {
+                        setComponent(tupleManager, tuple, farg.ComponentSource);
+                        if (AttributeComponentStopsBuilding(tupleManager, tuple))
+                        {
+                            fargsEnumerator.Dispose();
+                            return ReduceSingleTupleObjectToFictional(builder, true);
+                        }
+                        isRedundant &= AttributeComponentIsDefault(tupleManager, tuple);
+                    }
 
                     proceedInitPrepared = fargsEnumerator.MoveNext();
                     if (proceedInitPrepared)

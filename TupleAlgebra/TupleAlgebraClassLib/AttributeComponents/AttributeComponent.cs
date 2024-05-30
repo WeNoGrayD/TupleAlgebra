@@ -59,6 +59,10 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         public virtual IQueryProvider Provider { get; protected set; }
 
+        bool IAttributeComponent.IsEmpty { get => Power.EqualsZero(this); }
+
+        bool IAttributeComponent.IsFull { get => Power.EqualsContinuum(this); }
+
         #endregion
 
         #endregion
@@ -141,10 +145,6 @@ namespace TupleAlgebraClassLib.AttributeComponents
         }
 
         #endregion
-
-        bool IAttributeComponent.IsEmpty() => Power.EqualsZero(this);
-
-        bool IAttributeComponent.IsFull() => Power.EqualsContinuum(this);
 
         public IEnumerator<TData> GetEnumerator()
         {

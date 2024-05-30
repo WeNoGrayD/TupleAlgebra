@@ -59,17 +59,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {
-            return null;
-        }
-
-        public override TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override TupleObject<TEntity> Diagonal()
-        {
-            throw new NotImplementedException();
+            return Enumerable.Empty<TEntity>().GetEnumerator();
         }
 
         #region Nested types

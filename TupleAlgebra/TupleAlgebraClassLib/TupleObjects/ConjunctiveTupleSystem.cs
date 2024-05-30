@@ -7,18 +7,25 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrastructure;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleSystemInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
+    using static TupleObjectStaticDataStorage;
 
     public class ConjunctiveTupleSystem<TEntity> 
         : TupleObjectSystem<TEntity, ConjunctiveTuple<TEntity>>
         where TEntity : new()
     {
-        public bool IsDiagonal { get; set; }
+        static ConjunctiveTupleSystem()
+        {
+            Storage.RegisterType<TEntity, ConjunctiveTupleSystem<TEntity>>(
+                (factory) => new ConjunctiveTupleSystemOperationExecutorsContainer(factory));
 
-        public bool IsOrthogonal { get; set; }
+            return;
+        }
 
         public ConjunctiveTupleSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
@@ -49,7 +56,10 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
             TupleObjectBuilder<TEntity> builder)
         {
-            return factory.CreateConjunctive(tuples, onTupleBuilding, builder);
+            return factory.CreateConjunctiveTupleSystem(
+                tuples, 
+                onTupleBuilding, 
+                builder);
         }
 
         /*
@@ -112,14 +122,61 @@ namespace TupleAlgebraClassLib.TupleObjects
             yield break;
         }
 
-        public override TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal)
+        public TupleObject<TEntity> TrueUnion()
         {
-            throw new NotImplementedException();
+            return (SetOperations as IConjunctiveTupleSystemOperationExecutorsContainer)!
+                .TrueUnion(this);
         }
 
-        public override TupleObject<TEntity> Diagonal()
+        #region Nested types
+
+        public interface IConjunctiveTupleSystemOperationExecutorsContainer
         {
-            throw new NotImplementedException();
+            public TupleObject<TEntity> TrueUnion(
+                ConjunctiveTupleSystem<TEntity> first);
         }
+
+        public class ConjunctiveTupleSystemOperationExecutorsContainer
+            : NonFictionalTupleObjectOperationExecutorsContainer<ConjunctiveTupleSystem<TEntity>>,
+              IConjunctiveTupleSystemOperationExecutorsContainer
+        {
+            private Lazy<ConjunctiveTupleSystemTrueUnionOperator<TEntity>>
+                _trueUnionOperator;
+
+            public ConjunctiveTupleSystemTrueUnionOperator<TEntity>
+                TrueUnionOperator => _trueUnionOperator.Value;
+
+            #region Constructors
+
+            public ConjunctiveTupleSystemOperationExecutorsContainer(
+                TupleObjectFactory factory)
+                : base(factory,
+                       () => new ConjunctiveTupleSystemComplementionOperator<TEntity>(),
+                       () => new ConjunctiveTupleSystemConversionToAlternateOperator<TEntity>(),
+                       () => new ConjunctiveTupleSystemIntersectionOperator<TEntity>(),
+                       () => null,
+                       () => null,
+                       () => null,
+                       () => null,
+                       () => null,
+                       () => null)
+            {
+                _trueUnionOperator = 
+                    new Lazy<ConjunctiveTupleSystemTrueUnionOperator<TEntity>>();
+
+                return;
+            }
+
+            #endregion
+
+            public TupleObject<TEntity> TrueUnion(
+                ConjunctiveTupleSystem<TEntity> first)
+            {
+                return TrueUnionOperator
+                    .Union(first, Factory);
+            }
+        }
+
+        #endregion
     }
 }

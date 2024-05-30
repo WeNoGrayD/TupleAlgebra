@@ -6,17 +6,31 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleSystemInfrastructure;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.DisjunctiveTupleSystemInfrastructure;
+using UniversalClassLib;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
+    using static TupleObjectStaticDataStorage;
     using static TupleObjectHelper;
+    using static CartesianProductHelper;
+    using static TupleObjectInfrastructure.TupleObjectOperators.TupleObjectFactoryMethods;
 
     public class DisjunctiveTupleSystem<TEntity> 
         : TupleObjectSystem<TEntity, DisjunctiveTuple<TEntity>>
         where TEntity : new()
     {
+        static DisjunctiveTupleSystem()
+        {
+            Storage.RegisterType<TEntity, DisjunctiveTupleSystem<TEntity>>(
+                (factory) => new DisjunctiveTupleSystemOperationExecutorsContainer(factory));
+
+            return;
+        }
         public DisjunctiveTupleSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
         { }
@@ -46,84 +60,71 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
             TupleObjectBuilder<TEntity> builder)
         {
-            return factory.CreateDisjunctive(tuples, onTupleBuilding, builder);
+            return factory.CreateDisjunctiveTupleSystem(
+                tuples, 
+                onTupleBuilding, 
+                builder);
         }
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {
-            return null;
+            return TrueIntersect().GetEnumerator();
         }
 
-        public override TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal)
+        public TupleObject<TEntity> TrueIntersect()
         {
-            throw new NotImplementedException();
+            return (SetOperations as IDisjunctiveTupleSystemOperationExecutorsContainer)!
+                .TrueIntersect(this);
         }
 
-        public override TupleObject<TEntity> Diagonal()
+        #region Nested types
+
+        public interface IDisjunctiveTupleSystemOperationExecutorsContainer
         {
-            throw new NotImplementedException();
+            public TupleObject<TEntity> TrueIntersect(
+                DisjunctiveTupleSystem<TEntity> first);
         }
 
-        public TupleObject<TEntity> ToCTuple(
-            TupleObjectFactory factory)
+        public class DisjunctiveTupleSystemOperationExecutorsContainer
+            : NonFictionalTupleObjectOperationExecutorsContainer<DisjunctiveTupleSystem<TEntity>>,
+              IDisjunctiveTupleSystemOperationExecutorsContainer
         {
-            return factory.CreateConjunctive<TEntity>(Factory().ToArray());
+            private Lazy<DisjunctiveTupleSystemTrueIntersectionOperator<TEntity>>
+                _trueIntersectionOperator;
 
-            IEnumerable<ISingleTupleObjectFactoryArgs> Factory()
+            public DisjunctiveTupleSystemTrueIntersectionOperator<TEntity>
+                TrueIntersectionOperator => _trueIntersectionOperator.Value;
+
+            #region Constructors
+
+            public DisjunctiveTupleSystemOperationExecutorsContainer(
+                TupleObjectFactory factory)
+                : base(factory,
+                       () => new DisjunctiveTupleSystemComplementionOperator<TEntity>(),
+                       () => new DisjunctiveTupleSystemConversionToAlternateOperator<TEntity>(),
+                       () => new DisjunctiveTupleSystemIntersectionOperator<TEntity>(),
+                       () => null,
+                       () => null,
+                       () => null,
+                       () => null,
+                       () => null,
+                       () => null)
             {
-                Func<IEnumerator[], ISingleTupleObjectFactoryArgs> entityFactory 
-                    = null;
-                IEnumerator[] componentsEnumerators = null;
-                int startComponentLoc = 0;
-                Stack<IEnumerator> componentsStack = null;
-                int stackPtr = startComponentLoc,
-                    componentsCount = componentsEnumerators.Length - stackPtr;
-                IEnumerator componentEnumerator;
+                _trueIntersectionOperator = 
+                    new Lazy<DisjunctiveTupleSystemTrueIntersectionOperator<TEntity>>();
 
-                if (componentsStack is null)
-                    componentsStack = new Stack<IEnumerator>(componentsCount);
-                componentsStack.Push(componentEnumerator = componentsEnumerators[stackPtr]);
+                return;
+            }
 
-                int[] js = new int[_tuples.Length];
-                int j;
+            #endregion
 
-                for (int k = 0; k < _tuples.Length * Schema.Count; k++)
-                {
-                    for (int i = 0; i < _tuples.Length; i++)
-                    {
-                        if ((j = k - i) < 0)
-                        { }
-                    }
-                }
-
-                do
-                {
-                    if (componentEnumerator.MoveNext())
-                    {
-                        if (stackPtr == componentsCount)
-                        {
-                            yield return entityFactory(componentsEnumerators);
-                        }
-                        else
-                        {
-                            componentsStack.Push(componentsEnumerators[++stackPtr]);
-                        }
-                    }
-                    else
-                    {
-                        stackPtr--;
-                        /*
-                         * Указатель стека переходит на перечислитель предыдущего атрибута,
-                         * а перечислитель текущего атрибута перезапускается, чтобы
-                         * в следующий раз перебор начался сначала.
-                         */
-                        componentsStack.Pop().Reset();
-                    }
-                }
-                while (componentsStack.TryPeek(out componentEnumerator));
-
-                yield break;
+            public TupleObject<TEntity> TrueIntersect(
+                DisjunctiveTupleSystem<TEntity> first)
+            {
+                return TrueIntersectionOperator.Intersect(first, Factory);
             }
         }
+
+        #endregion
     }
 }

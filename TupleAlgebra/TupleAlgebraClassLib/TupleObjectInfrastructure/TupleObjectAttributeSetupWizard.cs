@@ -43,13 +43,13 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public bool IsEmpty<TEntity>(SingleTupleObject<TEntity> tuple)
             where TEntity : new()
         {
-            return tuple[_attributeName].IsEmpty();
+            return tuple[_attributeName].IsEmpty;
         }
 
         public bool IsFull<TEntity>(SingleTupleObject<TEntity> tuple)
             where TEntity : new()
         {
-            return tuple[_attributeName].IsFull();
+            return tuple[_attributeName].IsFull;
         }
 
         public ITupleObjectAttributeManager SetComponent(

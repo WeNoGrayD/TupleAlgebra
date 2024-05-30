@@ -63,6 +63,27 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
             TupleObjectFactory factory)
             where TOperand2 : TupleObject<TEntity>;
 
+        protected delegate TupleObject<TEntity> ReversedOperationHandler<TOperand2>(
+            TOperand2 first,
+            TOperand1 second,
+            TupleObjectFactory factory)
+            where TOperand2 : TupleObject<TEntity>;
+
+        private void AlignOperandsWithSchema<TOperand2>(
+            ref TOperand1 first,
+            ref TOperand2 second,
+            TupleObjectFactory factory)
+            where TOperand2 : TupleObject<TEntity>
+        {
+            TupleObjectSchema<TEntity> genSchema =
+                first.Schema.GeneralizeWith(second.Schema);
+            TupleObjectBuilder<TEntity> builder =
+            factory.GetBuilder(genSchema);
+
+            first = (first.AlignWithSchema(genSchema, factory, builder) as TOperand1)!;
+            second = (second.AlignWithSchema(genSchema, factory, builder) as TOperand2)!;
+        }
+
         protected TupleObject<TEntity> OperationStrategy<TOperand2>(
             TOperand1 first,
             TOperand2 second,
@@ -70,15 +91,19 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
             OperationHandler<TOperand2> operation)
             where TOperand2 : TupleObject<TEntity>
         {
-            TupleObjectSchema<TEntity> genSchema =
-                first.Schema.GeneralizeWith(second.Schema);
-            TupleObjectBuilder<TEntity> builder =
-                factory.GetBuilder(genSchema);
-
-            first = (first.AlignWithSchema(genSchema, factory, builder) as TOperand1)!;
-            second = (second.AlignWithSchema(genSchema, factory, builder) as TOperand2)!;
-
+            AlignOperandsWithSchema(ref first, ref second, factory);
             return operation(first, second, factory);
+        }
+
+        protected TupleObject<TEntity> OperationStrategy<TOperand2>(
+            TOperand1 first,
+            TOperand2 second,
+            TupleObjectFactory factory,
+            ReversedOperationHandler<TOperand2> operation)
+            where TOperand2 : TupleObject<TEntity>
+        {
+            AlignOperandsWithSchema(ref first, ref second, factory);
+            return operation(second, first, factory);
         }
     }
 

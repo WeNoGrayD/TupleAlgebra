@@ -6,26 +6,23 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SetOperationExecutorsContainers;
+using UniversalClassLib;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
     public interface IAttributeComponent 
         : IAlgebraicSetObject, 
-          IEnumerable, IQueryable
+          IEnumerable, 
+          IQueryable,
+          IBufferizedEnumerable
     {
         AttributeComponentPower Power { get; }
 
-        /// <summary>
-        /// Получение буферизированного перечислителя данных, т.е. такого, чей источник данных
-        /// буферизирован.
-        /// Требуется для оптимизации по времени вычисления декартова произведения компонент атрибутов.
-        /// </summary>
-        /// <returns></returns>
-        IEnumerator GetBufferizedEnumerator();
+        bool IsEmpty { get; }
 
-        bool IsEmpty();
+        bool IsFull { get; }
 
-        bool IsFull();
+        bool IsDefault { get => IsEmpty || IsFull; }
 
         new IAttributeComponent ComplementThe();
 
@@ -65,7 +62,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
     {
         IEnumerator<TData> GetBufferizedEnumerator();
 
-        IEnumerator IAttributeComponent.GetBufferizedEnumerator() => GetBufferizedEnumerator();
+        IEnumerator IBufferizedEnumerable.GetBufferizedEnumerator() => GetBufferizedEnumerator();
 
         public bool Includes(
             IAttributeComponent<TData> second);

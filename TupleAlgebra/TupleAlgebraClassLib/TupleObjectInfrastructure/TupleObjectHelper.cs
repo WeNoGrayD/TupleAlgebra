@@ -28,8 +28,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public delegate TEntity AttributeGetterHandler<TEntity>(TEntity entity);
 
-        public delegate TEntity EntityFactoryHandler<TEntity>(IEnumerator[] properties);
-
         public delegate TEntity PrimitiveEntityFactoryHandler<TEntity>(IEnumerator<TEntity> property);
 
         public delegate ITupleObjectAttributeSetupWizard

@@ -18,6 +18,8 @@ namespace TupleAlgebraClassLib.TupleObjects
     public class FullTupleObject<TEntity> : TupleObject<TEntity>
         where TEntity : new()
     {
+        private ConjunctiveTuple<TEntity> _inner;
+
         static FullTupleObject()
         {
             Storage.RegisterType<TEntity, FullTupleObject<TEntity>>(
@@ -26,15 +28,25 @@ namespace TupleAlgebraClassLib.TupleObjects
             return;
         }
 
-        public FullTupleObject(TupleObjectBuildingHandler<TEntity> onTupleBuilding)
+        public FullTupleObject(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            ConjunctiveTuple<TEntity> inner)
             : base(onTupleBuilding)
         {
+            _inner = inner;
 
+            return;
         }
 
-        public FullTupleObject(TupleObjectSchema<TEntity> schema)
+        public FullTupleObject(
+            TupleObjectSchema<TEntity> schema,
+            ConjunctiveTuple<TEntity> inner)
             : base(schema)
-        { }
+        {
+            _inner = inner;
+
+            return;
+        }
 
         public override TupleObject<TEntity> AlignWithSchema(
             TupleObjectSchema<TEntity> schema,
@@ -61,17 +73,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {
-            return null;
-        }
-
-        public override TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override TupleObject<TEntity> Diagonal()
-        {
-            throw new NotImplementedException();
+            return _inner.GetEnumerator();
         }
 
         #region Nested types

@@ -14,6 +14,11 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
     public class DisjunctiveTupleFactory : SingleTupleObjectFactory
     {
+        public DisjunctiveTupleFactory(
+            TupleObjectFactory factory)
+            : base(factory)
+        { }
+
         protected override SingleTupleObject<TEntity>
             SingleTupleObjectFactoryImpl<TEntity>(TupleObjectSchema<TEntity> schema)
         {

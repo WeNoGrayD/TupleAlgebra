@@ -13,6 +13,8 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
     public abstract class AbstractTupleObjectFactory
     {
+        protected virtual TupleObjectFactory _factory { get; set; }
+
         public delegate ITupleObjectAttributeManager
             SetComponentHandler<TComponentSource>(
             ITupleObjectAttributeManager tupleManager,
@@ -69,6 +71,15 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             return new TupleObjectBuilder<TEntity>(schema);
         }
 
+        public TupleObjectBuilder<TEntity> GetBuilder<TEntity>(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
+        {
+            TupleObjectBuilder<TEntity> builder = GetBuilder<TEntity>();
+            onTupleBuilding(builder);
+
+            return builder;
+        }
+
         public TupleObjectBuilder<TEntity> GetDefaultBuilder<TEntity>()
         {
             TupleObjectBuilder<TEntity> builder = GetBuilder<TEntity>();
@@ -78,32 +89,32 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             return builder;
         }
 
-        public TupleObject<TEntity> CreateEmpty<TEntity>(
+        public virtual TupleObject<TEntity> CreateEmpty<TEntity>(
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
-            return new EmptyTupleObject<TEntity>(builder.Schema);
+            return _factory.CreateEmpty(builder);
         }
 
-        public TupleObject<TEntity> CreateEmpty<TEntity>(
+        public virtual TupleObject<TEntity> CreateEmpty<TEntity>(
             TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             where TEntity : new()
         {
-            return new EmptyTupleObject<TEntity>(onTupleBuilding);
+            return _factory.CreateEmpty(onTupleBuilding);
         }
 
-        public TupleObject<TEntity> CreateFull<TEntity>(
+        public virtual TupleObject<TEntity> CreateFull<TEntity>(
             TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
-            return new FullTupleObject<TEntity>(builder.Schema);
+            return _factory.CreateFull(builder);
         }
 
-        public TupleObject<TEntity> CreateFull<TEntity>(
+        public virtual TupleObject<TEntity> CreateFull<TEntity>(
             TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             where TEntity : new()
         {
-            return new FullTupleObject<TEntity>(onTupleBuilding);
+            return _factory.CreateFull(onTupleBuilding);
         }
 
         protected static IEnumerable<IndexedComponentFactoryArgs<TEntity>>

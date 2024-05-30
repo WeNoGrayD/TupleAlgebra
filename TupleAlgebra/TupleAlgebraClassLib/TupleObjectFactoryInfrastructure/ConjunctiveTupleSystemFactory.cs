@@ -17,9 +17,10 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         : TupleObjectSystemFactory<ConjunctiveTupleFactory, DisjunctiveTupleFactory>
     {
         public ConjunctiveTupleSystemFactory(
+            TupleObjectFactory factory,
             ConjunctiveTupleFactory cTupleFactory,
             DisjunctiveTupleFactory dTupleFactory)
-            : base(cTupleFactory, dTupleFactory)
+            : base(factory, cTupleFactory, dTupleFactory)
         { }
 
         protected override TupleObject<TEntity>
@@ -171,11 +172,37 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 builder);
         }
 
+        public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
+            ISingleTupleObjectFactoryArgs[][] tupleSysFactoryArgs,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return CreateTupleObjectSystem(
+                tupleSysFactoryArgs,
+                builder);
+        }
+
         public TupleObject<TEntity> ToAlternateDiagonal<TEntity>(
             DisjunctiveTuple<TEntity> tuple)
             where TEntity : new()
         {
             return base.ToAlternateDiagonal<TEntity, ConjunctiveTuple<TEntity>>(tuple);
+        }
+
+        public TupleObject<TEntity> CreateDiagonalConjunctiveTupleSystem<TEntity>(
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> 
+            tupleSysFactoryArgs,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding,
+            TupleObjectBuilder<TEntity> builder,
+            bool makeOrthogonal)
+            where TEntity : new()
+        {
+            return CreateDiagonalTupleObjectSystemStrategy<
+                TEntity, ConjunctiveTuple<TEntity>>(
+                tupleSysFactoryArgs,
+                makeOrthogonal,
+                onTupleBuilding,
+                builder);
         }
     }
 }

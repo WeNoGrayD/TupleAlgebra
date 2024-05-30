@@ -7,10 +7,54 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
+using System.Collections;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
+
+    public class ArrayEnumerator<T>
+        : IEnumerator<T>
+    {
+        private T[] _source;
+
+        public int Index { get; private set; }
+
+        object IEnumerator.Current => Current;
+
+        public T Current { get => _source[Index]; }
+
+        public ArrayEnumerator(T[] source)
+        {
+            _source = source;
+            Reset();
+
+            return;
+        }
+
+        public bool MoveNext()
+        {
+            return ++Index < _source.Length;
+        }
+
+        public void Reset()
+        {
+            Index = 0;
+        }
+
+        public void Dispose()
+        {
+            return;
+        }
+    }
+
+    public class AttributeComponentEnumerator
+        : ArrayEnumerator<IAttributeComponent>
+    {
+        public AttributeComponentEnumerator(IAttributeComponent[] source)
+            : base(source)
+        { return; }
+    }
 
     public class DisjunctiveTuple<TEntity> : SingleTupleObject<TEntity>
         where TEntity : new()
@@ -29,6 +73,11 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Instance methods
 
+        public override bool IsDefault(IAttributeComponent component)
+        {
+            return component.IsEmpty;
+        }
+
         public override IAttributeComponent<TAttribute>
             GetDefaultFictionalAttributeComponent<TAttribute>(
                 IAttributeComponentFactory<TAttribute> factory)
@@ -42,31 +91,22 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
             TupleObjectBuilder<TEntity> builder)
         {
-            return factory.CreateDisjunctive(components, onTupleBuilding, builder);
-        }
-
-        public override TupleObject<TEntity> ToAlternateDiagonal(
-            TupleObjectFactory factory)
-        {
-            return factory.CreateDiagonalConjunctiveSystem<TEntity>(
-                this);
+            return factory.CreateDisjunctiveTuple(
+                components, 
+                onTupleBuilding,
+                builder);
         }
 
         #endregion
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {
-            return null;
+            return (!this).GetEnumerator();
         }
 
-        public override TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal)
+        public AttributeComponentEnumerator GetAttributeComponentEnumerator()
         {
-            throw new NotImplementedException();
-        }
-
-        public override TupleObject<TEntity> Diagonal()
-        {
-            throw new NotImplementedException();
+            return new AttributeComponentEnumerator(_components);
         }
     }
 }

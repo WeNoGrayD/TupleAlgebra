@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjects;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.AttributeContainers;
+using UniversalClassLib;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {

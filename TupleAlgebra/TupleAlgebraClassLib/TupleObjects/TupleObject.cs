@@ -45,7 +45,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public virtual IQueryProvider Provider { get; protected set; }
 
-        public ISetOperationExecutorsContainer<TupleObject<TEntity>> SetOperations
+        public ITupleObjectOperationExecutorsContainer<TEntity> SetOperations
         { get => Storage.GetSetOperations<TEntity>(this); }
 
         /// <summary>
@@ -193,28 +193,10 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObjectFactory factory,
             TupleObjectBuilder<TEntity> builder);
 
-        void ProcessDomain<TDomainEntity>(string attributeName, AttributeDomain<TDomainEntity> attribute)
-            where TDomainEntity : IComparable<TDomainEntity>
+        public TupleObject<TEntity> ConvertToAlternate()
         {
-            Type entityType = typeof(TEntity);
-            TEntity entity = default;
-            entityType.InvokeMember(
-                attributeName, BindingFlags.GetField | BindingFlags.GetProperty, null, entity, new object[] { });
+            return SetOperations.ConvertToAlternate(this);
         }
-
-        /// <summary>
-        /// Приведение схем двух кортежей к общему виду.
-        /// </summary>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
-        private static TupleObjectSchema<TEntity> Generalize(
-            TupleObject<TEntity> first, TupleObject<TEntity> second)
-        {
-            return null;
-            //return first.Schema.GeneralizeWith(second.Schema);
-        }
-
-        public abstract TupleObject<TEntity> Diagonal();
 
         public TupleObject<TEntity> ComplementThe()
         {
@@ -262,8 +244,6 @@ namespace TupleAlgebraClassLib.TupleObjects
         {
             return SetOperations.IncludeOrEqual(this, second);
         }
-
-        public abstract TupleObject<TEntity> Convert(TupleObject<TEntity> diagonal);
 
         #endregion
 
@@ -344,6 +324,12 @@ namespace TupleAlgebraClassLib.TupleObjects
             return first.ComplementThe();
         }
 
+        public static TupleObject<TEntity> operator !(
+            TupleObject<TEntity> first)
+        {
+            return first.ConvertToAlternate();
+        }
+
         public static TupleObject<TEntity> operator &(
             TupleObject<TEntity> first,
             TupleObject<TEntity> second)
@@ -419,7 +405,11 @@ namespace TupleAlgebraClassLib.TupleObjects
         #region Nested types
 
         public abstract class FictionalTupleObjectOperationExecutorsContainer<CTOperand>
-            : InstantSetOperationExecutorsContainer<TupleObject<TEntity>, CTOperand, TupleObjectFactory>
+            : InstantSetOperationExecutorsContainer<
+                TupleObject<TEntity>, 
+                CTOperand, 
+                TupleObjectFactory>,
+              ITupleObjectOperationExecutorsContainer<TEntity>
         where CTOperand : TupleObject<TEntity>
         {
             #region Constructors
@@ -456,18 +446,36 @@ namespace TupleAlgebraClassLib.TupleObjects
             }
 
             #endregion
+
+            public TupleObject<TEntity> ConvertToAlternate(TupleObject<TEntity> first)
+            {
+                throw new InvalidOperationException(
+                    "Фиктивные кортежи не поддерживают операции конвертирования в альтернативный способ отображения.");
+            }
         }
 
         public abstract class NonFictionalTupleObjectOperationExecutorsContainer<CTOperand>
-            : FactorySetOperationExecutorsContainer<TupleObject<TEntity>, CTOperand, TupleObjectFactory>
+            : FactorySetOperationExecutorsContainer<
+                TupleObject<TEntity>, 
+                CTOperand, 
+                TupleObjectFactory>,
+              ITupleObjectOperationExecutorsContainer<TEntity>
         where CTOperand : TupleObject<TEntity>
         {
+            private Lazy<TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>>
+                _conversionToAlternateOperator;
+
+            public TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>
+                ConversionToAlternateOperator => _conversionToAlternateOperator.Value;
+
             #region Constructors
 
             public NonFictionalTupleObjectOperationExecutorsContainer(
                 TupleObjectFactory factory,
                 Func<TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>>
                     complementationOperator,
+                Func<TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>>
+                    conversionToAlternateOperator,
                 Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
                     intersectionOperator,
                 Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
@@ -492,10 +500,20 @@ namespace TupleAlgebraClassLib.TupleObjects
                        equalityComparer,
                        inclusionOrEquationComparer)
             {
+                _conversionToAlternateOperator = new 
+                    Lazy<TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>>(conversionToAlternateOperator);
+
                 return;
             }
 
             #endregion
+
+            public TupleObject<TEntity> ConvertToAlternate(
+                TupleObject<TEntity> first)
+            {
+                return ConversionToAlternateOperator.Accept(
+                    (first as CTOperand)!, Factory);
+            }
         }
 
         #endregion

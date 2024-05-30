@@ -15,6 +15,11 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
     public class ConjunctiveTupleFactory
         : SingleTupleObjectFactory
     {
+        public ConjunctiveTupleFactory(
+            TupleObjectFactory factory)
+            : base(factory)
+        { }
+
         protected override SingleTupleObject<TEntity>
             SingleTupleObjectFactoryImpl<TEntity>(TupleObjectSchema<TEntity> schema)
         {
@@ -321,6 +326,22 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 GetDefaultBuilder<TEntity>();
 
             return CreateConjunctive(entity, builder);
+        }
+
+        public ConjunctiveTuple<TEntity> CreateFullConjunctive<TEntity>(
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            ConjunctiveTuple<TEntity> tuple =
+                new ConjunctiveTuple<TEntity>(builder.Schema);
+            ITupleObjectAttributeManager tupleManager;
+            for (int i = 0; i < builder.Schema.PluggedAttributesCount; i++)
+            {
+                tupleManager = builder.AttributeAt(i).CreateManager();
+                tupleManager.SetDefaultFictionalAttributeComponent(tuple);
+            }
+
+            return tuple;
         }
     }
 }

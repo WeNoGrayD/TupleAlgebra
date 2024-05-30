@@ -16,9 +16,10 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         : TupleObjectSystemFactory<DisjunctiveTupleFactory, ConjunctiveTupleFactory>
     {
         public DisjunctiveTupleSystemFactory(
+            TupleObjectFactory factory,
             DisjunctiveTupleFactory dTupleFactory,
             ConjunctiveTupleFactory cTupleFactory)
-            : base(dTupleFactory, cTupleFactory)
+            : base(factory, dTupleFactory, cTupleFactory)
         { }
 
         protected override TupleObject<TEntity>
@@ -107,7 +108,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             ConjunctiveTuple<TEntity> tuple)
             where TEntity : new()
         {
-            return base.ToAlternateDiagonal<TEntity, ConjunctiveTuple<TEntity>>(tuple);
+            return base.ToAlternateDiagonal<TEntity, DisjunctiveTuple<TEntity>>(tuple);
         }
 
         /*
@@ -124,7 +125,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         }
         */
 
-        public TupleObject<TEntity> CreateDisjunctiveTupleSystem<TEntity>(
+        public TupleObject<TEntity> CreateDiagonalDisjunctiveTupleSystem<TEntity>(
             TEntity entity,
             TupleObjectBuilder<TEntity> builder)
             where TEntity : new()
@@ -137,25 +138,35 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 tupleSysFactoryArgs[i] = new (i, builder, entity);
             }
 
-            return CreateTupleObjectSystem<
+            return CreateDiagonalTupleObjectSystem<
                 TEntity, 
-                ConjunctiveTuple<TEntity>,
+                DisjunctiveTuple<TEntity>,
                 TEntity>(
                 tupleSysFactoryArgs,
+                false,
                 CreateDisjunctiveWithTrailingComplement,
-                //CreateDisjunctive,
                 builder,
                 null);
         }
 
-        public TupleObject<TEntity> CreateDisjunctiveTupleSystem<TEntity>(
+        public TupleObject<TEntity> CreateDiagonalDisjunctiveTupleSystem<TEntity>(
             TEntity entity)
             where TEntity : new()
         {
             TupleObjectBuilder<TEntity> builder =
                 GetDefaultBuilder<TEntity>();
 
-            return CreateDisjunctiveTupleSystem(entity, builder);
+            return CreateDiagonalDisjunctiveTupleSystem(entity, builder);
+        }
+
+        public TupleObject<TEntity> CreateDisjunctiveTupleSystem<TEntity>(
+            ISingleTupleObjectFactoryArgs[][] tupleSysFactoryArgs,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return CreateTupleObjectSystem(
+                tupleSysFactoryArgs,
+                builder);
         }
 
         private TupleObject<TEntity> CreateDisjunctive<TEntity>(

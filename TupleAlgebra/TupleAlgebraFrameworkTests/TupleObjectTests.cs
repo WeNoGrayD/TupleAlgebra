@@ -20,6 +20,9 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Fini
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.AttributeContainers;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.DisjunctiveTupleSystemInfrastructure;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleSystemInfrastructure;
+using System.Runtime.InteropServices;
 
 namespace TupleAlgebraFrameworkTests
 {
@@ -31,6 +34,47 @@ namespace TupleAlgebraFrameworkTests
         protected List<ForumUser> _forumUsers = ForumDatabase.Domain;
 
         private static bool _forumUsersAreConfigured = false;
+
+        protected void PrintTupleObjectSystem(
+            ITupleObjectSystem tupleSys,
+            string defaultAcSymbol)
+        {
+            ISingleTupleObject tuple;
+            IAttributeComponent ac;
+            for (int i = 0; i < tupleSys.ColumnLength; i++)
+            {
+                tuple = tupleSys[i];
+                Console.Write($"{i,-3} [");
+                for (int attrLoc = 0; attrLoc < 3; attrLoc++)
+                {
+                    if (attrLoc > 0) Console.Write(", ");
+                    ac = tuple[attrLoc];
+                    if (ac.IsDefault)
+                    {
+                        Console.Write( $"{defaultAcSymbol + "      ",15}");
+                        continue;
+                    }
+                    Console.Write($"[{string.Join(',', ((IEnumerable<int>)ac).Select(d => d.ToString())),13}]");
+                }
+                Console.WriteLine("]");
+            }
+        }
+
+        protected void PrintConjunctiveTupleSystem(
+            ITupleObjectSystem tupleSys)
+        {
+            PrintTupleObjectSystem(tupleSys, "*");
+
+            return;
+        }
+
+        protected void PrintDisjunctiveTupleSystem(
+            ITupleObjectSystem tupleSys)
+        {
+            PrintTupleObjectSystem(tupleSys, "Ø");
+
+            return;
+        }
 
         public void Params(object? obj = null, params (AttributeName an, object? o)[] they)
         { }
@@ -160,32 +204,99 @@ namespace TupleAlgebraFrameworkTests
         }
 
         [TestMethod]
-        public void Intersect()
+        public void Complement()
         {
             TupleObjectFactory factory = new TupleObjectFactory(null);
             TupleObject<ForumUser>.Configure(CustomLikedUsers);
 
-            ForumUser fu = new ForumUser(-1, "WeNoGrayD", 5, 10, 1, 0);
-            TupleObject<ForumUser> weno1 = factory.CreateConjunctive(fu),
-                weno2 = factory.CreateConjunctive<ForumUser>(
+            ForumUser fu = new ForumUser(-1, "WeNoGrayD", 10, 5, 1, 1);
+            TupleObject<ForumUser> weno1 = factory.CreateConjunctiveTuple(fu),
+                weno2 = factory.CreateConjunctiveTuple<ForumUser>(
                 factoryArgs: [
                     SetAC((ForumUser fu) => fu.Nickname,
                      new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
                     ),
                     SetAC((ForumUser fu) => fu.LikeCount,
-                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
-                    ),
-                    SetAC((ForumUser fu) => fu.PostCount,
                      new FiniteIterableAttributeComponentFactoryArgs<int>([10, 100])
                     ),
+                    SetAC((ForumUser fu) => fu.PostCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([5, 55])
+                    ),
                     SetAC((ForumUser fu) => fu.Followers,
-                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 20])
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
                     ),
                     SetAC((ForumUser fu) => fu.Following,
-                     new FiniteIterableAttributeComponentFactoryArgs<int>([0, 5])
-                    )]);
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 2])
+                    )]),
+               weno3 = factory.CreateConjunctiveTupleSystem<ForumUser>(ForumDatabase.Domain);
 
-            TupleObject<ForumUser> res = weno1 & weno2;
+            TupleObject<ForumUser> res;
+
+            res = ~weno1;
+            res = ~weno2;
+            res = ~weno3;
+            res = ~factory.CreateEmpty<ForumUser>(new TupleObjectBuilder<ForumUser>(res.Schema));
+
+            int i = 0;
+            foreach (var fu2 in res)
+            {
+                if (i++ == 5) break;
+                Console.WriteLine($"nick: {fu2.Nickname}, lc: {fu2.LikeCount}, pc: {fu2.PostCount}, followers: {fu2.Followers}, following: {fu2.Following}");
+            }
+
+            return;
+        }
+
+        [TestMethod]
+        public void Intersect()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<ForumUser>.Configure(CustomLikedUsers);
+
+            ForumUser fu = new ForumUser(-1, "WeNoGrayD", 10, 5, 1, 1);
+            TupleObject<ForumUser> weno1 = factory.CreateConjunctiveTuple(fu),
+                weno2 = factory.CreateConjunctiveTuple<ForumUser>(
+                factoryArgs: [
+                    SetAC((ForumUser fu) => fu.Nickname,
+                     new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
+                    ),
+                    SetAC((ForumUser fu) => fu.LikeCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([10, 100])
+                    ),
+                    SetAC((ForumUser fu) => fu.PostCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([5, 55])
+                    ),
+                    SetAC((ForumUser fu) => fu.Followers,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
+                    ),
+                    SetAC((ForumUser fu) => fu.Following,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 2])
+                    )]),
+               weno3 = factory.CreateConjunctiveTupleSystem<ForumUser>(ForumDatabase.Domain);
+
+            TupleObject<ForumUser> res;
+
+            Stopwatch sw = new Stopwatch();
+            int testCount = 10000;
+            double time = 0;
+
+            for (int i = 0; i < testCount; i++)
+            {
+                sw.Start();
+
+                res = weno3 & weno1;
+                res = weno3 & weno2;
+                res = weno1 & weno2;
+
+                sw.Stop();
+
+                time += sw.ElapsedMilliseconds;
+
+                sw.Reset();
+            }
+            time = time / testCount;
+            //Console.WriteLine($"Intersecting ctuple 3 times (sync) costs {time} ms.");
+            Console.WriteLine($"Intersecting ctuple 3 times (async) costs {time} ms.");
 
             return;
         }
@@ -199,14 +310,146 @@ namespace TupleAlgebraFrameworkTests
 
             TupleObject<ForumUser>.Configure(CustomLikedUsers);
             TupleObject<ForumUser> likedPersons = factory
-                .CreateConjunctive<ForumUser>(fu);
+                .CreateConjunctiveTuple<ForumUser>(fu);
 
             TupleObject<ForumUser> dLikedPersons = 
-                (likedPersons as SingleTupleObject<ForumUser>)!
-                .ToAlternateDiagonal(factory);
+                likedPersons.ConvertToAlternate();
 
             TupleObject<ForumUser> dSysLikedPersons = factory
-                .CreateDisjunctive(fu);
+                .CreateDisjunctiveTupleSystem(fu);
+
+            return;
+        }
+
+
+
+        [TestMethod]
+        public void IntersectDisjunctiveTupleSystem()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<Alphabet<int, int, int>>.Configure(CustomAlphabet);
+
+            ISingleTupleObjectFactoryArgs[][] factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 4])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 6])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 7])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 8])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 9])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 12])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
+                ];
+
+            TupleObject<Alphabet<int, int, int>> alphabet = factory
+                .CreateDisjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+
+            DisjunctiveTupleSystemTrueIntersectionOperator<Alphabet<int, int, int>>
+                intersector = new DisjunctiveTupleSystemTrueIntersectionOperator<Alphabet<int, int, int>>();
+
+            var res = intersector.Intersect(
+                alphabet as DisjunctiveTupleSystem<Alphabet<int, int, int>>,
+                factory);
+            var resList = new List<ConjunctiveTuple<Alphabet<int, int, int>>>(100);
+
+            var cSys = res as ITupleObjectSystem;
+            Console.WriteLine($"Number of tuples is {cSys.ColumnLength}");
+
+            PrintConjunctiveTupleSystem(cSys);
+
+            return;
+        }
+
+        [TestMethod]
+        public void UnionConjunctiveTupleSystem()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<Alphabet<int, int, int>>.Configure(CustomAlphabet);
+
+            ISingleTupleObjectFactoryArgs[][] factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 4])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 6])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 7])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 8])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 9])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 12])),
+                    ]/*,
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]*/
+                ];
+
+            TupleObject<Alphabet<int, int, int>> alphabet = factory
+                .CreateConjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            PrintConjunctiveTupleSystem(alphabet as ITupleObjectSystem);
+
+            ConjunctiveTupleSystemTrueUnionOperator<Alphabet<int, int, int>>
+                uniter = new ConjunctiveTupleSystemTrueUnionOperator<Alphabet<int, int, int>>();
+
+            var res = uniter.Union(
+                alphabet as ConjunctiveTupleSystem<Alphabet<int, int, int>>,
+                factory);
+            var resList = new List<ConjunctiveTuple<Alphabet<int, int, int>>>(100);
+
+            var dSys = res as DisjunctiveTupleSystem<Alphabet<int, int, int>>;
+            //dSys.TrimRedundantRows(4);
+            Console.WriteLine($"Number of tuples is {dSys.ColumnLength}");
+
+            Console.WriteLine("Disjunctive form:");
+            PrintDisjunctiveTupleSystem(dSys);
+            Console.WriteLine("Conjunctive form:");
+            var cSys = res.ConvertToAlternate() as ITupleObjectSystem;
+            Console.WriteLine($"Number of tuples is {cSys.ColumnLength}");
+            PrintConjunctiveTupleSystem(cSys);
 
             return;
         }
@@ -218,7 +461,7 @@ namespace TupleAlgebraFrameworkTests
             //TupleObjectBuilder<ForumUser> builder = factory.GetDefaultBuilder<ForumUser>();
 
             TupleObject<ForumUser>.Configure(CustomLikedUsers);
-            TupleObject<ForumUser> likedPersons = factory.CreateConjunctive<ForumUser>(
+            TupleObject<ForumUser> likedPersons = factory.CreateConjunctiveTuple<ForumUser>(
                 factoryArgs: [
                     SetAC((ForumUser fu) => fu.Nickname,
                      new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
@@ -255,12 +498,53 @@ namespace TupleAlgebraFrameworkTests
             //likedPersons += nameof(ForumUser.LikeCount);
             //Assert.IsTrue(likedPersons.Schema[nameof(ForumUser.LikeCount)].IsPlugged);
 
-            //TestTupleEnumeration(likedPersons, TestLikedPersons());
+            TestTupleEnumeration(likedPersons, TestLikedPersons());
 
             IEnumerable<ForumUser> TestLikedPersons()
             {
                 string weno = "WeNoGrayD", revan = "NewRevan";
 
+                yield return new ForumUser(0, revan, 1, 5, 1, 0);
+                yield return new ForumUser(0, revan, 1, 5, 1, 5);
+
+                yield return new ForumUser(0, revan, 1, 5, 20, 0);
+                yield return new ForumUser(0, revan, 1, 5, 20, 5);
+
+                yield return new ForumUser(0, revan, 1, 100, 1, 0);
+                yield return new ForumUser(0, revan, 1, 100, 1, 5);
+                yield return new ForumUser(0, revan, 1, 100, 20, 0);
+                yield return new ForumUser(0, revan, 1, 100, 20, 5);
+
+                yield return new ForumUser(0, revan, 5, 5, 1, 0);
+                yield return new ForumUser(0, revan, 5, 5, 1, 5);
+                yield return new ForumUser(0, revan, 5, 5, 20, 0);
+                yield return new ForumUser(0, revan, 5, 5, 20, 5);
+                yield return new ForumUser(0, revan, 5, 100, 1, 0);
+                yield return new ForumUser(0, revan, 5, 100, 1, 5);
+                yield return new ForumUser(0, revan, 5, 100, 20, 0);
+                yield return new ForumUser(0, revan, 5, 100, 20, 5);
+
+                yield return new ForumUser(0, weno, 1, 5, 1, 0);
+                yield return new ForumUser(0, weno, 1, 5, 1, 5);
+
+                yield return new ForumUser(0, weno, 1, 5, 20, 0);
+                yield return new ForumUser(0, weno, 1, 5, 20, 5);
+
+                yield return new ForumUser(0, weno, 1, 100, 1, 0);
+                yield return new ForumUser(0, weno, 1, 100, 1, 5);
+                yield return new ForumUser(0, weno, 1, 100, 20, 0);
+                yield return new ForumUser(0, weno, 1, 100, 20, 5);
+
+                yield return new ForumUser(0, weno, 5, 5, 1, 0);
+                yield return new ForumUser(0, weno, 5, 5, 1, 5);
+                yield return new ForumUser(0, weno, 5, 5, 20, 0);
+                yield return new ForumUser(0, weno, 5, 5, 20, 5);
+                yield return new ForumUser(0, weno, 5, 100, 1, 0);
+                yield return new ForumUser(0, weno, 5, 100, 1, 5);
+                yield return new ForumUser(0, weno, 5, 100, 20, 0);
+                yield return new ForumUser(0, weno, 5, 100, 20, 5);
+
+                /*
                 yield return new ForumUser(0, revan, 1, 5, 1, 0);
                 yield return new ForumUser(0, revan, 1, 100, 1, 0);
 
@@ -308,7 +592,25 @@ namespace TupleAlgebraFrameworkTests
 
                 yield return new ForumUser(0, weno, 5, 5, 20, 5);
                 yield return new ForumUser(0, weno, 5, 100, 20, 5);
+                */
+
+                yield break;
             }
+        }
+
+        public void CustomAlphabet(
+            TupleObjectBuilder<Alphabet<int, int, int>> builder)
+        {
+            if (_forumUsersAreConfigured) return;
+            _forumUsersAreConfigured = true;
+
+            IAttributeComponentFactory<int> intFactory =
+                new OrderedFiniteEnumerableAttributeComponentFactory<int>(
+                    Enumerable.Range(1, 21));
+
+            builder.Attribute(abc => abc.A).SetFactory(intFactory).Attach();
+            builder.Attribute(abc => abc.B).SetFactory(intFactory).Attach();
+            builder.Attribute(abc => abc.C).SetFactory(intFactory).Attach();
         }
 
         public void CustomLikedUsers(TupleObjectBuilder<ForumUser> builder)

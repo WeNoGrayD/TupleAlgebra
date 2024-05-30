@@ -22,6 +22,10 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public int RowLength { get; }
 
+        public bool IsDefault(int attrLoc);
+
+        public bool IsDefault(IAttributeComponent component);
+
         public IAttributeComponent<TAttribute> 
             GetDefaultFictionalAttributeComponent<TAttribute>(
                 IAttributeComponentFactory<TAttribute> factory);
@@ -100,6 +104,10 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Instance methods
 
+        public bool IsDefault(int attrLoc) => IsDefault(this[attrLoc]);
+
+        public abstract bool IsDefault(IAttributeComponent component);
+
         public override TupleObject<TEntity> AlignWithSchema(
             TupleObjectSchema<TEntity> schema,
             TupleObjectFactory factory,
@@ -172,12 +180,12 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public bool ContainsEmptyAttributeComponent()
         {
-            return ContainsSpecificAttributeComponent(component => component.IsEmpty());
+            return ContainsSpecificAttributeComponent(component => component.IsEmpty);
         }
 
         public bool ContainsFullAttributeComponent()
         {
-            return ContainsSpecificAttributeComponent(component => component.IsFull());
+            return ContainsSpecificAttributeComponent(component => component.IsFull);
         }
 
         public void InitAttributes(IDictionary<AttributeName, IAlgebraicSetObject> components)
@@ -185,18 +193,6 @@ namespace TupleAlgebraClassLib.TupleObjects
             //_components = components;
 
             return;
-        }
-
-        protected IAlgebraicSetObject GetDefaultFictionalAttributeComponent<TAttributeInfo>(
-            ITupleObjectAttributeInfo attribute)
-        {
-            /*
-            System.Reflection.MethodInfo getDefault = typeof(SingleTupleObject<TEntity>)
-                .GetMethod(nameof(GetDefaultFictionalAttributeComponentImpl), BindingFlags.NonPublic | BindingFlags.Instance)
-                .MakeGenericMethod(attribute.DomainDataType);
-            */
-            return null;
-            //return getDefault.Invoke(this, new object[] { attribute }) as IAlgebraicSetObject;
         }
 
         public abstract IAttributeComponent<TAttribute> 
@@ -208,10 +204,6 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObjectFactory factory,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding,
             TupleObjectBuilder<TEntity> builder);
-
-        public abstract TupleObject<TEntity> ToAlternateDiagonal(
-            TupleObjectFactory factory);
-
 
         #endregion
 

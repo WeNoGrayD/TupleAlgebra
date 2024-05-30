@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,28 +13,55 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 {
     public static class TupleObjectIntersectionOperations
     {
+        private static TupleObject<TEntity> IntersectImpl<TEntity>(
+            ConjunctiveTuple<TEntity> first,
+            ConjunctiveTuple<TEntity> second,
+            TupleObjectFactory factory,
+            IndexedComponentFactoryArgs<IAttributeComponent>[] components = null)
+            where TEntity : new()
+        {
+            /*
+            int len = first.RowLength;
+            components ??= new IndexedComponentFactoryArgs<IAttributeComponent>[len];
+
+            for (int attrLoc = 0; attrLoc < len; attrLoc++)
+            {
+                components[attrLoc] = new(
+                    attrLoc,
+                    first.Schema,
+                    first[attrLoc].IntersectWith(second[attrLoc]));
+            }
+            */
+
+            return factory.CreateConjunctiveTuple<TEntity>(
+                attributes: IntersectComponents(),
+                first.Schema.PassToBuilder,
+                null);
+
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+                IntersectComponents()
+            {
+                int len = first.RowLength;
+
+                for (int attrLoc = 0; attrLoc < len; attrLoc++)
+                {
+                    yield return new(
+                        attrLoc,
+                        first.Schema,
+                        first[attrLoc].IntersectWith(second[attrLoc]));
+                }
+
+                yield break;
+            }
+        }
+
         public static TupleObject<TEntity> Intersect<TEntity>(
             ConjunctiveTuple<TEntity> first,
             ConjunctiveTuple<TEntity> second,
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            int len = first.RowLength;
-            IndexedComponentFactoryArgs<IAttributeComponent>[] components = 
-                new IndexedComponentFactoryArgs<IAttributeComponent>[len];
-
-            for (int attrLoc = 0; attrLoc < len; attrLoc++)
-            {
-                components[attrLoc] = new(
-                    attrLoc, 
-                    first.Schema, 
-                    first[attrLoc].IntersectWith(second[attrLoc]));
-            }
-
-            return factory.CreateConjunctive<TEntity>(
-                attributes: components,
-                first.Schema.PassToBuilder,
-                null);
+            return IntersectImpl(first, second, factory);
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -88,7 +116,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return factory.CreateDisjunctive(
+            return factory.CreateDisjunctiveTupleSystem(
                 [first, second],
                 first.Schema.PassToBuilder,
                 null);
@@ -100,7 +128,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return factory.CreateConjunctive(
+            return IntersectAsync(first, second, factory);
+            
+            return factory.CreateConjunctiveTupleSystem(
                 PairwiseIntersection(),
                 first.Schema.PassToBuilder,
                 null);
@@ -109,13 +139,16 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             {
                 ConjunctiveTuple<TEntity>[] tuples = first.Tuples;
                 int len = tuples.Length;
+                IndexedComponentFactoryArgs<IAttributeComponent>[] components =
+                    new IndexedComponentFactoryArgs<IAttributeComponent>[len];
                 for (int i = 0; i < len; i++)
                 {
-                    yield return Intersect(second, tuples[i], factory);
+                    yield return IntersectImpl(second, tuples[i], factory, components);
                 }
 
                 yield break;
             }
+            
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -124,7 +157,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return factory.CreateConjunctive(
+            return IntersectAsync(first, second, factory);
+            
+            return factory.CreateConjunctiveTupleSystem(
                 PairwiseIntersection(),
                 first.Schema.PassToBuilder,
                 null);
@@ -142,6 +177,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 
                 yield break;
             }
+            
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -241,7 +277,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
              * В методе IEnumerable превращается в IList.
              * Нам без нужды.
              */
-            return factory.CreateDisjunctive(tuples, second.PassSchema, null);
+            return factory.CreateDisjunctiveTupleSystem(
+                tuples, 
+                second.PassSchema,
+                null);
         }
 
         private static TupleObject<TEntity> IntersectConjunctiveTupleWithDisjunctiveTupleObject<
@@ -256,7 +295,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             where TOperand2 : TupleObject<TEntity>
         {
             DisjunctiveTupleSystem<TEntity> firstDisjunctive =
-                first.ToAlternateDiagonal(factory) as
+                first.ConvertToAlternate() as
                 DisjunctiveTupleSystem<TEntity>;
 
             return IntersectDisjunctiveSystemWithDisjunctiveTupleObject(
@@ -284,7 +323,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             int j = 0;
             for (int i = 0; i < len1; i++)
             {
-                dsys = (first[i].ToAlternateDiagonal(factory)
+                dsys = (first[i].ConvertToAlternate()
                     as DisjunctiveTupleSystem<TEntity>)!;
                 dsys.Tuples.CopyTo(tuples, j);
 
@@ -301,8 +340,172 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
              * В методе IEnumerable превращается в IList.
              * Нам без нужды.
              */
-            return factory.CreateDisjunctive(tuples, second.PassSchema, null);
+            return factory.CreateDisjunctiveTupleSystem(
+                tuples,
+                second.PassSchema, 
+                null);
         }
+
+
+
+
+
+
+        private async static Task<TupleObject<TEntity>> IntersectImplAsync<TEntity>(
+            ConjunctiveTuple<TEntity> first,
+            ConjunctiveTuple<TEntity> second,
+            TupleObjectFactory factory,
+            IndexedComponentFactoryArgs<IAttributeComponent>[] components = null)
+            where TEntity : new()
+        {
+            int len = first.RowLength;
+            components ??= new IndexedComponentFactoryArgs<IAttributeComponent>[len];
+
+            for (int attrLoc = 0; attrLoc < len; attrLoc++)
+            {
+                components[attrLoc] = new(
+                    attrLoc,
+                    first.Schema,
+                    first[attrLoc].IntersectWith(second[attrLoc]));
+            }
+
+            return factory.CreateConjunctiveTuple<TEntity>(
+                attributes: components,
+                first.Schema.PassToBuilder,
+                null);
+        }
+
+
+
+
+
+        private static IndexedComponentFactoryArgs<IAttributeComponent>[][]
+            MakeTupleFactoryArgs(int rowLen)
+        {
+            IndexedComponentFactoryArgs<IAttributeComponent>[][] tupleFactoryArgs =
+                new IndexedComponentFactoryArgs<IAttributeComponent>
+                [Environment.ProcessorCount][];
+            for (int i = 0; i < 0; i++)
+            {
+                tupleFactoryArgs[i] =
+                    new IndexedComponentFactoryArgs<IAttributeComponent>[rowLen];
+            }
+
+            return tupleFactoryArgs;
+        }
+
+        private static IEnumerable<TupleObject<TEntity>> PairwiseIntersection<TEntity>(
+            ConjunctiveTupleSystem<TEntity> first,
+            ConjunctiveTuple<TEntity> second,
+            TupleObjectFactory factory,
+            IndexedComponentFactoryArgs<IAttributeComponent>[][] tupleFactoryArgs = null)
+            where TEntity : new()
+        {
+            ConjunctiveTuple<TEntity>[] tuples = first.Tuples;
+            int len = tuples.Length,
+                processorCount = Environment.ProcessorCount;
+
+            tupleFactoryArgs ??= MakeTupleFactoryArgs(first.RowLength);
+
+            return tuples.AsParallel()
+                .WithMergeOptions(ParallelMergeOptions.NotBuffered)
+                .Zip(GetExecutingProcessors())
+                .Select(tupleFarg =>
+                    IntersectImpl(
+                        second,
+                        tupleFarg.First,
+                        factory,
+                        tupleFactoryArgs[tupleFarg.Second]));
+
+            IEnumerable<int> GetExecutingProcessors()
+            {
+                int core;
+                while (true)
+                {
+                    for (core = 0; core < processorCount; core++)
+                        yield return core;
+                }
+
+                yield break;
+            }
+        }
+
+        public static TupleObject<TEntity> IntersectAsync<TEntity>(
+            ConjunctiveTupleSystem<TEntity> first,
+            ConjunctiveTuple<TEntity> second,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            return factory.CreateConjunctiveTupleSystem(
+                PairwiseIntersection(first, second, factory),
+                first.Schema.PassToBuilder,
+                null);
+        }
+
+        public static TupleObject<TEntity> IntersectAsync<TEntity>(
+            ConjunctiveTupleSystem<TEntity> first,
+            ConjunctiveTupleSystem<TEntity> second,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            return factory.CreateConjunctiveTupleSystem(
+                PairwiseIntersectionImpl(),
+                first.Schema.PassToBuilder,
+                null);
+
+            IEnumerable<TupleObject<TEntity>> PairwiseIntersectionImpl()
+            {
+                ConjunctiveTuple<TEntity>[] tuples = first.Tuples;
+                int len = tuples.Length;
+
+                var tupleFactoryArgs = MakeTupleFactoryArgs(first.RowLength);
+
+                return tuples
+                    .SelectMany(tuple => 
+                        PairwiseIntersection(
+                            second, 
+                            tuple, 
+                            factory, 
+                            tupleFactoryArgs));
+            }
+        }
+
+        /*
+
+            async IAsyncEnumerable<TupleObject<TEntity>> PairwiseIntersection2()
+            {
+                BlockingCollection<Task<TupleObject<TEntity>>>
+                    tasks = new BlockingCollection<Task<TupleObject<TEntity>>>(
+                        Environment.ProcessorCount);
+                ConjunctiveTuple<TEntity>[] tuples = first.Tuples;
+                int len = tuples.Length;
+
+                IndexedComponentFactoryArgs<IAttributeComponent>[] components =
+                    new IndexedComponentFactoryArgs<IAttributeComponent>[len];
+
+                var loop = Parallel.For(
+                    0,
+                    len,
+                    CC);
+
+                Task<TupleObject<TEntity>> task;
+                for (int left = len; left >= 0; left--)
+                {
+                    while (!tasks.TryTake(out task)) ;
+                    yield return await tasks.Take();
+                }
+
+                yield break;
+
+                void CC(int i)
+                {
+                    var tuple = 
+                        IntersectImpl(second, tuples[i], factory, components);
+                    tasks.Add(Task.FromResult(tuple));
+
+                    return;
+                }
+            }*/
     }
 
     public abstract class TupleObjectIntersectionOperator<TEntity, TOperand1>

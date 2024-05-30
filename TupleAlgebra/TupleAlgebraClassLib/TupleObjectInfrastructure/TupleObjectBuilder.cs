@@ -93,6 +93,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// </summary>
         private void BuildSchemaPattern()
         {
+            string objTypeName = typeof(object).Name;
             TypeInfo entityType = typeof(TEntity).GetTypeInfo();
             BindingFlags memberFlags = BindingFlags.NonPublic | BindingFlags.Instance;
             MethodInfo addAttributeToSchema = typeof(TupleObjectBuilder<TEntity>)
@@ -130,18 +131,23 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
              */
             void ConstructComplicatedType()
             {
-                foreach (FieldInfo fieldInfo in entityType.DeclaredFields.Where(fi => fi.IsPublic))
+                do
                 {
-                    BuildAddAttributeMethodInfo(fieldInfo.FieldType)
-                        .Invoke(this, new object[] { fieldInfo });
-                }
+                    foreach (FieldInfo fieldInfo in entityType.DeclaredFields.Where(fi => fi.IsPublic))
+                    {
+                        BuildAddAttributeMethodInfo(fieldInfo.FieldType)
+                            .Invoke(this, new object[] { fieldInfo });
+                    }
 
-                foreach (PropertyInfo propertyInfo in entityType.DeclaredProperties
-                    .Where(pi => (pi.SetMethod?.IsPublic ?? false) && (pi.GetMethod?.IsPublic ?? false)))
-                {
-                    BuildAddAttributeMethodInfo(propertyInfo.PropertyType)
-                        .Invoke(this, new object[] { propertyInfo });
+                    foreach (PropertyInfo propertyInfo in entityType.DeclaredProperties
+                        .Where(pi => (pi.SetMethod?.IsPublic ?? false) && (pi.GetMethod?.IsPublic ?? false)))
+                    {
+                        BuildAddAttributeMethodInfo(propertyInfo.PropertyType)
+                            .Invoke(this, new object[] { propertyInfo });
+                    }
                 }
+                while ((entityType = entityType.BaseType.GetTypeInfo())
+                       .Name != objTypeName);
 
                 return;
             }

@@ -39,7 +39,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         #region Delegates
 
-        public delegate ISetOperationExecutorsContainer<TupleObject<TEntity>>
+        public delegate ITupleObjectOperationExecutorsContainer<TEntity>
             TupleObjectSetOperationsCreationHandler<TEntity>(
                 TupleObjectFactory factory)
             where TEntity : new();
@@ -145,7 +145,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <param name="ac"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public ISetOperationExecutorsContainer<TupleObject<TEntity>>
+        public ITupleObjectOperationExecutorsContainer<TEntity>
             GetSetOperations<TEntity>(
                 TupleObject<TEntity> tuple)
             where TEntity : new()
@@ -173,7 +173,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public interface ITupleObjectStaticData
         {
-            ISetOperationExecutorsContainer<TupleObject<TEntity>> 
+            ITupleObjectOperationExecutorsContainer<TEntity>
                 GetSetOperations<TEntity>()
                 where TEntity : new()
             {
@@ -186,7 +186,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             : ITupleObjectStaticData
             where TEntity : new()
         {
-            public ISetOperationExecutorsContainer<TupleObject<TEntity>>
+            public ITupleObjectOperationExecutorsContainer<TEntity>
                 SetOperations { get; set; }
 
             public TupleObjectStaticData()

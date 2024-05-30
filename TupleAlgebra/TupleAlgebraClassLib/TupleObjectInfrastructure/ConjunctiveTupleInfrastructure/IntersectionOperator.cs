@@ -22,7 +22,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrast
             ConjunctiveTuple<TEntity> second,
             TupleObjectFactory factory)
         {
-            return OperationStrategy(first, second, factory, Intersect);
+            return OperationStrategy(first, second, factory, 
+                new OperationHandler<ConjunctiveTuple<TEntity>>(Intersect));
         }
 
         public override TupleObject<TEntity> Accept(
