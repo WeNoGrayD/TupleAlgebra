@@ -27,6 +27,14 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         private DisjunctiveTupleSystemFactory _dsysFactory;
 
+        private QueriedConjunctiveTupleFactory _qcFactory;
+
+        private QueriedDisjunctiveTupleFactory _qdFactory;
+
+        private QueriedConjunctiveTupleSystemFactory _qcSysFactory;
+
+        private QueriedDisjunctiveTupleSystemFactory _qdSysFactory;
+
         protected override TupleObjectFactory _factory { get => this; }
 
         public TupleObjectFactory(TAContext context)
@@ -37,7 +45,75 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             _csysFactory = new ConjunctiveTupleSystemFactory(this, _cFactory, _dFactory);
             _dsysFactory = new DisjunctiveTupleSystemFactory(this, _dFactory, _cFactory);
 
+            _qcFactory = new QueriedConjunctiveTupleFactory(this);
+            _qdFactory = new QueriedDisjunctiveTupleFactory(this);
+
             return;
+        }
+
+        internal QueriedTupleObject<TEntity> CreateQueried<TEntity>(
+            Expression queryExpression,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
+            where TEntity : new()
+        {
+            return new QueriedTupleObject<TEntity>(queryExpression, onTupleBuilding);
+        }
+
+        internal QueriedTupleObject<TEntity> CreateQueriedSingleTupleObject<TEntity>(
+            QueriedTupleType structureType,
+            Expression[] componentQueryExpressions,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
+            where TEntity : new()
+        {
+            return structureType switch
+            {
+                QueriedTupleType.C =>
+                    new QueriedConjunctiveTuple<TEntity>(
+                        componentQueryExpressions, onTupleBuilding),
+                QueriedTupleType.D =>
+                    new QueriedDisjunctiveTuple<TEntity>(
+                        componentQueryExpressions, onTupleBuilding),
+                 _ => throw new ArgumentException()
+            };
+        }
+
+        internal QueriedTupleObject<TEntity> CreateQueriedSingleTupleObject<TEntity>(
+            QueriedTupleType structureType,
+            IEnumerable<NamedComponentFactoryArgs<Expression>> 
+                componentQueryExpressions,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return structureType switch
+            {
+                QueriedTupleType.C => _qcFactory.CreateQueriedConjunctiveTuple(
+                    componentQueryExpressions,
+                    builder),
+                QueriedTupleType.D => _qdFactory.CreateQueriedDisjunctiveTuple(
+                    componentQueryExpressions,
+                    builder),
+                _ => throw new ArgumentException()
+            };
+        }
+
+        internal QueriedTupleObject<TEntity> CreateQueriedTupleObjectSystem<TEntity>(
+            QueriedTupleType structureType,
+            ISquareEnumerable<NamedComponentFactoryArgs<Expression>> tupleSysFactoryArgs,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return structureType switch
+            {
+                QueriedTupleType.C =>
+                    _qcSysFactory.CreateQueriedConjunctiveTupleSystem(
+                        tupleSysFactoryArgs,
+                        builder),
+                QueriedTupleType.D =>
+                    _qdSysFactory.CreateQueriedDisjunctiveTupleSystem(
+                        tupleSysFactoryArgs,
+                        builder),
+                _ => throw new ArgumentException()
+            };
         }
 
         public TupleObject<TEntity> CreateEmpty<TEntity>()

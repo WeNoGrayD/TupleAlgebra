@@ -27,7 +27,8 @@ namespace TupleAlgebraClassLib.TupleObjects
             return;
         }
 
-        public ConjunctiveTupleSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
+        public ConjunctiveTupleSystem(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
         { }
 
@@ -39,7 +40,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public ConjunctiveTupleSystem(
             TupleObjectSchema<TEntity> schema,
-            IList<SingleTupleObject<TEntity>> tuples)
+            IList<ISingleTupleObject> tuples)
             : base(schema, tuples)
         { }
 

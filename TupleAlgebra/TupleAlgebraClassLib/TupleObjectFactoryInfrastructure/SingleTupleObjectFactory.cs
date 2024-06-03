@@ -12,9 +12,24 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 {
     using static TupleObjectHelper;
 
-    public abstract class SingleTupleObjectFactory
+    public abstract class SingleTupleObjectFactory<
+        TAttributeComponent, TSingleTupleObject>
         : AbstractTupleObjectFactory
+        where TSingleTupleObject : ISingleTupleObject<TAttributeComponent>
     {
+        public delegate ITupleObjectAttributeManager
+            SetComponentHandler<TComponentSource>(
+            ITupleObjectAttributeManager tupleManager,
+            TSingleTupleObject tuple,
+            TComponentSource componentSource);
+
+        public delegate ITupleObjectAttributeManager
+            SetComponentWithComplementOpportunityHandler<TComponentSource>(
+            ITupleObjectAttributeManager tupleManager,
+            TSingleTupleObject tuple,
+            TComponentSource componentSource,
+            bool toComplement);
+
         public SingleTupleObjectFactory(
             TupleObjectFactory factory)
         {
@@ -32,19 +47,19 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             where TTupleObject : TupleObject<TEntity>, ISingleTupleObject;
         */
 
-        protected abstract SingleTupleObject<TEntity>
+        protected abstract TSingleTupleObject
             SingleTupleObjectFactoryImpl<TEntity>(
                 TupleObjectSchema<TEntity> schema)
                 where TEntity : new();
 
         protected abstract bool AttributeComponentStopsBuilding<TEntity>(
             ITupleObjectAttributeManager tupleManager,
-            SingleTupleObject<TEntity> tuple)
+            TSingleTupleObject tuple)
             where TEntity : new();
 
         protected abstract bool AttributeComponentIsDefault<TEntity>(
             ITupleObjectAttributeManager tupleManager,
-            SingleTupleObject<TEntity> tuple)
+            TSingleTupleObject tuple)
             where TEntity : new();
 
         protected abstract TupleObject<TEntity>
@@ -52,6 +67,10 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 TupleObjectBuilder<TEntity> builder,
                 bool onStop)
             where TEntity : new();
+
+        protected abstract void SetDefaultComponent(
+            ITupleObjectAttributeManager attrManager,
+            TSingleTupleObject tuple);
 
         protected TupleObject<TEntity> CreateSingleTupleObject<
             TEntity,
@@ -64,7 +83,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             /*
              * Инициализация компонентами тех атрибутов, которые были явно названы.
              */
-            SingleTupleObject<TEntity> tuple =
+            TSingleTupleObject tuple =
                 SingleTupleObjectFactoryImpl(builder.Schema);
             ITupleObjectAttributeManager tupleManager;
             bool isRedundant = true;
@@ -73,9 +92,9 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 tupleManager = farg.TupleManager;
                 setComponent(tupleManager, tuple, farg.ComponentSource);
 
-                if (AttributeComponentStopsBuilding(tupleManager, tuple))
+                if (AttributeComponentStopsBuilding<TEntity>(tupleManager, tuple))
                     return ReduceSingleTupleObjectToFictional(builder, true);
-                isRedundant &= AttributeComponentIsDefault(tupleManager, tuple);
+                isRedundant &= AttributeComponentIsDefault<TEntity>(tupleManager, tuple);
             }
             if (isRedundant)
                 return ReduceSingleTupleObjectToFictional(builder, false);
@@ -94,11 +113,11 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                  in pluggedAttributes.Where((pa) => !instantiatedAttributes.Contains(pa)))
             {
                 tupleManager = builder.Attribute(attrName).CreateManager();
-                tupleManager.SetDefaultFictionalAttributeComponent(tuple);
+                SetDefaultComponent(tupleManager, tuple);
             }
             instantiatedAttributes.Clear();
 
-            return tuple;
+            return (tuple as TupleObject<TEntity>);
         }
 
         protected TupleObject<TEntity> CreateSingleTupleObject<
@@ -114,7 +133,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             bool proceedInitPrepared = fargsEnumerator.MoveNext();
             farg = fargsEnumerator.Current;
 
-            SingleTupleObject<TEntity> tuple =
+            TSingleTupleObject tuple =
                 SingleTupleObjectFactoryImpl(builder.Schema);
             ITupleObjectAttributeManager tupleManager;
             bool isRedundant = true;
@@ -129,17 +148,19 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
                     if (farg.IsDefault)
                     {
-                        tupleManager.SetDefaultFictionalAttributeComponent(tuple);
+                        SetDefaultComponent(tupleManager, tuple);
                     }
                     else
                     {
                         setComponent(tupleManager, tuple, farg.ComponentSource);
-                        if (AttributeComponentStopsBuilding(tupleManager, tuple))
+                        if (AttributeComponentStopsBuilding<TEntity>(
+                            tupleManager, tuple))
                         {
                             fargsEnumerator.Dispose();
                             return ReduceSingleTupleObjectToFictional(builder, true);
                         }
-                        isRedundant &= AttributeComponentIsDefault(tupleManager, tuple);
+                        isRedundant &= AttributeComponentIsDefault<TEntity>(
+                            tupleManager, tuple);
                     }
 
                     proceedInitPrepared = fargsEnumerator.MoveNext();
@@ -154,7 +175,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 else
                 {
                     tupleManager = builder.AttributeAt(i).CreateManager();
-                    tupleManager.SetDefaultFictionalAttributeComponent(tuple);
+                    SetDefaultComponent(tupleManager, tuple);
                 }
             }
 
@@ -163,19 +184,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             if (isRedundant)
                 return ReduceSingleTupleObjectToFictional(builder, false);
 
-            return tuple;
-        }
-
-        protected TupleObject<TEntity> CreateSingleTupleObjectWithTrailingComplement<
-            TEntity>(
-            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> factoryArgs,
-            TupleObjectBuilder<TEntity> builder)
-            where TEntity : new()
-        {
-            return CreateSingleTupleObject(
-                factoryArgs,
-                SetComponentWithTrailingComplement,
-                builder);
+            return (tuple as TupleObject<TEntity>);
         }
 
         protected TupleObject<TEntity> CreateSingleTupleObjectWithTupleBuilding<
@@ -234,7 +243,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             bool proceedInitPrepared = fargsEnumerator.MoveNext();
             farg = fargsEnumerator.Current;
 
-            SingleTupleObject<TEntity> tuple =
+            TSingleTupleObject tuple =
                 SingleTupleObjectFactoryImpl(builder.Schema);
             ITupleObjectAttributeManager tupleManager;
             bool isRedundant = true;
@@ -248,12 +257,13 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 {
                     tupleManager = farg.TupleManager;
                     setComponent(tupleManager, tuple, farg.ComponentSource);
-                    if (AttributeComponentStopsBuilding(tupleManager, tuple))
+                    if (AttributeComponentStopsBuilding<TEntity>(tupleManager, tuple))
                     {
                         fargsEnumerator.Dispose();
                         return ReduceSingleTupleObjectToFictional(builder, true);
                     }
-                    isRedundant &= AttributeComponentIsDefault(tupleManager, tuple);
+                    isRedundant &= AttributeComponentIsDefault<TEntity>(
+                        tupleManager, tuple);
 
                     proceedInitPrepared = fargsEnumerator.MoveNext();
                     if (proceedInitPrepared)
@@ -267,7 +277,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 else
                 {
                     tupleManager = builder.AttributeAt(i).CreateManager();
-                    tupleManager.SetDefaultFictionalAttributeComponent(tuple);
+                    SetDefaultComponent(tupleManager, tuple);
                 }
             }
 
@@ -276,7 +286,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             if (isRedundant)
                 return ReduceSingleTupleObjectToFictional(builder, false);
 
-            return tuple;
+            return (tuple as TupleObject<TEntity>);
         }
     }
 }

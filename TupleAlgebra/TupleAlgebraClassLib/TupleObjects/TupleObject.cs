@@ -16,19 +16,26 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectAcceptors;
+using TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
     using static TupleObjectStaticDataStorage;
 
+    public interface ITupleObject
+    {
+        public ITupleObjectSchemaProvider Schema { get; }
+    }
+    
     /// <summary>
     /// Кортеж данных о сущностях определённого типа.
     /// </summary>
     /// <typeparam name="TEntity"></typeparam>
     public abstract class TupleObject<TEntity>
         : IQueryable<TEntity>,
-          IDisposable
+          IDisposable,
+          IFactoryProvider<TupleObjectFactory>
         where TEntity : new()
     {
         #region Instance fields
@@ -39,12 +46,6 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Instance properties
 
-        public virtual Expression Expression { get; protected set; }
-
-        public virtual Type ElementType { get => typeof(TEntity); }
-
-        public virtual IQueryProvider Provider { get; protected set; }
-
         public ITupleObjectOperationExecutorsContainer<TEntity> SetOperations
         { get => Storage.GetSetOperations<TEntity>(this); }
 
@@ -52,6 +53,18 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// Схема кортежа. Содержит данные 
         /// </summary>
         public TupleObjectSchema<TEntity> Schema { get; private set; }
+
+        public TupleObjectFactory Factory => Storage.GetFactory();
+
+        public virtual Expression Expression 
+        { 
+            get => Expression.Constant(this); 
+        }
+
+        public virtual Type ElementType { get => typeof(TEntity); }
+
+        public virtual IQueryProvider Provider 
+        { get => new TupleObjectQueryProvider(); }
 
         #endregion
 
@@ -188,58 +201,67 @@ namespace TupleAlgebraClassLib.TupleObjects
         }
         */
 
+        protected TupleObject<TEntity> DefineOperand(
+            TupleObject<TEntity> operand)
+        {
+            if (operand is QueriedTupleObject<TEntity> queried)
+                return queried.ExecuteQuery();
+
+            return operand;
+        }
+
         public abstract TupleObject<TEntity> AlignWithSchema(
             TupleObjectSchema<TEntity> schema,
             TupleObjectFactory factory,
             TupleObjectBuilder<TEntity> builder);
 
-        public TupleObject<TEntity> ConvertToAlternate()
+        public virtual TupleObject<TEntity> ConvertToAlternate()
         {
             return SetOperations.ConvertToAlternate(this);
         }
 
-        public TupleObject<TEntity> ComplementThe()
+        public virtual TupleObject<TEntity> ComplementThe()
         {
             return SetOperations.Complement(this);
         }
 
-        public TupleObject<TEntity> IntersectWith(
+        public virtual TupleObject<TEntity> IntersectWith(
             TupleObject<TEntity> second)
         {
             return SetOperations.Intersect(this, second);
         }
 
-        public TupleObject<TEntity> UnionWith(
+        public virtual TupleObject<TEntity> UnionWith(
             TupleObject<TEntity> second)
         {
             return SetOperations.Union(this, second);
         }
 
-        public TupleObject<TEntity> ExceptWith(
+        public virtual TupleObject<TEntity> ExceptWith(
             TupleObject<TEntity> second)
         {
             return SetOperations.Except(this, second);
         }
 
-        public TupleObject<TEntity> SymmetricExceptWith(
+        public virtual TupleObject<TEntity> SymmetricExceptWith(
             TupleObject<TEntity> second)
         {
             return SetOperations.SymmetricExcept(this, second);
         }
 
-        public bool Includes(
+        public virtual bool Includes(
             TupleObject<TEntity> second)
         {
             return SetOperations.Include(this, second);
         }
 
-        public bool EqualsTo(
+        public virtual bool EqualsTo(
             TupleObject<TEntity> second)
         {
             return SetOperations.Equal(this, second);
         }
 
-        public bool IncludesOrEqualsTo(
+        public virtual bool IncludesOrEqualsTo(
             TupleObject<TEntity> second)
         {
             return SetOperations.IncludeOrEqual(this, second);

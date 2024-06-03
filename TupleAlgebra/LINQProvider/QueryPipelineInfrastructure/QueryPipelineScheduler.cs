@@ -14,7 +14,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
     /// <summary>
     /// Исполнитель конвейера запросов.
     /// </summary>
-    public abstract class QueryPipelineScheduler : IQueryPipelineScheduler
+    public class QueryPipelineScheduler : IQueryPipelineScheduler
     {
         #region Instance fields
 
@@ -69,7 +69,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// </summary>
         /// <param name="dataSource"></param>
         /// <param name="firstPipelineMiddleware"></param>
-        protected QueryPipelineScheduler(
+        public QueryPipelineScheduler(
             QueryContext queryContext,
             IEnumerable<MethodCallExpression> methodCallChain,
             IEnumerable dataSource)

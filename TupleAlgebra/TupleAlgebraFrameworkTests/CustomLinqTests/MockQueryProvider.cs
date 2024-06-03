@@ -26,11 +26,13 @@ namespace TupleAlgebraFrameworkTests.CustomLinqTests
             return new GenericMockQueryable<TQueryResult>(queryExpression, this);
         }
 
+        /*
         protected override QueryPipelineScheduler CreateQueryPipelineExecutor(
             QueryContext queryContext,
             IEnumerable<MethodCallExpression> methodCallChain,
             IEnumerable dataSource)
             => new MockQueryPipelineScheduler(queryContext, methodCallChain, dataSource);
+        */
 
         #endregion
     }

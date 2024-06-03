@@ -97,6 +97,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public IEnumerable<AttributeName> PluggedAttributeNames { get; }
 
+        public int GetAttributeLoc(AttributeName attrName);
+
         public void AttachAttribute(AttributeName attributeName);
 
         public void DetachAttribute(AttributeName attributeName);

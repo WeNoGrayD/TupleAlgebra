@@ -15,19 +15,6 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
     {
         protected virtual TupleObjectFactory _factory { get; set; }
 
-        public delegate ITupleObjectAttributeManager
-            SetComponentHandler<TComponentSource>(
-            ITupleObjectAttributeManager tupleManager,
-            ISingleTupleObject tuple,
-            TComponentSource componentSource);
-
-        public delegate ITupleObjectAttributeManager
-            SetComponentWithComplementOpportunityHandler<TComponentSource>(
-            ITupleObjectAttributeManager tupleManager,
-            ISingleTupleObject tuple,
-            TComponentSource componentSource,
-            bool toComplement);
-
         protected void BuildTuple<TEntity>(
             ref TupleObjectBuilder<TEntity> builder,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding)

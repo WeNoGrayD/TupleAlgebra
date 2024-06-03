@@ -20,6 +20,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             return new DefaultAttributeComponentQueryContext();
         }
 
+        /*
         protected override QueryPipelineScheduler CreateQueryPipelineExecutor(
             QueryContext queryContext,
             IEnumerable<MethodCallExpression> methodCallChain,
@@ -27,6 +28,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
         {
             return new DefaultAttributeComponentQueryPipelineScheduler(queryContext, methodCallChain, dataSource);
         }
+        */
 
         #endregion
     }

@@ -35,6 +35,8 @@ namespace TupleAlgebraFrameworkTests
 
         private static bool _forumUsersAreConfigured = false;
 
+        private static bool _alphabetWasConfigured = false;
+
         protected void PrintTupleObjectSystem(
             ITupleObjectSystem tupleSys,
             string defaultAcSymbol)
@@ -321,8 +323,6 @@ namespace TupleAlgebraFrameworkTests
             return;
         }
 
-
-
         [TestMethod]
         public void IntersectDisjunctiveTupleSystem()
         {
@@ -391,6 +391,7 @@ namespace TupleAlgebraFrameworkTests
             TupleObjectFactory factory = new TupleObjectFactory(null);
             TupleObject<Alphabet<int, int, int>>.Configure(CustomAlphabet);
 
+            /*
             ISingleTupleObjectFactoryArgs[][] factoryArgs =
                 [
                     [
@@ -416,7 +417,7 @@ namespace TupleAlgebraFrameworkTests
                             new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
                         SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
                             new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 12])),
-                    ]/*,
+                    ],
                     [
                         SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
                             new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
@@ -424,7 +425,43 @@ namespace TupleAlgebraFrameworkTests
                             new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
                         SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
                             new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
-                    ]*/
+                    ]
+                ];
+            */
+            ISingleTupleObjectFactoryArgs[][] factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 7, 10, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 4, 8, 11, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 6, 9, 12, 15])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 7])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 8])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 9])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 12])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
                 ];
 
             TupleObject<Alphabet<int, int, int>> alphabet = factory
@@ -440,16 +477,18 @@ namespace TupleAlgebraFrameworkTests
                 factory);
             var resList = new List<ConjunctiveTuple<Alphabet<int, int, int>>>(100);
 
-            var dSys = res as DisjunctiveTupleSystem<Alphabet<int, int, int>>;
+            var dSys = res as ITupleObjectSystem;
             //dSys.TrimRedundantRows(4);
             Console.WriteLine($"Number of tuples is {dSys.ColumnLength}");
 
             Console.WriteLine("Disjunctive form:");
             PrintDisjunctiveTupleSystem(dSys);
+            /*
             Console.WriteLine("Conjunctive form:");
             var cSys = res.ConvertToAlternate() as ITupleObjectSystem;
             Console.WriteLine($"Number of tuples is {cSys.ColumnLength}");
             PrintConjunctiveTupleSystem(cSys);
+            */
 
             return;
         }
@@ -601,8 +640,8 @@ namespace TupleAlgebraFrameworkTests
         public void CustomAlphabet(
             TupleObjectBuilder<Alphabet<int, int, int>> builder)
         {
-            if (_forumUsersAreConfigured) return;
-            _forumUsersAreConfigured = true;
+            if (_alphabetWasConfigured) return;
+            _alphabetWasConfigured = true;
 
             IAttributeComponentFactory<int> intFactory =
                 new OrderedFiniteEnumerableAttributeComponentFactory<int>(

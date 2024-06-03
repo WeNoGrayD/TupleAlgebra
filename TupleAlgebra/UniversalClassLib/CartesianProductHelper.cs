@@ -409,11 +409,15 @@ namespace UniversalClassLib
                     {
                         switch (branchAction)
                         {
+                            //return BranchAction.ContinueBranchTillEnd;
                             case BranchAction.CutOffBranchSelectSecond:
                                 {
                                     //RenewCurrentBranchInfo();
                                     break;
                                 }
+                            // нужно посмотреть, как именно алгоритм должен вести себя
+                            // при выборе первого операнда, нужно ли отсекать ветвь
+                            // целиком или же нет
                             case BranchAction.CutOffBranchSelectFirst:
                             case BranchAction.ConsiderSubBranchLater:
                             case BranchAction.NonDefined:

@@ -12,29 +12,39 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 {
     using static TupleObjectHelper;
 
-    public class DisjunctiveTupleFactory : SingleTupleObjectFactory
+    public class DisjunctiveTupleFactory
+        : SingleTupleObjectFactory<IAttributeComponent, ISingleTupleObject>
     {
         public DisjunctiveTupleFactory(
             TupleObjectFactory factory)
             : base(factory)
         { }
 
-        protected override SingleTupleObject<TEntity>
+        protected override ISingleTupleObject
             SingleTupleObjectFactoryImpl<TEntity>(TupleObjectSchema<TEntity> schema)
         {
             return new DisjunctiveTuple<TEntity>(schema);
         }
 
+        protected override void SetDefaultComponent(
+            ITupleObjectAttributeManager attrManager,
+            ISingleTupleObject tuple)
+        {
+            attrManager.SetDefaultFictionalAttributeComponent(tuple);
+
+            return;
+        }
+
         protected override bool AttributeComponentStopsBuilding<TEntity>(
             ITupleObjectAttributeManager tupleManager,
-            SingleTupleObject<TEntity> tuple)
+            ISingleTupleObject tuple)
         {
             return tupleManager.IsFull(tuple);
         }
 
         protected override bool AttributeComponentIsDefault<TEntity>(
             ITupleObjectAttributeManager tupleManager,
-            SingleTupleObject<TEntity> tuple)
+            ISingleTupleObject tuple)
         {
             return tupleManager.IsEmpty(tuple);
         }
@@ -265,8 +275,9 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             TupleObjectBuilder<TEntity> builder)
             where TEntity : new()
         {
-            return CreateSingleTupleObjectWithTrailingComplement(
+            return CreateSingleTupleObject(
                 factoryArgs,
+                SetComponentWithTrailingComplement,
                 builder);
         }
 

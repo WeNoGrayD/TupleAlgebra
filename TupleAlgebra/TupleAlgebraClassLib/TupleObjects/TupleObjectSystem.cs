@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -17,43 +18,68 @@ namespace TupleAlgebraClassLib.TupleObjects
 
     public interface ITupleObjectSystem
     {
-        //public ISingleTupleObject this[int tuplePtr] { get; set; }
-
         public ISingleTupleObject this[int tuplePtr]
         { get; }
-
-        public IAttributeComponent this[int tuplePtr, int attrPtr] 
-        { get; set; }
-
-        public IAttributeComponent this[int tuplePtr, AttributeName attrName] 
-        { get; set; }
-
-        public IAttributeComponent<TAttribute>
-            GetDefaultFictionalAttributeComponent<TAttribute>(
-                IAttributeComponentFactory<TAttribute> factory);
 
         public int RowLength { get; }
 
         public int ColumnLength { get; }
     }
 
-    public abstract class TupleObjectSystem<TEntity, TSingleTupleObject> 
-        : TupleObject<TEntity>, ITupleObjectSystem
+    public interface ITupleObjectSystem<
+        TAttributeComponent,
+        TSingleTupleObject>
+        where TSingleTupleObject : ISingleTupleObject<TAttributeComponent>
+    {
+        public TSingleTupleObject this[int tuplePtr]
+        { get; set; }
+
+        public TAttributeComponent this[int tuplePtr, int attrPtr]
+        {
+            get => this[tuplePtr][attrPtr];
+            set => this[tuplePtr][attrPtr] = value;
+        }
+
+        public TAttributeComponent this[int tuplePtr, AttributeName attrName] 
+        { 
+            get => this[tuplePtr][attrName]; 
+            set => this[tuplePtr][attrName] = value;
+        }
+
+        public bool IsDiagonal { get; internal set; }
+
+        public bool IsOrthogonal { get; internal set; }
+
+        public int RowLength { get; }
+
+        public int ColumnLength { get; }
+
+        public void TrimRedundantRows(int len);
+    }
+
+    public interface ITupleObjectSystem<TSingleTupleObject>
+        : ITupleObjectSystem,
+          ITupleObjectSystem<IAttributeComponent, TSingleTupleObject>
+        where TSingleTupleObject : ISingleTupleObject
+    {
+        public IAttributeComponent<TAttribute>
+            GetDefaultFictionalAttributeComponent<TAttribute>(
+                IAttributeComponentFactory<TAttribute> factory);
+    }
+
+    public abstract class TupleObjectSystem<
+        TEntity, 
+        TSingleTupleObject> 
+        : TupleObject<TEntity>,
+          ITupleObjectSystem<TSingleTupleObject>
         where TEntity : new()
         where TSingleTupleObject : SingleTupleObject<TEntity>
     {
-        //private IEnumerable<SingleTupleObject<TEntity>> _tuples = Enumerable.Empty<SingleTupleObject<TEntity>>();
-
         protected TSingleTupleObject[] _tuples;
 
         public TSingleTupleObject[] Tuples
         {
             get => _tuples;
-        }
-
-        ISingleTupleObject ITupleObjectSystem.this[int tuplePtr]
-        {
-            get => this[tuplePtr];
         }
 
         public TSingleTupleObject this[int tuplePtr]
@@ -62,30 +88,23 @@ namespace TupleAlgebraClassLib.TupleObjects
             set => _tuples[tuplePtr] = value;
         }
 
-        public IAttributeComponent this[int tuplePtr, int attrPtr]
+        ISingleTupleObject ITupleObjectSystem.this[int tuplePtr]
         {
-            get => _tuples[tuplePtr][attrPtr];
-            set => _tuples[tuplePtr][attrPtr] = value;
-        }
-
-        public IAttributeComponent this[int tuplePtr, AttributeName attrName]
-        {
-            get => _tuples[tuplePtr][attrName]; 
-            set => _tuples[tuplePtr][attrName] = value;
+            get => this[tuplePtr];
         }
 
         public int RowLength { get => Schema.PluggedAttributesCount; }
 
         public int ColumnLength { get => _tuples.Length; }
 
-        public bool IsDiagonal { get; internal set; } = false;
+        public bool IsDiagonal { get; set; } = false;
 
-        public bool IsOrthogonal { get; internal set; } = false;
+        public bool IsOrthogonal { get; set; } = false;
 
-        public TupleObjectSystem(TupleObjectBuildingHandler<TEntity> onTupleBuilding)
+        public TupleObjectSystem(
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
             : base(onTupleBuilding)
         {
-
             return;
         }
 
@@ -101,7 +120,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         protected TupleObjectSystem(
             TupleObjectSchema<TEntity> schema,
-            IList<SingleTupleObject<TEntity>> tuples)
+            IList<ISingleTupleObject> tuples)
             : base(schema)
         {
             _tuples = tuples.OfType<TSingleTupleObject>().ToArray();
@@ -800,6 +819,11 @@ namespace TupleAlgebraClassLib.TupleObjects
             BranchAction firstIncludesSecond,
             BranchAction secondIncludesFirst)
         {
+            // заглушка, нужно продумать алгоритм до конца 
+            // (работает с конъюнкцией - убирает лишние кортежи по-максимуму,
+            // но с дизъюнкцией уже нет)
+            return BranchAction.ContinueBranchTillEnd;
+
             if (second.IsDiagonal)
             {
                 if (first.ContainsAttribute(second.LowAttrLoc))
@@ -823,6 +847,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
                     return BranchAction.ConsiderSubBranchLater;
                 }
+
                 return BranchAction.ConsiderSubBranchLater;
             }
 

@@ -14,19 +14,28 @@ namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
 
-    public interface ISingleTupleObject
+    public interface ISingleTupleObject<TAttributeComponent>
+        : ITupleObject, IDisposable
     {
-        public IAttributeComponent this[int attrPtr] { get; set; }
+        public TAttributeComponent this[int attrPtr] { get; set; }
 
-        public IAttributeComponent this[AttributeName attrName] { get; set; }
+        public TAttributeComponent this[AttributeName attrName]
+        {
+            get => this[Schema.GetAttributeLoc(attrName)];
+            set => this[Schema.GetAttributeLoc(attrName)] = value;
+        }
 
         public int RowLength { get; }
 
         public bool IsDefault(int attrLoc);
+    }
 
+    public interface ISingleTupleObject
+        : ISingleTupleObject<IAttributeComponent>
+    {
         public bool IsDefault(IAttributeComponent component);
 
-        public IAttributeComponent<TAttribute> 
+        public IAttributeComponent<TAttribute>
             GetDefaultFictionalAttributeComponent<TAttribute>(
                 IAttributeComponentFactory<TAttribute> factory);
     }
@@ -47,11 +56,7 @@ namespace TupleAlgebraClassLib.TupleObjects
             set => _components[attrLoc] = value;
         }
 
-        public IAttributeComponent this[AttributeName attrName]
-        {
-            get => _components[Schema.GetAttributeLoc(attrName)];
-            set => _components[Schema.GetAttributeLoc(attrName)] = value;
-        }
+        ITupleObjectSchemaProvider ITupleObject.Schema { get => Schema; }
 
         public int RowLength { get => _components.Length; }
 

@@ -11,11 +11,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     public interface ITupleObjectAttributeManager
     {
-        public bool IsEmpty<TEntity>(SingleTupleObject<TEntity> tuple)
-            where TEntity : new();
+        public bool IsEmpty(ISingleTupleObject tuple);
 
-        public bool IsFull<TEntity>(SingleTupleObject<TEntity> tuple)
-            where TEntity : new();
+        public bool IsFull(ISingleTupleObject tuple);
 
         public ITupleObjectAttributeManager SetComponent(
             ISingleTupleObject tuple,
@@ -24,6 +22,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeManager SetComponent(
             ISingleTupleObject tuple,
             IAttributeComponentFactoryArgs factoryArgs);
+
+        public ITupleObjectAttributeManager SetComponent(
+            IQueriedSingleTupleObject tuple,
+            System.Linq.Expressions.Expression factoryArgs);
 
         public ITupleObjectAttributeManager SetComponentWithComplementionAccumulation(
             ISingleTupleObject tuple,
@@ -35,6 +37,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public ITupleObjectAttributeManager SetDefaultFictionalAttributeComponent(
             ISingleTupleObject tuple);
+
+        public ITupleObjectAttributeManager SetDefaultFictionalAttributeComponent(
+            IQueriedSingleTupleObject tuple);
 
         public ITupleObjectAttributeManager
                 SetComponentToProjectionOfOntoMember<TEntity>(

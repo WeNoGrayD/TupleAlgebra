@@ -40,14 +40,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        public bool IsEmpty<TEntity>(SingleTupleObject<TEntity> tuple)
-            where TEntity : new()
+        public bool IsEmpty(ISingleTupleObject tuple)
         {
             return tuple[_attributeName].IsEmpty;
         }
 
-        public bool IsFull<TEntity>(SingleTupleObject<TEntity> tuple)
-            where TEntity : new()
+        public bool IsFull(ISingleTupleObject tuple)
         {
             return tuple[_attributeName].IsFull;
         }
@@ -98,6 +96,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return SetComponentWithComplementionAccumulation(tuple, ac);
         }
 
+        public ITupleObjectAttributeManager SetComponent(
+            IQueriedSingleTupleObject tuple,
+            Expression factoryArgs)
+        {
+            tuple[_attributeName] = factoryArgs;
+
+            return this;
+        }
+
         public ITupleObjectAttributeManager SetDefaultFictionalAttributeComponent(
             ISingleTupleObject tuple)
         {
@@ -106,6 +113,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                     AttributeInfo.ComponentFactory);
 
             return SetComponent(tuple, _defaultComponent);
+        }
+
+        public ITupleObjectAttributeManager SetDefaultFictionalAttributeComponent(
+            IQueriedSingleTupleObject tuple)
+        {
+            return SetComponent(
+                tuple, 
+                tuple.GetDefaultFictionalAttributeComponent(
+                    AttributeInfo.ComponentFactory));
         }
 
         public ITupleObjectAttributeManager

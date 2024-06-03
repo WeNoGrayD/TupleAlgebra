@@ -43,7 +43,7 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public DisjunctiveTupleSystem(
             TupleObjectSchema<TEntity> schema,
-            IList<SingleTupleObject<TEntity>> tuples)
+            IList<ISingleTupleObject> tuples)
             : base(schema, tuples)
         { }
 

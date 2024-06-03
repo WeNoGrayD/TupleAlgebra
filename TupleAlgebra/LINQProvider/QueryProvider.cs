@@ -59,10 +59,16 @@ namespace LINQProvider
         /// <param name="dataSource"></param>
         /// <param name="firstPipelineMiddleware"></param>
         /// <returns></returns>
-        protected abstract QueryPipelineScheduler CreateQueryPipelineExecutor(
+        protected QueryPipelineScheduler CreateQueryPipelineExecutor(
             QueryContext queryContext,
             IEnumerable<MethodCallExpression> methodCallChain,
-            IEnumerable dataSource);
+            IEnumerable dataSource)
+        {
+            return new QueryPipelineScheduler(
+                queryContext,
+                methodCallChain,
+                dataSource);
+        }
 
         #endregion
 
@@ -86,7 +92,8 @@ namespace LINQProvider
         /// <returns></returns>
         public IQueryable<TData> CreateQuery<TData>(Expression queryExpression)
         {
-            IQueryable dataSource = CreateDataSourceExtractor<TData>().Extract(queryExpression);
+            IQueryable dataSource = CreateDataSourceExtractor<TData>()
+                .Extract(queryExpression);
 
             /*
                Проверка выражения запроса на избыточность (а также корректность). 
@@ -167,7 +174,7 @@ namespace LINQProvider
 
         #endregion
 
-        #region Inner classes
+        #region Nested types
 
         /// <summary>
         /// Построитель цепочки вызовов методов запроса.
@@ -239,7 +246,8 @@ namespace LINQProvider
         /// Ивзлекатель первоначального источника данных из выражения запроса.
         /// </summary>
         /// <typeparam name="TDataSource"></typeparam>
-        protected class DataSourceExtractor<TDataSource> : ExpressionVisitor, IDataSourceExtractor<TDataSource>
+        protected class DataSourceExtractor<TDataSource> 
+            : ExpressionVisitor, IDataSourceExtractor<TDataSource>
             where TDataSource : IEnumerable
         {
             #region Instance fields
@@ -362,7 +370,8 @@ namespace LINQProvider
             /// Метод для инспеции метода Select.
             /// </summary>
             /// <param name="selectExpression"></param>
-            protected virtual void CheckSelectQueryOnAcceptability(MethodCallExpression selectExpression)
+            protected virtual void CheckSelectQueryOnAcceptability(
+                MethodCallExpression selectExpression)
             {
                 return;
             }
