@@ -39,8 +39,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrast
             ConjunctiveTupleSystem<TEntity> second,
             TupleObjectFactory factory)
         {
-            return null;
-            //return OperationStrategy(second, first, factory, Intersect);
+            return OperationStrategy(first, second, factory,
+                new ReversedOperationHandler<ConjunctiveTupleSystem<TEntity>>(Intersect));
         }
 
         public override TupleObject<TEntity> Accept(

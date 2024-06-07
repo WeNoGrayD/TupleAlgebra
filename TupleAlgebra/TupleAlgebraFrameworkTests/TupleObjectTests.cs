@@ -27,6 +27,7 @@ using System.Runtime.InteropServices;
 namespace TupleAlgebraFrameworkTests
 {
     using static TupleObjectHelper;
+    using static TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure.LINQ2TupleAlgebra;
 
     [TestClass]
     public class TupleObjectTests
@@ -37,35 +38,102 @@ namespace TupleAlgebraFrameworkTests
 
         private static bool _alphabetWasConfigured = false;
 
+        protected void PrintSchema(ITupleObject tupleObject)
+        {
+            Console.WriteLine();
+            Console.Write("[");
+            foreach (var attrName in tupleObject.Schema.PluggedAttributeNames)
+            {
+                Console.Write($"{attrName,14}|");
+            }
+            Console.WriteLine("]");
+
+            return;
+        }
+
+        protected void PrintSingleTupleObject(
+            ISingleTupleObject tuple,
+            string defaultAcSymbol,
+            string openingBracket,
+            string closingBracket,
+            bool printSchema = true)
+        {
+            if (printSchema)
+            {
+                PrintSchema(tuple);
+            }
+
+            IAttributeComponent ac;
+
+            Console.Write(openingBracket);
+            for (int attrLoc = 0; attrLoc < tuple.RowLength; attrLoc++)
+            {
+                if (attrLoc > 0) Console.Write(", ");
+                ac = tuple[attrLoc];
+                if (ac.IsDefault)
+                {
+                    Console.Write($"{defaultAcSymbol + "      ",15}");
+                    continue;
+                }
+                Console.Write($"[{string.Join(',', ExplodeAC()),13}]");
+            }
+            Console.WriteLine(closingBracket);
+
+            return;
+
+            IEnumerable<string> ExplodeAC()
+            {
+                foreach (object d in (IEnumerable)ac)
+                {
+                    yield return d.ToString();
+                }
+
+                yield break;
+            }
+        }
+
         protected void PrintTupleObjectSystem(
             ITupleObjectSystem tupleSys,
-            string defaultAcSymbol)
+            string defaultAcSymbol,
+            string openingBracket,
+            string closingBracket)
         {
-            ISingleTupleObject tuple;
-            IAttributeComponent ac;
+            PrintSchema(tupleSys);
+
             for (int i = 0; i < tupleSys.ColumnLength; i++)
             {
-                tuple = tupleSys[i];
-                Console.Write($"{i,-3} [");
-                for (int attrLoc = 0; attrLoc < 3; attrLoc++)
-                {
-                    if (attrLoc > 0) Console.Write(", ");
-                    ac = tuple[attrLoc];
-                    if (ac.IsDefault)
-                    {
-                        Console.Write( $"{defaultAcSymbol + "      ",15}");
-                        continue;
-                    }
-                    Console.Write($"[{string.Join(',', ((IEnumerable<int>)ac).Select(d => d.ToString())),13}]");
-                }
-                Console.WriteLine("]");
+                Console.Write($"{i,-3} ");
+                PrintSingleTupleObject(
+                    tupleSys[i], 
+                    defaultAcSymbol,
+                    openingBracket,
+                    closingBracket,
+                    false);
             }
+
+            return;
+        }
+
+        protected void PrintConjunctiveTuple(
+            ISingleTupleObject tuple)
+        {
+            PrintSingleTupleObject(tuple, "*", "[", "]");
+
+            return;
+        }
+
+        protected void PrintDisjunctiveTuple(
+            ISingleTupleObject tuple)
+        {
+            PrintSingleTupleObject(tuple, "Ø", "]", "[");
+
+            return;
         }
 
         protected void PrintConjunctiveTupleSystem(
             ITupleObjectSystem tupleSys)
         {
-            PrintTupleObjectSystem(tupleSys, "*");
+            PrintTupleObjectSystem(tupleSys, "*", "[", "]");
 
             return;
         }
@@ -73,7 +141,7 @@ namespace TupleAlgebraFrameworkTests
         protected void PrintDisjunctiveTupleSystem(
             ITupleObjectSystem tupleSys)
         {
-            PrintTupleObjectSystem(tupleSys, "Ø");
+            PrintTupleObjectSystem(tupleSys, "Ø", "]", "[");
 
             return;
         }
@@ -786,6 +854,61 @@ namespace TupleAlgebraFrameworkTests
             builder.Attribute(cd => cd.D2).SetDomain(intRange);
             builder.Attribute(cd => cd.D3).SetDomain(intRange);
             */
+        }
+
+        [TestMethod]
+        public void TupleObjectQueriesTest()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+
+            TupleObject<ForumUser>.Configure(CustomLikedUsers);
+            TupleObject<ForumUser> likedPersons = factory.CreateConjunctiveTuple<ForumUser>(
+                factoryArgs: [
+                    SetAC((ForumUser fu) => fu.Nickname,
+                     new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
+                    ),
+                    SetAC((ForumUser fu) => fu.LikeCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
+                    ),
+                    SetAC((ForumUser fu) => fu.PostCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([5, 100])
+                    ),
+                    SetAC((ForumUser fu) => fu.Followers,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 20])
+                    ),
+                    SetAC((ForumUser fu) => fu.Following,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([0, 5])
+                    )]);
+
+            Console.WriteLine("likedPersons & ][");
+            var where = likedPersons
+                .Where((fu) => fu.Nickname.StartsWith('W') || fu.LikeCount > 1 || fu.PostCount > 5 || fu.Followers > 5 || fu.Following > 2);
+            where = where.ExecuteQuery();
+            where = !where;
+
+            PrintConjunctiveTupleSystem((dynamic)where);
+
+            Console.WriteLine("likedPersons & ]--[");
+            where = likedPersons
+                .Where((fu) => (fu.Nickname.StartsWith('W') || fu.LikeCount > 1) && (fu.PostCount > 5 || fu.Followers > 5) && fu.Following > 2);
+            where = where.ExecuteQuery();
+            where = !where;
+
+            PrintConjunctiveTupleSystem((dynamic)where);
+
+            Console.WriteLine("likedPersons & ([--] & [--])");
+            where = likedPersons
+                .Where((fu) => ((fu.Nickname.StartsWith('W') && fu.LikeCount > 1) || (fu.PostCount > 5 && fu.Followers > 5)) && ((fu.Nickname.StartsWith('N') && fu.LikeCount < 5) || (fu.PostCount < 100 && fu.Followers < 20)));
+            where = where.ExecuteQuery();
+            PrintConjunctiveTupleSystem((dynamic)where);
+            where = !where;
+            PrintDisjunctiveTupleSystem((dynamic)where);
+            /*
+            where = !where;
+            PrintDisjunctiveTupleSystem((dynamic)where);
+            */
+
+            return;
         }
     }
 }

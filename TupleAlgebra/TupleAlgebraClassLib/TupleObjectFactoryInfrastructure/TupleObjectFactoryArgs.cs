@@ -22,7 +22,14 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
         public TComponentSource ComponentSource { get; init; } = default;
 
-        public bool IsDefault { get; init; } 
+        public bool IsDefault { get; init; }
+
+        public IndexedComponentFactoryArgs()
+        {
+            IsDefault = true;
+
+            return;
+        }
 
         public IndexedComponentFactoryArgs(
             int index,
@@ -97,6 +104,18 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             : this(index, componentSource)
         {
             TupleManager = tupleManager;
+
+            return;
+        }
+
+        public IndexedComponentFactoryArgs(
+            int index,
+            ITupleObjectSchemaProvider schema,
+            Func<ITupleObjectAttributeManager, TComponentSource> getComponent)
+        {
+            Index = index;
+            TupleManager = schema.GetSetupWizard(index).CreateManager();
+            ComponentSource = getComponent(TupleManager);
 
             return;
         }

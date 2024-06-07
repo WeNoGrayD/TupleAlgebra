@@ -143,10 +143,13 @@ namespace LINQProvider
         /// <returns></returns>
         public virtual TQueryResult Execute<TQueryResult>(Expression queryExpression)
         {
-            MethodCallChainBuilder methodCallChainBuilder = new MethodCallChainBuilder();
+            MethodCallChainBuilder methodCallChainBuilder = 
+                new MethodCallChainBuilder();
             methodCallChainBuilder.Build(queryExpression);
-            IEnumerable<MethodCallExpression> methodCallChain = methodCallChainBuilder.MethodCallChain;
-            IEnumerable queryDataSource = _queryDataSource = methodCallChainBuilder.QueryDataSource;
+            IEnumerable<MethodCallExpression> methodCallChain = 
+                methodCallChainBuilder.MethodCallChain;
+            IEnumerable queryDataSource = _queryDataSource = 
+                methodCallChainBuilder.QueryDataSource;
 
             /*
              * Запрос считается фиктивным, если цепочка методов запроса не содержит ни одного метода 

@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -72,6 +74,38 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             }
 
             return SetComponent(tuple, _lastSetComponent.Value);
+        }
+
+        public IAttributeComponent GetComponent(Expression factoryArgs)
+        {
+            IAttributeComponent ac = factoryArgs switch
+            {
+                Expression<Func<TAttribute, bool>> predicate => GetFiltering(predicate),
+                MethodCallExpression call => 
+                    Expression.Lambda<Func<IAttributeComponent>>(call).Compile()(),
+                _ => default
+            };
+
+            return ac;
+
+            IAttributeComponent GetFiltering(
+                Expression<Func<TAttribute, bool>> predicate)
+            {
+                IAttributeComponentFactory<TAttribute> factory =
+                    AttributeInfo.ComponentFactory;
+                if (factory is not INonFictionalAttributeComponentFactory2<
+                    TAttribute, FilteringAttributeComponentFactoryArgs<TAttribute>>)
+                {
+                    AttributeDomain<TAttribute> domain =
+                        AttributeInfo.ComponentFactory.Domain;
+                    factory = new FilteringAttributeComponentFactory<TAttribute>(domain);
+                }
+
+                IAttributeComponentFactoryArgs factoryArgs =
+                    new FilteringAttributeComponentFactoryArgs<TAttribute>(predicate);
+
+                return factoryArgs.ProvideTo(factory);
+            }
         }
 
         public ITupleObjectAttributeManager SetComponent(

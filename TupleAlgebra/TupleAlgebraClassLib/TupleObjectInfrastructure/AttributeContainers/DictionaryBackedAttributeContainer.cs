@@ -104,6 +104,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.AttributeContainers
 
         private void RemoveAttributeImpl(AttributeName attrName)
         {
+            Remove(attrName);
             _pluggedAttributes.Remove(attrName);
 
             return;

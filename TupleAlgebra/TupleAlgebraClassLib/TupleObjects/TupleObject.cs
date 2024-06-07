@@ -23,9 +23,17 @@ namespace TupleAlgebraClassLib.TupleObjects
     using static TupleObjectHelper;
     using static TupleObjectStaticDataStorage;
 
-    public interface ITupleObject
+    public interface ITupleObject 
+        : IQueryable, IFactoryProvider<TupleObjectFactory>
     {
         public ITupleObjectSchemaProvider Schema { get; }
+
+        public void PassSchema<TEntity>(ITupleObjectBuilder builder)
+        {
+            builder.SetSchema<TEntity>(Schema as TupleObjectSchema<TEntity>);
+
+            return;
+        }
     }
     
     /// <summary>
@@ -35,7 +43,7 @@ namespace TupleAlgebraClassLib.TupleObjects
     public abstract class TupleObject<TEntity>
         : IQueryable<TEntity>,
           IDisposable,
-          IFactoryProvider<TupleObjectFactory>
+          ITupleObject
         where TEntity : new()
     {
         #region Instance fields
@@ -53,6 +61,8 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// Схема кортежа. Содержит данные 
         /// </summary>
         public TupleObjectSchema<TEntity> Schema { get; private set; }
+
+        ITupleObjectSchemaProvider ITupleObject.Schema { get => Schema; }
 
         public TupleObjectFactory Factory => Storage.GetFactory();
 
@@ -201,6 +211,11 @@ namespace TupleAlgebraClassLib.TupleObjects
         }
         */
 
+        public virtual TupleObject<TEntity> ExecuteQuery()
+        {
+            return (Provider.Execute<TupleObject<TEntity>>(Expression));
+        }
+
         protected TupleObject<TEntity> DefineOperand(
             TupleObject<TEntity> operand)
         {
@@ -228,43 +243,43 @@ namespace TupleAlgebraClassLib.TupleObjects
         public virtual TupleObject<TEntity> IntersectWith(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Intersect(this, second);
+            return SetOperations.Intersect(this, second.ExecuteQuery());
         }
 
         public virtual TupleObject<TEntity> UnionWith(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Union(this, second);
+            return SetOperations.Union(this, second.ExecuteQuery());
         }
 
         public virtual TupleObject<TEntity> ExceptWith(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Except(this, second);
+            return SetOperations.Except(this, second.ExecuteQuery());
         }
 
         public virtual TupleObject<TEntity> SymmetricExceptWith(
             TupleObject<TEntity> second)
         {
-            return SetOperations.SymmetricExcept(this, second);
+            return SetOperations.SymmetricExcept(this, second.ExecuteQuery());
         }
 
         public virtual bool Includes(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Include(this, second);
+            return SetOperations.Include(this, second.ExecuteQuery());
         }
 
         public virtual bool EqualsTo(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Equal(this, second);
+            return SetOperations.Equal(this, second.ExecuteQuery());
         }
 
         public virtual bool IncludesOrEqualsTo(
             TupleObject<TEntity> second)
         {
-            return SetOperations.IncludeOrEqual(this, second);
+            return SetOperations.IncludeOrEqual(this, second.ExecuteQuery());
         }
 
         #endregion

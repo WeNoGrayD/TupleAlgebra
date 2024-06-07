@@ -65,7 +65,8 @@ namespace LINQProvider
                 }
             }
 
-            return RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(methodExpr, arguments);
+            return RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(
+                methodExpr, arguments);
         }
 
         protected object RecognizeUnderlyingExpressionAndBuildSingleQueryExecutor(

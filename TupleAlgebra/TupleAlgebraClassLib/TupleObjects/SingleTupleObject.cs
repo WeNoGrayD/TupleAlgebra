@@ -122,19 +122,15 @@ namespace TupleAlgebraClassLib.TupleObjects
 
             builder = builder ?? factory.GetBuilder<TEntity>();
 
-            int len = schema.PluggedAttributesCount;
+            int len = Schema.PluggedAttributesCount;
             IndexedComponentFactoryArgs<IAttributeComponent>[] components =
                 new IndexedComponentFactoryArgs<IAttributeComponent>[len];
 
             int attrLoc = 0;
-            for (attrLoc = 0; attrLoc < len; attrLoc++)
-            {
-                components[attrLoc] = new();
-            }
             for (int i = 0; i < Schema.PluggedAttributesCount; i++)
             {
                 attrLoc = schema.GetAttributeLoc(Schema.AttributeAt(i));
-                components[attrLoc] = new(attrLoc, builder, this[i]);
+                components[i] = new(attrLoc, builder, this[i]);
             }
 
             return Reproduce(components, factory, schema.PassToBuilder, builder);

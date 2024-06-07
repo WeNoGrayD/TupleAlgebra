@@ -16,7 +16,7 @@ namespace TupleAlgebraClassLib.TupleObjects
     using static TupleObjectHelper;
     using static TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators.TupleObjectFactoryMethods;
 
-    public interface ITupleObjectSystem
+    public interface ITupleObjectSystem : ITupleObject
     {
         public ISingleTupleObject this[int tuplePtr]
         { get; }
@@ -29,6 +29,7 @@ namespace TupleAlgebraClassLib.TupleObjects
     public interface ITupleObjectSystem<
         TAttributeComponent,
         TSingleTupleObject>
+        : ITupleObject
         where TSingleTupleObject : ISingleTupleObject<TAttributeComponent>
     {
         public TSingleTupleObject this[int tuplePtr]

@@ -15,6 +15,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public bool IsFull(ISingleTupleObject tuple);
 
+        public IAttributeComponent GetComponent(
+            System.Linq.Expressions.Expression factoryArgs);
+
         public ITupleObjectAttributeManager SetComponent(
             ISingleTupleObject tuple,
             IAttributeComponent ac);
@@ -59,6 +62,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public AttributeName AttributeName { get; }
 
+        public ITupleObjectAttributeSetupWizard Attach();
+
+        public ITupleObjectAttributeSetupWizard Detach();
+
         public ITupleObjectAttributeManager CreateManager();
 
         //ITupleObjectAttributeSetupWizard Set(ITupleObjectAttributeInfo attrInfo);
@@ -102,8 +109,14 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <returns></returns>
         public ITupleObjectAttributeSetupWizard<TAttribute> Ignore();
         
-        public ITupleObjectAttributeSetupWizard<TAttribute> Attach();
+        public new ITupleObjectAttributeSetupWizard<TAttribute> Attach();
 
-        public ITupleObjectAttributeSetupWizard<TAttribute> Detach();
+        public new ITupleObjectAttributeSetupWizard<TAttribute> Detach();
+
+        ITupleObjectAttributeSetupWizard ITupleObjectAttributeSetupWizard.Attach()
+            => Attach();
+
+        ITupleObjectAttributeSetupWizard ITupleObjectAttributeSetupWizard.Detach()
+            => Detach();
     }
 }

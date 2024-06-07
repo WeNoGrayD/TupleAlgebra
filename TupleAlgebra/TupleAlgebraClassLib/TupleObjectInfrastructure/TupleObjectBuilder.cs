@@ -12,6 +12,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
     public interface ITupleObjectBuilder
     {
+        public void SetSchema<TEntity>(TupleObjectSchema<TEntity> schema);
+
         public ITupleObjectAttributeSetupWizard Attribute(AttributeName name);
 
         public ITupleObjectAttributeSetupWizard AttributeAt(int i);
@@ -194,6 +196,18 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
             return;
         }
+        void ITupleObjectBuilder.SetSchema<TBEntity>(
+            TupleObjectSchema<TBEntity> schema)
+        {
+            if (schema is TupleObjectSchema<TEntity> cSchema)
+            {
+                Schema = cSchema;
+
+                return;
+            }
+
+            throw new InvalidOperationException($"Не удаётся назначить схему. Типы {typeof(TEntity).Name} и {typeof(TBEntity).Name} не совпадают");
+        }
 
         public void InitDefaultSchema()
         { 
@@ -220,7 +234,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeSetupWizard Attribute(
             AttributeName attrName)
         {
-            return Schema.GetSetupWizard(attrName);
+            return Schema[attrName].SetupWizardFactory(Schema, attrName);
         }
 
         public ITupleObjectAttributeSetupWizard AttributeAt(
@@ -238,7 +252,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /// <param name="memberAccess"></param>
         /// <returns></returns>
         public ITupleObjectAttributeSetupWizard<TAttribute> Attribute<TAttribute>(
-            Expression<AttributeGetterHandler<TEntity, TAttribute>> memberAccess)
+            Expression<Func<TEntity, TAttribute>> memberAccess)
         {
             return (Schema[memberAccess] as ITupleObjectAttributeInfo<TAttribute>)!
                 .SetupWizardFactory(Schema, memberAccess);

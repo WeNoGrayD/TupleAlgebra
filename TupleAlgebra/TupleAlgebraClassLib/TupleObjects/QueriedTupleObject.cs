@@ -11,6 +11,7 @@ using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using System.Runtime.CompilerServices;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
@@ -63,7 +64,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// Конструктор экземпляра.
         /// </summary>
         /// <param name="onTupleBuilding"></param>
-        protected QueriedTupleObject(
+        public QueriedTupleObject(
             Expression queryExpression,
             TupleObjectBuilder<TEntity> builder,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
@@ -78,7 +79,7 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// Конструктор экземпляра.
         /// </summary>
         /// <param name="onTupleBuilding"></param>
-        protected QueriedTupleObject(
+        public QueriedTupleObject(
             Expression queryExpression,
             TupleObjectSchema<TEntity> schema,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
@@ -118,12 +119,8 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObjectFactory factory,
             TupleObjectBuilder<TEntity> builder = null)
         {
-            return factory.CreateQueried<TEntity>(Expression, schema.PassToBuilder);
-        }
-
-        public TupleObject<TEntity> ExecuteQuery()
-        {
-            return (Provider.Execute<TupleObject<TEntity>>(Expression));
+            return factory.CreateQueried<TEntity>(
+                _queryExpression, schema.PassToBuilder);
         }
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
@@ -149,60 +146,115 @@ namespace TupleAlgebraClassLib.TupleObjects
         public override TupleObject<TEntity> IntersectWith(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Intersect(
-                ExecuteQuery(),
-                DefineOperand(second));
+            return ExecuteQuery().IntersectWith(DefineOperand(second));
         }
 
         public override TupleObject<TEntity> UnionWith(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Union(
-                ExecuteQuery(),
-                DefineOperand(second));
+            return ExecuteQuery().UnionWith(DefineOperand(second));
         }
 
         public override TupleObject<TEntity> ExceptWith(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Except(
-                ExecuteQuery(),
-                DefineOperand(second));
+            return ExecuteQuery().ExceptWith(DefineOperand(second));
         }
 
         public override TupleObject<TEntity> SymmetricExceptWith(
             TupleObject<TEntity> second)
         {
-            return SetOperations.SymmetricExcept(
-                ExecuteQuery(),
-                DefineOperand(second));
+            return ExecuteQuery().SymmetricExceptWith(DefineOperand(second));
         }
 
         public override bool Includes(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Include(
-                ExecuteQuery(),
-                DefineOperand(second));
+            return ExecuteQuery().Includes(DefineOperand(second));
         }
 
         public override bool EqualsTo(
             TupleObject<TEntity> second)
         {
-            return SetOperations.Equal(
-                ExecuteQuery(),
-                DefineOperand(second));
+            return ExecuteQuery().EqualsTo(DefineOperand(second));
         }
 
         public override bool IncludesOrEqualsTo(
             TupleObject<TEntity> second)
         {
-            return SetOperations.IncludeOrEqual(
-                ExecuteQuery(), 
-                DefineOperand(second));
+            return ExecuteQuery().IncludesOrEqualsTo(DefineOperand(second));
         }
 
         #endregion
+    }
+
+    internal class QueriedComplexTupleObject<TEntity>
+        : QueriedTupleObject<TEntity>
+        where TEntity : new()
+    {
+        public override Expression Expression => Expression.Constant(this);
+
+        #region Constructors
+
+        /// <summary>
+        /// Конструктор экземпляра.
+        /// </summary>
+        /// <param name="onTupleBuilding"></param>
+        public QueriedComplexTupleObject(
+            Expression queryExpression,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
+            : base(
+                  queryExpression,
+                  new TupleObjectBuilder<TEntity>(),
+                  onTupleBuilding)
+        {
+            return;
+        }
+
+        /// <summary>
+        /// Конструктор экземпляра.
+        /// </summary>
+        /// <param name="onTupleBuilding"></param>
+        public QueriedComplexTupleObject(
+            Expression queryExpression,
+            TupleObjectBuilder<TEntity> builder,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
+            : base(queryExpression, builder, onTupleBuilding)
+        {
+            return;
+        }
+
+        /// <summary>
+        /// Конструктор экземпляра.
+        /// </summary>
+        /// <param name="onTupleBuilding"></param>
+        public QueriedComplexTupleObject(
+            Expression queryExpression,
+            TupleObjectSchema<TEntity> schema,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
+            : base(
+                  queryExpression,
+                  new TupleObjectBuilder<TEntity>(schema),
+                  onTupleBuilding)
+        {
+            return;
+        }
+
+        protected QueriedComplexTupleObject(
+            Expression queryExpression,
+            TupleObjectSchema<TEntity> schema)
+            : base(queryExpression, schema)
+        {
+            return;
+        }
+
+        #endregion
+
+        public override TupleObject<TEntity> ExecuteQuery()
+        {
+            return Expression.Lambda<Func<TupleObject<TEntity>>>(base.Expression)
+                .Compile()();
+        }
     }
 
     public interface IQueriedSingleTupleObject
@@ -306,6 +358,29 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         public abstract Expression GetDefaultFictionalAttributeComponent<TAttribute>(
             IAttributeComponentFactory<TAttribute> factory);
+
+        public override TupleObject<TEntity> ExecuteQuery()
+        {
+            return ExecuteQueryImpl(CreateTupleFactoryArgs());
+        }
+
+        public IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+            CreateTupleFactoryArgs()
+        {
+            for (int attrLoc = 0; attrLoc < _components.Length; attrLoc++)
+            {
+                yield return new IndexedComponentFactoryArgs<IAttributeComponent>(
+                    attrLoc,
+                    Schema,
+                    (attrManager) => attrManager.GetComponent(_components[attrLoc]));
+            }
+
+            yield break;
+        }
+
+        protected abstract TupleObject<TEntity> ExecuteQueryImpl(
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+            factoryArgs);
 
         #endregion
     }
@@ -425,6 +500,17 @@ namespace TupleAlgebraClassLib.TupleObjects
 
             return;
         }
+
+        public override TupleObject<TEntity> ExecuteQuery()
+        {
+            return ExecuteQueryImpl(
+                new SquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>(
+                    Tuples.Select(tuple => tuple.CreateTupleFactoryArgs())));
+        }
+
+        protected abstract TupleObject<TEntity> ExecuteQueryImpl(
+            ISquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+            factoryArgs);
     }
 
     internal class QueriedConjunctiveTuple<TEntity>
@@ -518,6 +604,15 @@ namespace TupleAlgebraClassLib.TupleObjects
                     System.Reflection.BindingFlags.Instance,
                     new Type[0]));
         }
+
+        protected override TupleObject<TEntity> ExecuteQueryImpl(
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+            factoryArgs)
+        {
+            return Factory.CreateConjunctiveTuple<TEntity>(
+                factoryArgs,
+                PassSchema);
+        }
     }
 
     internal class QueriedDisjunctiveTuple<TEntity>
@@ -609,6 +704,15 @@ namespace TupleAlgebraClassLib.TupleObjects
                     System.Reflection.BindingFlags.Instance,
                     new Type[0]));
         }
+
+        protected override TupleObject<TEntity> ExecuteQueryImpl(
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+            factoryArgs)
+        {
+            return Factory.CreateDisjunctiveTuple<TEntity>(
+                factoryArgs,
+                PassSchema);
+        }
     }
 
     internal class QueriedConjunctiveTupleSystem<TEntity>
@@ -693,6 +797,15 @@ namespace TupleAlgebraClassLib.TupleObjects
         }
 
         #endregion
+
+        protected override TupleObject<TEntity> ExecuteQueryImpl(
+            ISquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+            factoryArgs)
+        {
+            return Factory.CreateConjunctiveTupleSystem<TEntity>(
+                factoryArgs,
+                PassSchema);
+        }
     }
 
     internal class QueriedDisjunctiveTupleSystem<TEntity>
@@ -777,5 +890,14 @@ namespace TupleAlgebraClassLib.TupleObjects
         }
 
         #endregion
+
+        protected override TupleObject<TEntity> ExecuteQueryImpl(
+            ISquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+            factoryArgs)
+        {
+            return Factory.CreateDisjunctiveTupleSystem<TEntity>(
+                factoryArgs,
+                PassSchema);
+        }
     }
 }

@@ -152,7 +152,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 TupleObjectSchema<TEntity> schema,
                 int len)
         {
-            return new QueriedConjunctiveTupleSystem<TEntity>(schema, len);
+            return new QueriedDisjunctiveTupleSystem<TEntity>(schema, len);
         }
 
         protected override TupleObject<TEntity>
@@ -160,7 +160,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 TupleObjectSchema<TEntity> schema,
                 IList<IQueriedSingleTupleObject> tuples)
         {
-            return new QueriedConjunctiveTupleSystem<TEntity>(schema, tuples);
+            return new QueriedDisjunctiveTupleSystem<TEntity>(schema, tuples);
         }
 
         protected override TupleObject<TEntity>

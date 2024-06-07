@@ -47,6 +47,8 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
 
             _qcFactory = new QueriedConjunctiveTupleFactory(this);
             _qdFactory = new QueriedDisjunctiveTupleFactory(this);
+            _qcSysFactory = new QueriedConjunctiveTupleSystemFactory(this, _qcFactory, _qdFactory);
+            _qdSysFactory = new QueriedDisjunctiveTupleSystemFactory(this, _qdFactory, _qcFactory);
 
             return;
         }
@@ -57,6 +59,30 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             where TEntity : new()
         {
             return new QueriedTupleObject<TEntity>(queryExpression, onTupleBuilding);
+        }
+
+        internal QueriedTupleObject<TEntity> CreateQueried<TEntity>(
+            Expression queryExpression,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return new QueriedTupleObject<TEntity>(queryExpression, builder);
+        }
+
+        internal QueriedTupleObject<TEntity> CreateQueriedComplexTupleObject<TEntity>(
+            Expression queryExpression,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding)
+            where TEntity : new()
+        {
+            return new QueriedComplexTupleObject<TEntity>(queryExpression, onTupleBuilding);
+        }
+
+        internal QueriedTupleObject<TEntity> CreateQueriedComplexTupleObject<TEntity>(
+            Expression queryExpression,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return new QueriedComplexTupleObject<TEntity>(queryExpression, builder);
         }
 
         internal QueriedTupleObject<TEntity> CreateQueriedSingleTupleObject<TEntity>(
