@@ -8,9 +8,9 @@ using System.Diagnostics;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.AttributeComponents;
 
-namespace TupleAlgebraClassLib.AttributeComponentAcceptors
+namespace TupleAlgebraClassLib.AttributeComponentVisitors
 {
-    public abstract class FactoryBinaryAttributeComponentAcceptor<
+    public abstract class FactoryBinaryAttributeComponentVisitor<
         TData, 
         TIntermediateResult, 
         CTOperand1, 

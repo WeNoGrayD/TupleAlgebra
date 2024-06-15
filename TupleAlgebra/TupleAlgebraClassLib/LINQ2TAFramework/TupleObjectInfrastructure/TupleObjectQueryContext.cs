@@ -46,6 +46,24 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
 
         #region Query methods
 
+        private SingleQueryExecutor<TEntity, bool>
+            BuildAllQuery<TEntity>(
+            QueriedTupleObject<TEntity> filterTuple)
+            where TEntity : new()
+        {
+            return new TupleObjectAllQueryExecutor<TEntity>(
+                filterTuple.ExecuteQuery());
+        }
+
+        private SingleQueryExecutor<TEntity, bool>
+            BuildAnyQuery<TEntity>(
+            QueriedTupleObject<TEntity> filterTuple)
+            where TEntity : new()
+        {
+            return new TupleObjectAnyQueryExecutor<TEntity>(
+                filterTuple.ExecuteQuery());
+        }
+
         private SingleQueryExecutor<TEntity, TupleObject<TEntity>> 
             BuildWhereQuery<TEntity>(
             QueriedTupleObject<TEntity> filterTuple)

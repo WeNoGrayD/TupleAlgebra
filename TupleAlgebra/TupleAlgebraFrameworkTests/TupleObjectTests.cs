@@ -38,6 +38,17 @@ namespace TupleAlgebraFrameworkTests
 
         private static bool _alphabetWasConfigured = false;
 
+        [TestMethod]
+        public void MakeFullTO()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<Alphabet<int, int, int>>.Configure(CustomAlphabet);
+
+            var full = factory.CreateFull<Alphabet<int, int, int>>();
+
+            return;
+        }
+
         protected void PrintSchema(ITupleObject tupleObject)
         {
             Console.WriteLine();
@@ -785,6 +796,7 @@ namespace TupleAlgebraFrameworkTests
             //      ct1.Dispose();
         }
 
+        /*
         [TestMethod]
         public void CreateGetterAndSetter()
         {
@@ -839,6 +851,7 @@ namespace TupleAlgebraFrameworkTests
 
             return;
         }
+        */
 
         private bool _cartesianDataAreConfigured = false;
 
@@ -907,6 +920,61 @@ namespace TupleAlgebraFrameworkTests
             where = !where;
             PrintDisjunctiveTupleSystem((dynamic)where);
             */
+
+            return;
+        }
+
+        [TestMethod]
+        public void TestAnyAndAll()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<Alphabet<int, int, int>>.Configure(CustomAlphabet);
+
+            ISingleTupleObjectFactoryArgs[][] factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 7, 10, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 4, 8, 11, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 6, 9, 12, 15])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 7])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 8])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 9])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 12])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
+                ];
+
+            TupleObject<Alphabet<int, int, int>> alphabet = factory
+                .CreateConjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            PrintConjunctiveTupleSystem(alphabet as ITupleObjectSystem);
+            HashSet<int> alls = new HashSet<int>() { 1, 2, 7, 10, 13 };
+            bool any = alphabet.Any(a => a.C == 5),
+                 all = alphabet.All(a => alls.Contains(a.A));
+            Console.WriteLine($"any: {any}");
+            Console.WriteLine($"all: {all}");
 
             return;
         }

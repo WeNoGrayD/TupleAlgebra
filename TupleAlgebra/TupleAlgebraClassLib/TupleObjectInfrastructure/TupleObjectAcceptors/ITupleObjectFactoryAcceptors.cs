@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
-namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
+namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors
 {
-    public interface ITupleObjectFactoryUnaryAcceptor<
+    public interface ITupleObjectFactoryUnaryVisitor<
         TEntity, 
         in TOperand, 
         out TOperationResult>
@@ -19,7 +19,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
         where TOperand : TupleObject<TEntity>
     { }
 
-    public interface ITupleObjectFactoryBinaryAcceptor<
+    public interface ITupleObjectFactoryBinaryVisitor<
         TEntity, 
         in TOperand1, 
         in TOperand2, 
@@ -30,16 +30,16 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
         where TOperand2 : TupleObject<TEntity>
     { }
 
-    public interface ITupleObjectCrossTypeFactoryBinaryAcceptor<
+    public interface ITupleObjectCrossTypeFactoryBinaryVisitor<
         TEntity, 
         in TOperand1, 
         out TOperationResult>
-        : ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, EmptyTupleObject<TEntity>, TOperationResult>,
-          ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, FullTupleObject<TEntity>, TOperationResult>,
-          ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, ConjunctiveTuple<TEntity>, TOperationResult>,
-          ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, DisjunctiveTuple<TEntity>, TOperationResult>,
-          ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, ConjunctiveTupleSystem<TEntity>, TOperationResult>,
-          ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, DisjunctiveTupleSystem<TEntity>, TOperationResult>
+        : ITupleObjectFactoryBinaryVisitor<TEntity, TOperand1, EmptyTupleObject<TEntity>, TOperationResult>,
+          ITupleObjectFactoryBinaryVisitor<TEntity, TOperand1, FullTupleObject<TEntity>, TOperationResult>,
+          ITupleObjectFactoryBinaryVisitor<TEntity, TOperand1, ConjunctiveTuple<TEntity>, TOperationResult>,
+          ITupleObjectFactoryBinaryVisitor<TEntity, TOperand1, DisjunctiveTuple<TEntity>, TOperationResult>,
+          ITupleObjectFactoryBinaryVisitor<TEntity, TOperand1, ConjunctiveTupleSystem<TEntity>, TOperationResult>,
+          ITupleObjectFactoryBinaryVisitor<TEntity, TOperand1, DisjunctiveTupleSystem<TEntity>, TOperationResult>
         where TEntity : new()
         where TOperand1 : TupleObject<TEntity>
     { }

@@ -6,11 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
-using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 {
+    using static TupleObjectConversionToAlternateOperator;
+
     public static class TupleObjectIntersectionOperations
     {
         private static TupleObject<TEntity> IntersectImpl<TEntity>(
@@ -20,19 +22,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             IndexedComponentFactoryArgs<IAttributeComponent>[] components = null)
             where TEntity : new()
         {
-            /*
-            int len = first.RowLength;
-            components ??= new IndexedComponentFactoryArgs<IAttributeComponent>[len];
-
-            for (int attrLoc = 0; attrLoc < len; attrLoc++)
-            {
-                components[attrLoc] = new(
-                    attrLoc,
-                    first.Schema,
-                    first[attrLoc].IntersectWith(second[attrLoc]));
-            }
-            */
-
             return factory.CreateConjunctiveTuple<TEntity>(
                 attributes: IntersectComponents(),
                 first.Schema.PassToBuilder,
@@ -70,44 +59,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return IntersectConjunctiveTupleWithDisjunctiveTupleObject(
+            return IntersectAsDisjunctiveTupleSystem(
                 first,
                 second,
                 factory,
-                _ => 1,
-                (op2, tuples, j) => tuples[j] = op2);
-
-            /*
-            return factory.CreateConjunctive<TEntity>(
-                new SquareEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>(
-                    MakeTuples()),
-                first.Schema.PassToBuilder,
-                null);
-
-            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>[]>
-                MakeTuples()
-            {
-                ITupleObjectSchemaProvider schema = first.Schema;
-                int len = first.RowLength;
-                IndexedComponentFactoryArgs<IAttributeComponent>[] tupleFactoryArgs =
-                    new IndexedComponentFactoryArgs<IAttributeComponent>[len];
-                for (int attrLoc = 0; attrLoc < len; attrLoc++)
-                {
-                    tupleFactoryArgs[attrLoc] = new(attrLoc, schema, first[attrLoc]);
-                }
-
-                IndexedComponentFactoryArgs<IAttributeComponent> bufFarg;
-                for (int i = 0; i < len; i++)
-                {
-                    bufFarg = tupleFactoryArgs[i];
-                    tupleFactoryArgs[i] = new(i, schema, (first[i].IntersectWith(second[i])));
-                    yield return tupleFactoryArgs;
-                    tupleFactoryArgs[i] = bufFarg;
-                }
-
-                yield break;
-            }
-            */
+                op1 => ConvertToAlternateTupleEnum(op1, factory),
+                op2 => [op2]);
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -128,7 +85,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return IntersectAsync(first, second, factory);
+            //return IntersectAsync(first, second, factory);
             
             return factory.CreateConjunctiveTupleSystem(
                 PairwiseIntersection(),
@@ -139,11 +96,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             {
                 ConjunctiveTuple<TEntity>[] tuples = first.Tuples;
                 int len = tuples.Length;
-                IndexedComponentFactoryArgs<IAttributeComponent>[] components =
-                    new IndexedComponentFactoryArgs<IAttributeComponent>[len];
                 for (int i = 0; i < len; i++)
                 {
-                    yield return IntersectImpl(second, tuples[i], factory, components);
+                    yield return IntersectImpl(second, tuples[i], factory);
                 }
 
                 yield break;
@@ -157,14 +112,14 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return IntersectAsync(first, second, factory);
+            //return IntersectAsync(first, second, factory);
             
             return factory.CreateConjunctiveTupleSystem(
                 PairwiseIntersection(),
                 first.Schema.PassToBuilder,
                 null);
 
-            IEnumerable<TupleObject<TEntity>> PairwiseIntersection()
+            IEnumerable<ConjunctiveTuple<TEntity>> PairwiseIntersection()
             {
                 SingleTupleObject<TEntity>[] tuples = first.Tuples;
                 ConjunctiveTuple<TEntity> tuple;
@@ -172,7 +127,23 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
                 for (int i = 0; i < len; i++)
                 {
                     tuple = (tuples[i] as ConjunctiveTuple<TEntity>)!;
-                    yield return Intersect(second, tuple, factory);
+                    switch (Intersect(second, tuple, factory))
+                    {
+                        case ConjunctiveTuple<TEntity> ct:
+                            {
+                                yield return ct;
+
+                                break;
+                            }
+                        case ConjunctiveTupleSystem<TEntity> cts:
+                            {
+                                for (int j = 0; j < cts.ColumnLength; j++)
+                                    yield return cts[j];
+
+                                break;
+                            }
+                        default: continue;
+                    };
                 }
 
                 yield break;
@@ -186,12 +157,20 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
+            /*
             return IntersectConjunctiveSystemWithDisjunctiveTupleObject(
                 first,
                 second,
                 factory,
                 _ => 1,
                 (op2, tuples, j) => tuples[j] = op2);
+            */
+            return IntersectAsDisjunctiveTupleSystem(
+                first,
+                second,
+                factory,
+                op1 => ConvertToAlternateTupleEnum(op1, factory),
+                op2 => [op2]);
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -200,12 +179,20 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
+            /*
             return IntersectConjunctiveSystemWithDisjunctiveTupleObject(
                 first,
                 second,
                 factory,
                 (op2) => op2.ColumnLength,
                 (op2, tuples, j) => op2.Tuples.CopyTo(tuples, j));
+            */
+            return IntersectAsDisjunctiveTupleSystem(
+                first,
+                second,
+                factory,
+                op1 => ConvertToAlternateTupleEnum(op1, factory),
+                op2 => op2.Tuples);
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -214,12 +201,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return IntersectConjunctiveTupleWithDisjunctiveTupleObject(
-                second,
+            return IntersectAsDisjunctiveTupleSystem(
                 first,
+                second,
                 factory,
-                op2 => op2.ColumnLength,
-                (op2, tuples, j) => op2.Tuples.CopyTo(tuples, j));
+                op1 => op1.Tuples,
+                op2 => ConvertToAlternateTupleEnum(op2, factory));
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -228,12 +215,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return IntersectDisjunctiveSystemWithDisjunctiveTupleObject(
+            return IntersectAsDisjunctiveTupleSystem(
                 first,
                 second,
                 factory,
-                _ => 1,
-                (op2, tuples, j) => op2.Tuples.CopyTo(tuples, j));
+                op1 => op1.Tuples,
+                op2 => op2.Tuples);
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -242,14 +229,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return IntersectDisjunctiveSystemWithDisjunctiveTupleObject(
+            return IntersectAsDisjunctiveTupleSystem(
                 first,
                 second,
                 factory,
-                _ => 1,
-                (op2, tuples, j) => tuples[j] = op2);
+                op1 => op1.Tuples,
+                op2 => [op2]);
         }
 
+        /*
         private static TupleObject<TEntity>
             IntersectDisjunctiveSystemWithDisjunctiveTupleObject<
             TEntity,
@@ -271,12 +259,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             first.Tuples.CopyTo(tuples, 0);
             copyToResultAt(second, tuples, len1);
 
-            /*
-             * !!!!!!!!!!!!!!!
-             * Здесь нужно попытаться переиспользовать хранилище.
-             * В методе IEnumerable превращается в IList.
-             * Нам без нужды.
-             */
             return factory.CreateDisjunctiveTupleSystem(
                 tuples, 
                 second.PassSchema,
@@ -301,7 +283,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             return IntersectDisjunctiveSystemWithDisjunctiveTupleObject(
                 firstDisjunctive, second, factory, getSecondLen, copyToResultAt);
         }
+        */
 
+        /*
         private static TupleObject<TEntity> IntersectConjunctiveSystemWithDisjunctiveTupleObject<
             TEntity,
             TOperand2>(
@@ -334,16 +318,60 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             j += len2;
             if (j < len) tuples = tuples[..j];
 
-            /*
-             * !!!!!!!!!!!!!!!
-             * Здесь нужно попытаться переиспользовать хранилище.
-             * В методе IEnumerable превращается в IList.
-             * Нам без нужды.
-             */
             return factory.CreateDisjunctiveTupleSystem(
                 tuples,
                 second.PassSchema, 
                 null);
+        }
+        */
+
+        /*
+        private static TupleObject<TEntity> IntersectConjunctiveSystemWithDisjunctiveTupleObject<
+            TEntity,
+            TOperand2>(
+            ConjunctiveTupleSystem<TEntity> first,
+            TOperand2 second,
+            TupleObjectFactory factory,
+            Func<TOperand2, IEnumerable<DisjunctiveTuple<TEntity>>> getSecondTuples)
+            where TEntity : new()
+            where TOperand2 : TupleObject<TEntity>
+        {
+            return factory.CreateDisjunctiveTupleSystem(
+                GetTuples(),
+                second.PassSchema,
+                null);
+
+            IEnumerable<TupleObject<TEntity>> GetTuples()
+            {
+                return ConvertToAlternateTupleEnum(first, factory)
+                    .Concat(getSecondTuples(second));
+            }
+        }
+        */
+
+        private static TupleObject<TEntity> 
+            IntersectAsDisjunctiveTupleSystem<
+            TEntity,
+            TOperand1,
+            TOperand2>(
+            TOperand1 first,
+            TOperand2 second,
+            TupleObjectFactory factory,
+            Func<TOperand1, IEnumerable<TupleObject<TEntity>>> getFirstTuples,
+            Func<TOperand2, IEnumerable<TupleObject<TEntity>>> getSecondTuples)
+            where TEntity : new()
+            where TOperand1 : TupleObject<TEntity>
+            where TOperand2 : TupleObject<TEntity>
+        {
+            return factory.CreateDisjunctiveTupleSystem(
+                GetTuples(),
+                second.PassSchema,
+                null);
+
+            IEnumerable<TupleObject<TEntity>> GetTuples()
+            {
+                return getFirstTuples(first).Concat(getSecondTuples(second));
+            }
         }
 
 
@@ -409,14 +437,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 
             return tuples.AsParallel()
                 .WithMergeOptions(ParallelMergeOptions.NotBuffered)
-                .Zip(GetExecutingProcessors())
+                //.Zip(GetExecutingProcessors())
                 .Select(tupleFarg =>
                     IntersectImpl(
                         second,
-                        tupleFarg.First,
-                        factory,
-                        tupleFactoryArgs[tupleFarg.Second]));
+                        tupleFarg,//.First,
+                        factory));//,
+                        //tupleFactoryArgs[tupleFarg.Second]));
 
+            /*
             IEnumerable<int> GetExecutingProcessors()
             {
                 int core;
@@ -428,6 +457,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 
                 yield break;
             }
+            */
         }
 
         public static TupleObject<TEntity> IntersectAsync<TEntity>(
@@ -513,7 +543,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
         where TEntity : new()
         where TOperand1 : TupleObject<TEntity>
     {
-        public override TupleObject<TEntity> Accept(
+        public override TupleObject<TEntity> Visit(
             TOperand1 first,
             EmptyTupleObject<TEntity> second,
             TupleObjectFactory factory)
@@ -521,7 +551,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             return second;
         }
 
-        public override TupleObject<TEntity> Accept(
+        public override TupleObject<TEntity> Visit(
             TOperand1 first,
             FullTupleObject<TEntity> second,
             TupleObjectFactory factory)

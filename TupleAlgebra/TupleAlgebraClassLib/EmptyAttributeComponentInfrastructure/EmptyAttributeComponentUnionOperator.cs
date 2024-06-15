@@ -3,32 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
 {
     public sealed class EmptyAttributeComponentUnionOperator<TData>
-        : FictionalAttributeComponentCrossTypeInstantBinaryAcceptor<
+        : FictionalAttributeComponentCrossTypeInstantBinaryVisitor<
             TData, 
             EmptyAttributeComponent<TData>, 
             IAttributeComponent<TData>>
     {
-        public override IAttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Visit(
             EmptyAttributeComponent<TData> first,
             EmptyAttributeComponent<TData> second)
         {
             return first;
         }
 
-        public override IAttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Visit(
             EmptyAttributeComponent<TData> first,
             NonFictionalAttributeComponent<TData> second)
         {
             return second;
         }
 
-        public override IAttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Visit(
             EmptyAttributeComponent<TData> first,
             FullAttributeComponent<TData> second)
         {

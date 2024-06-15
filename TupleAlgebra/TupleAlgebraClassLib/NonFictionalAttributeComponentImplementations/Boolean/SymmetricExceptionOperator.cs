@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
@@ -15,7 +15,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
         : NonFictionalAttributeComponentSymmetricExceptionOperator<bool, bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs>,
           IBooleanAttributeComponentBinaryOperator
     {
-        public IAttributeComponent<bool> Accept(
+        public IAttributeComponent<bool> Visit(
             BooleanNonFictionalAttributeComponent first,
             BooleanNonFictionalAttributeComponent second,
             IBooleanAttributeComponentFactory factory)

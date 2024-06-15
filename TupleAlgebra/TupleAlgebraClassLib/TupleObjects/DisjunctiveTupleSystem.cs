@@ -103,12 +103,12 @@ namespace TupleAlgebraClassLib.TupleObjects
                        () => new DisjunctiveTupleSystemComplementionOperator<TEntity>(),
                        () => new DisjunctiveTupleSystemConversionToAlternateOperator<TEntity>(),
                        () => new DisjunctiveTupleSystemIntersectionOperator<TEntity>(),
-                       () => null,
-                       () => null,
-                       () => null,
-                       () => null,
-                       () => null,
-                       () => null)
+                       () => new DisjunctiveTupleSystemUnionOperator<TEntity>(),
+                       () => new DisjunctiveTupleSystemExceptionOperator<TEntity>(),
+                       () => new DisjunctiveTupleSystemSymmetricExceptionOperator<TEntity>(),
+                       () => new DisjunctiveTupleSystemInclusionComparer<TEntity>(),
+                       () => new DisjunctiveTupleSystemEqualityComparer<TEntity>(),
+                       () => new DisjunctiveTupleSystemInclusionOrEqualityComparer<TEntity>())
             {
                 _trueIntersectionOperator = 
                     new Lazy<DisjunctiveTupleSystemTrueIntersectionOperator<TEntity>>();

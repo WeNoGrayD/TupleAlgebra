@@ -7,9 +7,9 @@ using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
-namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
+namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors
 {
-    public abstract class TupleObjectFactoryBinaryAcceptor<
+    public abstract class TupleObjectFactoryBinaryVisitor<
         TEntity,
         TOperand1,
         TOperationResult>

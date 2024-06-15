@@ -8,6 +8,6 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
 {
     public abstract class InstantUnaryOperator<TOperand, TOperationResult>
     {
-        public abstract TOperationResult Accept(TOperand first);
+        public abstract TOperationResult Visit(TOperand first);
     }
 }

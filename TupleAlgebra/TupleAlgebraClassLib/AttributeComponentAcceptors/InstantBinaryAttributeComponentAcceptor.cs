@@ -7,7 +7,7 @@ using System.Diagnostics;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.AttributeComponents;
 
-namespace TupleAlgebraClassLib.AttributeComponentAcceptors
+namespace TupleAlgebraClassLib.AttributeComponentVisitors
 {
     /// <summary>
     /// Абстрактный класс для операторов и компараторов, которые способны принимать
@@ -16,7 +16,7 @@ namespace TupleAlgebraClassLib.AttributeComponentAcceptors
     /// для вызова методов потомков с динамическим приведением второго параметра.
     /// </summary>
     /// <typeparam name="TOperationResult"></typeparam>
-    public abstract class InstantBinaryAttributeComponentAcceptor<TData, TOperand1, TOperationResult>
+    public abstract class InstantBinaryAttributeComponentVisitor<TData, TOperand1, TOperationResult>
         : InstantBinaryOperator<TOperand1, IAttributeComponent<TData>, TOperationResult>
         where TOperand1: IAttributeComponent<TData>
     { }

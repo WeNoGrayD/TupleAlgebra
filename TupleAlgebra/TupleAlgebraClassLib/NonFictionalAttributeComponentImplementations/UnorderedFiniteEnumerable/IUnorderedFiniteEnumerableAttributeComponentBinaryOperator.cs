@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Countable;
@@ -13,7 +13,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Unorder
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.UnorderedFiniteEnumerable
 {
     public interface IUnorderedFiniteEnumerableAttributeComponentBinaryOperator<TData>
-        : IFactoryBinaryAttributeComponentAcceptor<
+        : IFactoryBinaryAttributeComponentVisitor<
             TData,
             IEnumerable<TData>,
             UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>, 

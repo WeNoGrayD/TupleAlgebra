@@ -7,17 +7,17 @@ using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
-namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
+namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors
 {
-    public abstract class TupleObjectFactoryUnaryAcceptor<TEntity, TOperand, TOperationResult>
+    public abstract class TupleObjectFactoryUnaryVisitor<TEntity, TOperand, TOperationResult>
         : FactoryUnaryOperator<TOperand, TupleObjectFactory, TOperationResult>,
-          ITupleObjectFactoryUnaryAcceptor<TEntity, TOperand, TOperationResult>
+          ITupleObjectFactoryUnaryVisitor<TEntity, TOperand, TOperationResult>
         where TEntity : new()
         where TOperand : TupleObject<TEntity>
     { }
 
     public abstract class TupleObjectFactoryUnarySetOperator<TEntity, TOperand>
-        : TupleObjectFactoryUnaryAcceptor<TEntity, TOperand, TupleObject<TEntity>>
+        : TupleObjectFactoryUnaryVisitor<TEntity, TOperand, TupleObject<TEntity>>
         where TEntity : new()
         where TOperand : TupleObject<TEntity>
     { }

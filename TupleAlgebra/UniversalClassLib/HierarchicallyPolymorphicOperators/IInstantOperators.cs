@@ -8,11 +8,11 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
 {
     public interface IInstantUnaryOperator<in TOperand, out TOperationResult>
     {
-        TOperationResult Accept(TOperand first);
+        TOperationResult Visit(TOperand first);
     }
 
     public interface IInstantBinaryOperator<in TOperand1, in TOperand2, out TOperationResult>
     {
-        TOperationResult Accept(TOperand1 first, TOperand2 second);
+        TOperationResult Visit(TOperand1 first, TOperand2 second);
     }
 }

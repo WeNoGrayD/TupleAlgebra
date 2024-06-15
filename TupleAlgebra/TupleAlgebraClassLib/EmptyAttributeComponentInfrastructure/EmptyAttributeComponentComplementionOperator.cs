@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 
@@ -16,7 +16,7 @@ namespace TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure
             TData, 
             EmptyAttributeComponent<TData>>
     {
-        public override IAttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Visit(
             EmptyAttributeComponent<TData> first,
             IAttributeComponentFactory<TData> factory)
         {

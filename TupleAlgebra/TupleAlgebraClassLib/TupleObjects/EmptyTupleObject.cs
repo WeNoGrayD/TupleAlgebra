@@ -52,6 +52,16 @@ namespace TupleAlgebraClassLib.TupleObjects
             return false;
         }
 
+        public override bool IsFalse()
+        {
+            return true;
+        }
+
+        public override bool IsTrue()
+        {
+            return false;
+        }
+
         protected override void DisposeImpl()
         {
             return;

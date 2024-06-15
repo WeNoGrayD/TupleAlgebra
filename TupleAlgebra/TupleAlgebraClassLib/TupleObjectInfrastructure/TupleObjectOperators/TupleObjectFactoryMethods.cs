@@ -109,5 +109,79 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
         {
             return factory.CreateDiagonalDisjunctiveTupleSystem(tuple);
         }
+
+        public static IEnumerable<CTSingleTupleObject> 
+            TupleObjectSystemToAlternateTupleEnumerable<
+            TEntity,
+            CTSingleTupleObject>(
+            TupleObjectSystem<TEntity, CTSingleTupleObject> tupleSys)
+            where TEntity : new()
+            where CTSingleTupleObject : SingleTupleObject<TEntity>
+        {
+            for (int tuplePtr = 0; tuplePtr < tupleSys.ColumnLength; tuplePtr++)
+            {
+                
+            }
+
+            yield break;
+        }
+        private static IEnumerable<TupleObject<TEntity>> ComplementAndConvertToAlternateEnum<
+            TEntity>(
+            ISingleTupleObject tuple,
+            SingleTupleObjectFactoryHandler<TEntity> singleTupleFactory,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            IndexedComponentFactoryArgs<IAttributeComponent>[] tupleFactoryArgs =
+                new IndexedComponentFactoryArgs<IAttributeComponent>[1];
+            IAttributeComponent ac;
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding =
+                tuple.PassSchema<TEntity>;
+
+            for (int attrLoc = 0; attrLoc < tuple.RowLength; attrLoc++)
+            {
+                ac = tuple[attrLoc];
+                if (ac.IsDefault) continue;
+
+                tupleFactoryArgs[0] = new IndexedComponentFactoryArgs<IAttributeComponent>(
+                    attrLoc,
+                    builder,
+                    ac.ComplementThe());
+
+                yield return singleTupleFactory(
+                    tupleFactoryArgs,
+                    onTupleBuilding,
+                    factory);
+            }
+
+            yield break;
+        }
+
+        public static IEnumerable<TupleObject<TEntity>> ComplementAndConvertToAlternateEnum<TEntity>(
+            ConjunctiveTuple<TEntity> cTuple,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return ComplementAndConvertToAlternateEnum(
+                cTuple,
+                DisjunctiveTupleFactory<TEntity>,
+                factory,
+                builder);
+        }
+
+        public static IEnumerable<TupleObject<TEntity>> ComplementAndConvertToAlternateEnum<TEntity>(
+            DisjunctiveTuple<TEntity> dTuple,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder)
+            where TEntity : new()
+        {
+            return ComplementAndConvertToAlternateEnum(
+                dTuple,
+                ConjunctiveTupleFactory<TEntity>,
+                factory,
+                builder);
+        }
     }
 }

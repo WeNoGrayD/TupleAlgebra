@@ -25,12 +25,12 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
         /// <param name="second"></param>
         /// <returns></returns>
 
-        public TOperationResult Accept(
+        public TOperationResult Visit(
             TOperand1 first,
             TOperand2 second,
             TOperationResultFactory factory)
         {
-            MethodInfo binaryOperatorMI = FactoryBinaryOperatorAcceptImplMIPattern
+            MethodInfo binaryOperatorMI = FactoryBinaryOperatorVisitImplMIPattern
                 .MakeGenericMethod(
                     typeof(TOperand1),
                     second.GetType(),

@@ -108,7 +108,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
 
         public TPipelineQueryResult ExecuteWithExpectedAggregableResult<TPipelineQueryResult>()
         {
-            return StartupMiddleware.AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(this);
+            return StartupMiddleware.VisitToExecuteWithAggregableResult<TPipelineQueryResult>(this);
         }
 
         public IEnumerable ExecuteWithExpectedEnumerableResult()
@@ -151,7 +151,7 @@ namespace LINQProvider.QueryPipelineInfrastructure
         protected IEnumerable<TEndpointOutputData> ExecuteWithExpectedEnumerableResult<TEndpointOutputData>()
         {
             IEnumerable<TEndpointOutputData> intermediateQueryPipelineResult = StartupMiddleware
-                .AcceptToExecuteWithEnumerableResult<TEndpointOutputData>(_dataSource, this);
+                .VisitToExecuteWithEnumerableResult<TEndpointOutputData>(_dataSource, this);
             _dataSource = intermediateQueryPipelineResult;
 
             return intermediateQueryPipelineResult;

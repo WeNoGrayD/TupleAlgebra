@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.Filtering;
@@ -30,7 +30,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cro
             FilteringAttributeComponent<TData>,
             CTFactory,
             IAttributeComponent<TData>>
-            .Accept(
+            .Visit(
                 CTOperand1 first,
                 FilteringAttributeComponent<TData> second,
                 CTFactory factory)

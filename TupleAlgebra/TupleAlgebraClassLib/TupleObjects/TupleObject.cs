@@ -10,12 +10,12 @@ using System.Reflection;
 using System.Globalization;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.SetOperationExecutorsContainers;
-using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
-using TupleAlgebraClassLib.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectVisitors;
 using TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
@@ -162,6 +162,13 @@ namespace TupleAlgebraClassLib.TupleObjects
         public abstract bool IsEmpty();
 
         public abstract bool IsFull();
+
+        public virtual bool IsFalse()
+        {
+            return IsEmpty() || !GetEnumerator().MoveNext();
+        }
+
+        public virtual bool IsTrue() => IsFull();
 
         /*
         protected void SchemaAttributeChanged(object sender, AttributeChangedEventArgs eventArgs)
@@ -330,6 +337,16 @@ namespace TupleAlgebraClassLib.TupleObjects
 
         #region Operators
 
+        public static bool operator false(TupleObject<TEntity> tuple)
+        {
+            return tuple.IsFalse();
+        }
+
+        public static bool operator true(TupleObject<TEntity> tuple)
+        {
+            return tuple.IsTrue();
+        }
+
         /// <summary>
         /// Оператор присоединения атрибута с заданным именем к схеме кортежа.
         /// </summary>
@@ -399,7 +416,7 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {
-            return first.Includes(second);
+            return second.IncludesOrEqualsTo(first);
         }
 
         public static bool operator ==(
@@ -413,14 +430,14 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {
-            return first.IncludesOrEqualsTo(second);
+            return second.Includes(first);
         }
 
         public static bool operator <(
             TupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {
-            return second.Includes(first);
+            return first.IncludesOrEqualsTo(second);
         }
 
         public static bool operator !=(
@@ -434,7 +451,7 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObject<TEntity> first,
             TupleObject<TEntity> second)
         {
-            return second.IncludesOrEqualsTo(first);
+            return first.Includes(second);
         }
 
         #endregion
@@ -455,19 +472,19 @@ namespace TupleAlgebraClassLib.TupleObjects
                 TupleObjectFactory factory,
                 Func<TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>>
                     complementationOperator,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, TupleObject<TEntity>>>
                     intersectionOperator,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, TupleObject<TEntity>>>
                     unionOperator,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, TupleObject<TEntity>>>
                     differenceOperator,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, TupleObject<TEntity>>>
                     symmetricExceptionOperator,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, bool>>
                     inclusionComparer,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, bool>>
                     equalityComparer,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, bool>>
                     inclusionOrEquationComparer)
                 : base(factory,
                        complementationOperator,
@@ -513,19 +530,19 @@ namespace TupleAlgebraClassLib.TupleObjects
                     complementationOperator,
                 Func<TupleObjectFactoryUnarySetOperator<TEntity, CTOperand>>
                     conversionToAlternateOperator,
-                Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                Func<TupleObjectFactoryBinaryVisitor<TEntity, CTOperand, TupleObject<TEntity>>>
                     intersectionOperator,
-                Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                Func<TupleObjectFactoryBinaryVisitor<TEntity, CTOperand, TupleObject<TEntity>>>
                     unionOperator,
-                Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                Func<TupleObjectFactoryBinaryVisitor<TEntity, CTOperand, TupleObject<TEntity>>>
                     differenceOperator,
-                Func<TupleObjectFactoryBinaryAcceptor<TEntity, CTOperand, TupleObject<TEntity>>>
+                Func<TupleObjectFactoryBinaryVisitor<TEntity, CTOperand, TupleObject<TEntity>>>
                     symmetricExceptionOperator,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, bool>>
                     inclusionComparer,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, bool>>
                     equalityComparer,
-                Func<TupleObjectInstantBinaryAcceptor<TEntity, CTOperand, bool>>
+                Func<TupleObjectInstantBinaryVisitor<TEntity, CTOperand, bool>>
                     inclusionOrEquationComparer)
                 : base(factory,
                        complementationOperator,
@@ -548,7 +565,7 @@ namespace TupleAlgebraClassLib.TupleObjects
             public TupleObject<TEntity> ConvertToAlternate(
                 TupleObject<TEntity> first)
             {
-                return ConversionToAlternateOperator.Accept(
+                return ConversionToAlternateOperator.Visit(
                     (first as CTOperand)!, Factory);
             }
         }

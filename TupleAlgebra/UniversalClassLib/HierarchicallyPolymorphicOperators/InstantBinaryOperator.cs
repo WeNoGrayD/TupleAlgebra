@@ -13,11 +13,11 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
     {
         #region Methods
 
-        public TOperationResult Accept(TOperand1 first, TOperand2 second)
+        public TOperationResult Visit(TOperand1 first, TOperand2 second)
         {
             var v = (this.GetType()).GetInterfaces();
 
-            return (TOperationResult)InstantBinaryOperatorAcceptImplMIPattern
+            return (TOperationResult)InstantBinaryOperatorVisitImplMIPattern
                 .MakeGenericMethod(typeof(TOperand1), second.GetType(), typeof(TOperationResult))
                 .Invoke(null, new object[] { this, first, second });
         }

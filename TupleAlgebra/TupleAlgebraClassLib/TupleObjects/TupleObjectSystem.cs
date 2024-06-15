@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -138,8 +139,9 @@ namespace TupleAlgebraClassLib.TupleObjects
 
             builder = builder ?? factory.GetBuilder<TEntity>();
 
-            return factory.CreateConjunctiveTupleSystem(
-                AlignTuples(), 
+            return Reproduce(
+                AlignTuples(),
+                factory,
                 schema.PassToBuilder, 
                 builder);
 

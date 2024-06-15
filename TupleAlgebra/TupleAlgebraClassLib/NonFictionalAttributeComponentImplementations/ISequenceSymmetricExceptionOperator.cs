@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
@@ -16,7 +16,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
         TOperand2,
         TFactory,
         TFactoryArgs>
-        : IFactoryBinaryAttributeComponentAcceptor<
+        : IFactoryBinaryAttributeComponentVisitor<
             TData,
             IEnumerable<TData>,
             TOperand1,
@@ -39,7 +39,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
                 TOperand2,
                 TFactory,
                 IAttributeComponent<TData>>
-            .Accept(
+            .Visit(
                 TOperand1 first,
                 TOperand2 second,
                 TFactory factory)

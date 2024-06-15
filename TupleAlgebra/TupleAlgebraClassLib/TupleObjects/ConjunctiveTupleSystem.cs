@@ -155,12 +155,12 @@ namespace TupleAlgebraClassLib.TupleObjects
                        () => new ConjunctiveTupleSystemComplementionOperator<TEntity>(),
                        () => new ConjunctiveTupleSystemConversionToAlternateOperator<TEntity>(),
                        () => new ConjunctiveTupleSystemIntersectionOperator<TEntity>(),
-                       () => null,
-                       () => null,
-                       () => null,
-                       () => null,
-                       () => null,
-                       () => null)
+                       () => new ConjunctiveTupleSystemUnionOperator<TEntity>(),
+                       () => new ConjunctiveTupleSystemExceptionOperator<TEntity>(),
+                       () => new ConjunctiveTupleSystemSymmetricExceptionOperator<TEntity>(),
+                       () => new ConjunctiveTupleSystemInclusionComparer<TEntity>(),
+                       () => new ConjunctiveTupleSystemEqualityComparer<TEntity>(),
+                       () => new ConjunctiveTupleSystemInclusionOrEqualityComparer<TEntity>())
             {
                 _trueUnionOperator = 
                     new Lazy<ConjunctiveTupleSystemTrueUnionOperator<TEntity>>();

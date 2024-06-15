@@ -60,16 +60,16 @@ namespace LINQProvider.QueryPipelineInfrastructure.Buffering
 
         #endregion
 
-        #region IQueryPipelineAcceptor implementation
+        #region IQueryPipelineVisitor implementation
 
-        public override TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+        public override TPipelineQueryResult VisitToExecuteWithAggregableResult<TPipelineQueryResult>(
             ISingleQueryExecutorResultRequester resultRequster)
         {
             return resultRequster.VisitBufferingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
                 _innerExecutorImpl);
         }
 
-        public override IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
+        public override IEnumerable<TPipelineQueryResultData> VisitToExecuteWithEnumerableResult<TPipelineQueryResultData>(
             System.Collections.IEnumerable dataSource,
             ISingleQueryExecutorResultRequester resultRequster)
         {

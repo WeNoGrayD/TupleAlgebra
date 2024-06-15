@@ -3,34 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjects;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrastructure
 {
+    using static TupleObjectInclusionOrEqualityComparer;
+
     public sealed class ConjunctiveTupleInclusionOrEqualityComparer<TEntity>
-        : TupleObjectCrossTypeInstantBinaryAcceptor<TEntity, ConjunctiveTuple<TEntity>, bool>
+        : TupleObjectInclusionOrEqualityComparer<TEntity, ConjunctiveTuple<TEntity>>
         where TEntity : new()
     {
-        public override bool Accept(
+        public override bool Visit(
             ConjunctiveTuple<TEntity> first,
-            EmptyTupleObject<TEntity> second)
+            ConjunctiveTuple<TEntity> second)
         {
-            return true;
+            return IncludesOrAreEqual(first, second);
         }
 
-        public override bool AcceptDefault(
+        public override bool Visit(
             ConjunctiveTuple<TEntity> first,
-            TupleObject<TEntity> second)
+            DisjunctiveTuple<TEntity> second)
         {
-            return false;
+            return IncludesOrAreEqual(first, second);
         }
 
-        public override bool Accept(
+        public override bool Visit(
             ConjunctiveTuple<TEntity> first,
-            FullTupleObject<TEntity> second)
+            ConjunctiveTupleSystem<TEntity> second)
         {
-            return false;
+            return IncludesOrAreEqual(first, second);
+        }
+
+        public override bool Visit(
+            ConjunctiveTuple<TEntity> first,
+            DisjunctiveTupleSystem<TEntity> second)
+        {
+            return IncludesOrAreEqual(first, second);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cro
             FilteringAttributeComponent<TData>,
             CTFactory,
             IAttributeComponent<TData>>
-            .Accept(
+            .Visit(
                 CTOperand1 first,
                 FilteringAttributeComponent<TData> second,
                 CTFactory factory)

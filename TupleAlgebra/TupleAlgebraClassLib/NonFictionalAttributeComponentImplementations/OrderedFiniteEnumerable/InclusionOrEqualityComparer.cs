@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Countable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.FiniteEnumerable;
@@ -18,7 +18,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
           ICountableAttributeComponentInclusionOrEqualityComparer<TData>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, IOrderedFiniteEnumerableAttributeComponent<TData>
     {
-        public bool Accept(
+        public bool Visit(
             TAttributeComponent greater,
             IOrderedFiniteEnumerableAttributeComponent<TData> lesser)
         {

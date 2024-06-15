@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
 using TupleAlgebraClassLib.AttributeComponents;
@@ -14,7 +14,7 @@ using UniversalClassLib.HierarchicallyPolymorphicOperators;
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.Filtering
 {
     public interface IFilteringAttributeComponentBinaryOperator<TData>
-        : IFactoryBinaryAttributeComponentAcceptor<
+        : IFactoryBinaryAttributeComponentVisitor<
             TData,
             FilteringAttributeComponentFactoryArgs<TData>,
             FilteringAttributeComponent<TData>,
@@ -31,7 +31,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
             AttributeComponentContentType first,
             AttributeComponentContentType second);
 
-        public IAttributeComponent<TData> AcceptStrategy(
+        public IAttributeComponent<TData> VisitStrategy(
             FilteringAttributeComponent<TData> first,
             FilteringAttributeComponent<TData> second,
             IFilteringAttributeComponentFactory<TData> factory,

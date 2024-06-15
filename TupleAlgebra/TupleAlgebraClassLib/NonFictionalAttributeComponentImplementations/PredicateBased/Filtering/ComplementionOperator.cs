@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using System.Linq.Expressions;
@@ -19,7 +19,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
             FilteringAttributeComponent<TData>,
             IFilteringAttributeComponentFactory<TData>,
             FilteringAttributeComponentFactoryArgs<TData>>,
-          IFactoryUnaryAttributeComponentAcceptor<
+          IFactoryUnaryAttributeComponentVisitor<
             TData,
             FilteringAttributeComponentFactoryArgs<TData>,
             FilteringAttributeComponent<TData>,
@@ -31,7 +31,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
             FilteringAttributeComponent<TData>,
             IFilteringAttributeComponentFactory<TData>,
             IAttributeComponent<TData>>
-            .Accept(
+            .Visit(
                 FilteringAttributeComponent<TData> first,
                 IFilteringAttributeComponentFactory<TData> factory)
         {

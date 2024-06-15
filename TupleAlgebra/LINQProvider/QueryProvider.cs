@@ -373,7 +373,7 @@ namespace LINQProvider
             /// Метод для инспеции метода Select.
             /// </summary>
             /// <param name="selectExpression"></param>
-            protected virtual void CheckSelectQueryOnAcceptability(
+            protected virtual void CheckSelectQueryOnVisitability(
                 MethodCallExpression selectExpression)
             {
                 return;
@@ -394,7 +394,7 @@ namespace LINQProvider
                 {
                     case "Select":
                         {
-                            CheckSelectQueryOnAcceptability(node);
+                            CheckSelectQueryOnVisitability(node);
 
                             break;
                         }

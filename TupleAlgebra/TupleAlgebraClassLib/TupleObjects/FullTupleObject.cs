@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SetOperationExecutorsContainers;
-using TupleAlgebraClassLib.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.FullTupleObjectInfrastructure;
-using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
@@ -62,6 +62,16 @@ namespace TupleAlgebraClassLib.TupleObjects
         }
 
         public override bool IsFull()
+        {
+            return true;
+        }
+
+        public override bool IsFalse()
+        {
+            return false;
+        }
+
+        public override bool IsTrue()
         {
             return true;
         }

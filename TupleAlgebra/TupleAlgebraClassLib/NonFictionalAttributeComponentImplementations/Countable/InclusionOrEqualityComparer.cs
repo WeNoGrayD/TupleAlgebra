@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Countable
@@ -19,7 +19,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cou
             ICountableAttributeComponent<TData>,
             ICountableAttributeComponent<TData>,
             bool>
-            .Accept(
+            .Visit(
                 ICountableAttributeComponent<TData> greater,
                 ICountableAttributeComponent<TData> lower)
         {

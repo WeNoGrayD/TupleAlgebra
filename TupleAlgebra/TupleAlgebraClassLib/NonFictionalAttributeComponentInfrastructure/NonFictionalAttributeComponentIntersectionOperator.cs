@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 
@@ -25,7 +25,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
         where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand1, CTFactoryArgs>
         where CTFactoryArgs : AttributeComponentFactoryArgs
     {
-        public override IAttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Visit(
             NonFictionalAttributeComponent<TData> first,
             EmptyAttributeComponent<TData> second,
             TFactory factory)
@@ -33,7 +33,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
             return second;
         }
 
-        public override IAttributeComponent<TData> Accept(
+        public override IAttributeComponent<TData> Visit(
             NonFictionalAttributeComponent<TData> first,
             FullAttributeComponent<TData> second,
             TFactory factory)

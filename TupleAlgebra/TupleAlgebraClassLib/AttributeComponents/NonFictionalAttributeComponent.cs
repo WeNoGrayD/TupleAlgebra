@@ -10,7 +10,7 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework;
 using System.Reflection;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.AttributeComponents
@@ -95,21 +95,21 @@ namespace TupleAlgebraClassLib.AttributeComponents
             /// <param name="inclusionOrEquationComparer"></param>
             public NonFictionalAttributeComponentOperationExecutorsContainer(
                 CTFactory factory,
-                Func<FactoryUnaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>> 
+                Func<FactoryUnaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>> 
                     complementationOperator,
-                Func<FactoryBinaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
+                Func<FactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
                     intersectionOperator,
-                Func<FactoryBinaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
+                Func<FactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
                     unionOperator,
-                Func<FactoryBinaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
+                Func<FactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
                     differenceOperator,
-                Func<FactoryBinaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
+                Func<FactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
                     symmetricExceptionOperator,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     inclusionComparer,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     equalityComparer,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     inclusionOrEquationComparer)
                 : base(
                       factory,
@@ -137,19 +137,19 @@ namespace TupleAlgebraClassLib.AttributeComponents
             /// <param name="inclusionOrEquationComparer"></param>
             public NonFictionalAttributeComponentOperationExecutorsContainer(
                 CTFactory factory,
-                Func<FactoryBinaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
+                Func<FactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
                     intersectionOperator,
-                Func<FactoryBinaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
+                Func<FactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
                     unionOperator,
-                Func<FactoryBinaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
+                Func<FactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
                     differenceOperator,
-                Func<FactoryBinaryAttributeComponentAcceptor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
+                Func<FactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, CTFactory, CTFactoryArgs, IAttributeComponent<TData>>>
                     symmetricExceptionOperator,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     inclusionComparer,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     equalityComparer,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     inclusionOrEquationComparer)
                 : this(
                       factory,

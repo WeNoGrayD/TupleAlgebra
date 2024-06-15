@@ -7,9 +7,9 @@ using System.Diagnostics;
 using TupleAlgebraClassLib.TupleObjects;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
-namespace TupleAlgebraClassLib.TupleObjectAcceptors
+namespace TupleAlgebraClassLib.TupleObjectVisitors
 {
-    public abstract class TupleObjectInstantUnaryAcceptor<TEntity, TOperand, TOperationResult>
+    public abstract class TupleObjectInstantUnaryVisitor<TEntity, TOperand, TOperationResult>
         : InstantUnaryOperator<TOperand, TOperationResult>
         where TEntity : new()
         where TOperand : TupleObject<TEntity>

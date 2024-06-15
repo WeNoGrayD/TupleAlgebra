@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
@@ -14,14 +14,14 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Uno
         : NonFictionalAttributeComponentEqualityComparer<
             TData,
             UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>>,
-          IInstantBinaryAttributeComponentAcceptor<
+          IInstantBinaryAttributeComponentVisitor<
               TData, 
               UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
               IFiniteEnumerableAttributeComponent<TData>,
               bool>,
           IFiniteEnumerableXFilteringEqualityComparer<TData>
     {
-        public bool Accept(
+        public bool Visit(
             UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData> first, 
             IFiniteEnumerableAttributeComponent<TData> second)
         {

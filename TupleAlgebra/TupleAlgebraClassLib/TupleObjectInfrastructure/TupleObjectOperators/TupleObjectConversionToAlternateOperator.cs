@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
@@ -11,9 +12,43 @@ using static TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 {
     using static TupleObjectFactoryMethods;
+    using static UniversalClassLib.CartesianProductHelper;
 
     public static class TupleObjectConversionToAlternateOperator
     {
+        private static bool ConvertTupleToAlternateTuple<TEntity>(
+            SingleTupleObject<TEntity> tuple,
+            TupleObjectFactory factory,
+            SingleTupleObjectFactoryHandler<TEntity> singleTupleFactory,
+            out TupleObject<TEntity> tupleRes)
+            where TEntity : new()
+        {
+            int nonDefaultIndex = -1;
+            IAttributeComponent nonDefault = null;
+            for (int attrLoc = 0; attrLoc < tuple.RowLength; attrLoc++)
+            {
+                if (!tuple.IsDefault(attrLoc))
+                {
+                    if (nonDefault is not null)
+                    {
+                        tupleRes = null;
+
+                        return false;
+                    }
+
+                    nonDefault = tuple[nonDefaultIndex = attrLoc];
+                }
+            }
+
+            TupleObjectSchema<TEntity> schema = tuple.Schema;
+            tupleRes = singleTupleFactory(
+                [new (nonDefaultIndex, schema, nonDefault)],
+                schema.PassToBuilder,
+                factory);
+
+            return true;
+        }
+
         private static TupleObject<TEntity> ConvertTupleToAlternateTupleSystem<TEntity>(
             SingleTupleObject<TEntity> tuple,
             TupleObjectFactory factory,
@@ -49,20 +84,105 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             }
         }
 
-        private static TupleObject<TEntity> ConvertTupleToAlternateTupleSystem<
-            TEntity,
-            TSingleTupleObject>(
-            TSingleTupleObject tuple,
+        private static IEnumerable<TupleObject<TEntity>>
+            ConvertToAlternateTupleEnum<TEntity>(
+            SingleTupleObject<TEntity> tuple,
             TupleObjectFactory factory,
-            Func<TupleObjectFactory, TSingleTupleObject, TupleObject<TEntity>> tupleSysFactory)
+            SingleTupleObjectFactoryHandler<TEntity> singleTupleObjectFactory)
             where TEntity : new()
-            where TSingleTupleObject : SingleTupleObject<TEntity>
         {
-            return tupleSysFactory(
-                factory,
-                tuple);
+            TupleObjectSchema<TEntity> schema = tuple.Schema;
+            int schemaLen = tuple.RowLength;
+            IndexedComponentFactoryArgs<IAttributeComponent>[] components =
+                new IndexedComponentFactoryArgs<IAttributeComponent>[1];
+
+            for (int attrLoc = 0; attrLoc < schemaLen; attrLoc++)
+            {
+                if (tuple.IsDefault(attrLoc)) continue;
+
+                components[0] = new IndexedComponentFactoryArgs<IAttributeComponent>(
+                    attrLoc,
+                    schema,
+                    tuple[attrLoc]);
+
+                yield return singleTupleObjectFactory(
+                    components,
+                    tuple.PassSchema,
+                    factory);
+            }
+
+            yield break;
         }
 
+        private static IEnumerable<TupleObject<TEntity>>
+            ConvertDiagonalTupleObjectSystemToAlternate<
+            TEntity,
+            CTSingleTupleObject>(
+            TupleObjectSystem<TEntity, CTSingleTupleObject> tupleSys,
+            TupleObjectFactory factory,
+            SingleTupleObjectFactoryHandler<TEntity> singleTupleFactory)
+            where TEntity : new()
+            where CTSingleTupleObject : SingleTupleObject<TEntity>
+        {
+            TupleObjectSchema<TEntity> schema = tupleSys.Schema;
+
+            yield return singleTupleFactory(
+                GetComponents(), 
+                schema.PassToBuilder, 
+                factory);
+
+            yield break;
+
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+                GetComponents()
+            {
+                int schemaLen = tupleSys.RowLength,
+                    tuplePtr;
+
+                for (int attrLoc = 0; attrLoc < schemaLen; attrLoc++)
+                {
+                    for (tuplePtr = 0; tuplePtr < tupleSys.ColumnLength; tuplePtr++)
+                    {
+                        if (tupleSys[tuplePtr].IsDefault(attrLoc)) continue;
+
+                        yield return new(
+                            attrLoc,
+                            tupleSys.Schema,
+                            tupleSys[tuplePtr][attrLoc]);
+
+                        break;
+                    }
+                }
+
+                yield break;
+            }
+        }
+
+        private static IEnumerable<TupleObject<TEntity>>
+            ConvertDiagonalConjunctiveTupleSystemToAlternate<TEntity>(
+            ConjunctiveTupleSystem<TEntity> first,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            return ConvertDiagonalTupleObjectSystemToAlternate(
+                first,
+                factory,
+                DisjunctiveTupleFactory<TEntity>);
+        }
+
+        private static IEnumerable<TupleObject<TEntity>>
+            ConvertDiagonalDisjunctiveTupleSystemToAlternate<TEntity>(
+            DisjunctiveTupleSystem<TEntity> first,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            return ConvertDiagonalTupleObjectSystemToAlternate(
+                first,
+                factory,
+                ConjunctiveTupleFactory<TEntity>);
+        }
+
+        /*
         private static TupleObject<TEntity> ConvertTupleSystemToAlternateTuple<
             TEntity,
             TSingleTupleObject>(
@@ -78,34 +198,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
                 IndexedComponentFactoryArgs<IAttributeComponent>[] components =
                     new IndexedComponentFactoryArgs<IAttributeComponent>[tupleSys.RowLength];
                 InitDefaultFactoryArgs<TEntity>(components, schema);
-
-                /*
-                 * Диагональность подразумевает следующую структуру системы кортежей:
-                 *  A | * | *
-                 *  _ | B | *
-                 *  _ | _ | C
-                 *  При изменении порядка столбцов потребуется другой алгоритм.
-                 */
-                /*
-                int schemaLen = tupleSys.RowLength,
-                    attrLoc = 0,
-                    lastNonEmptyAttrLoc;
-                for (int tuplePtr = 0; tuplePtr < tupleSys.ColumnLength; tuplePtr++)
-                {
-                    for ( ; attrLoc < schemaLen; attrLoc++)
-                    {
-                        if (!tupleSys[tuplePtr].IsDefault(attrLoc)) continue;
-
-                        lastNonEmptyAttrLoc = attrLoc - 1;
-                        components[lastNonEmptyAttrLoc] = new(
-                            lastNonEmptyAttrLoc,
-                            tupleSys.Schema,
-                            tupleSys[tuplePtr][lastNonEmptyAttrLoc]);
-
-                        break;
-                    }
-                }
-                */
 
                 int schemaLen = tupleSys.RowLength,
                     tuplePtr;
@@ -135,13 +227,47 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             //throw new InvalidOperationException(
             //    "Перевод недиагональных систем кортежей в альтернативные формы отображения не поддерживается.");
         }
+        */
 
-        public static TupleObject<TEntity> ConvertToAlternate<TEntity>(
+        public static IEnumerable<TupleObject<TEntity>>
+            ConvertToAlternateTupleEnum<TEntity>(
             ConjunctiveTuple<TEntity> tuple,
             TupleObjectFactory factory)
             where TEntity : new()
         {
+            return ConvertToAlternateTupleEnum(
+                tuple,
+                factory,
+                DisjunctiveTupleFactory<TEntity>);
+        }
+
+        public static TupleObject<TEntity>
+            ConvertToAlternate<TEntity>(
+            ConjunctiveTuple<TEntity> tuple,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            TupleObject<TEntity> tupleRes;
+            if (ConvertTupleToAlternateTuple(
+                tuple,
+                factory,
+                DisjunctiveTupleFactory<TEntity>,
+                out tupleRes))
+                return tupleRes;
+
             return factory.CreateDiagonalDisjunctiveTupleSystem(tuple);
+        }
+
+        public static IEnumerable<TupleObject<TEntity>> 
+            ConvertToAlternateTupleEnum<TEntity>(
+            DisjunctiveTuple<TEntity> tuple,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            return ConvertToAlternateTupleEnum(
+                tuple,
+                factory,
+                ConjunctiveTupleFactory<TEntity>);
         }
 
         public static TupleObject<TEntity> ConvertToAlternate<TEntity>(
@@ -149,7 +275,37 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
+            TupleObject<TEntity> tupleRes;
+            if (ConvertTupleToAlternateTuple(
+                tuple,
+                factory,
+                ConjunctiveTupleFactory<TEntity>,
+                out tupleRes))
+                return tupleRes;
+
             return factory.CreateDiagonalConjunctiveTupleSystem(tuple);
+        }
+
+        public static IEnumerable<TupleObject<TEntity>> ConvertToAlternateTupleEnum<TEntity>(
+            ConjunctiveTupleSystem<TEntity> tupleSys,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            if (tupleSys.IsDiagonal)
+                return ConvertDiagonalConjunctiveTupleSystemToAlternate(tupleSys, factory);
+            else
+                return TrueUnion(tupleSys.Schema, tupleSys.Tuples, factory);
+        }
+
+        public static IEnumerable<TupleObject<TEntity>> ConvertToAlternateTupleEnum<TEntity>(
+            DisjunctiveTupleSystem<TEntity> tupleSys,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            if (tupleSys.IsDiagonal)
+                return ConvertDiagonalDisjunctiveTupleSystemToAlternate(tupleSys, factory);
+            else
+                return TrueIntersect(tupleSys.Schema, tupleSys.Tuples, factory);
         }
 
         public static TupleObject<TEntity> ConvertToAlternate<TEntity>(
@@ -157,11 +313,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return ConvertTupleSystemToAlternateTuple(
-                tupleSys,
-                factory,
-                DisjunctiveTupleFactory<TEntity>) ??
-                tupleSys.TrueUnion();
+            return factory.CreateDisjunctiveTupleSystem(
+                ConvertToAlternateTupleEnum(tupleSys, factory),
+                tupleSys.PassSchema,
+                null);
         }
 
         public static TupleObject<TEntity> ConvertToAlternate<TEntity>(
@@ -169,11 +324,105 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return ConvertTupleSystemToAlternateTuple(
-                tupleSys,
-                factory,
-                ConjunctiveTupleFactory<TEntity>) ??
-                tupleSys.TrueIntersect();
+            return factory.CreateConjunctiveTupleSystem(
+                ConvertToAlternateTupleEnum(tupleSys, factory),
+                tupleSys.PassSchema,
+                null);
+        }
+
+        public static IEnumerable<DisjunctiveTuple<TEntity>> TrueUnion<TEntity>(
+            TupleObjectSchema<TEntity> schema,
+            ConjunctiveTuple<TEntity>[] tuples,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            int schemaLen = schema.PluggedAttributesCount,
+                csysLen = tuples.Length;
+            if (csysLen < 2)
+                throw new InvalidOperationException("У C-системы не должно быть меньше двух кортежей.");
+
+            IndexedComponentFactoryArgs<IAttributeComponent>[]
+                opFactoryArgs;
+            IndexedComponentFactoryArgs<IAttributeComponent>[][] tupleOpFactoryArgs =
+                new IndexedComponentFactoryArgs<IAttributeComponent>[csysLen][];
+            for (int i = 0; i < csysLen; i++)
+            {
+                tupleOpFactoryArgs[i] = opFactoryArgs =
+                    new IndexedComponentFactoryArgs<IAttributeComponent>[schemaLen];
+                InitDefaultFactoryArgs<TEntity>(opFactoryArgs, schema);
+            }
+
+            return GetAccumulatedCartesianProduct(
+                (RectangleInfo rect) => factory.CreateDisjunctiveTuple<TEntity>(
+                    rect.Components,
+                    schema.PassToBuilder,
+                    null),
+                tuples,
+                (stackPtr, tuple) => RectangleInfo
+                    .FromTuple(tuple, tupleOpFactoryArgs[stackPtr]),
+                RectangleInfo.DefineBranchActionForUnion,
+                RectangleInfo.BranchAccumulatorFactoryForUnion,
+                tuple => !tuple.IsFull(),
+                RectangleInfo.ResetFactoryArgs)
+                    .OfType<DisjunctiveTuple<TEntity>>();
+        }
+
+        public static IEnumerable<ConjunctiveTuple<TEntity>> TrueIntersect<TEntity>(
+            TupleObjectSchema<TEntity> schema,
+            DisjunctiveTuple<TEntity>[] tuples,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            int schemaLen = schema.PluggedAttributesCount,
+                dsysLen = tuples.Length;
+            if (dsysLen < 2)
+                throw new InvalidOperationException("У D-системы не должно быть меньше двух кортежей.");
+
+            IndexedComponentFactoryArgs<IAttributeComponent>[] opFactoryArgs;
+            IndexedComponentFactoryArgs<IAttributeComponent>[][] tupleOpFactoryArgs =
+                new IndexedComponentFactoryArgs<IAttributeComponent>[dsysLen][];
+            for (int i = 0; i < dsysLen; i++)
+            {
+                tupleOpFactoryArgs[i] = opFactoryArgs =
+                    new IndexedComponentFactoryArgs<IAttributeComponent>[schemaLen];
+                InitDefaultFactoryArgs<TEntity>(opFactoryArgs, schema);
+            }
+
+            return GetAccumulatedCartesianProduct(
+                (RectangleInfo rect) => factory.CreateConjunctiveTuple<TEntity>(
+                    rect.Components,
+                    schema.PassToBuilder,
+                    null),
+                tuples,
+                (stackPtr, tuple) => RectangleInfo
+                    .FromTuple(tuple, tupleOpFactoryArgs[stackPtr]),
+                RectangleInfo.DefineBranchActionForIntersection,
+                RectangleInfo.BranchAccumulatorFactoryForIntersection,
+                tuple => !tuple.IsEmpty(),
+                RectangleInfo.ResetFactoryArgs)
+                    .OfType<ConjunctiveTuple<TEntity>>();
+        }
+
+        public static TupleObject<TEntity> TrueUnion<TEntity>(
+            ConjunctiveTupleSystem<TEntity> cSys,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            return factory.CreateDisjunctiveTupleSystem(
+                TrueUnion(cSys.Schema, cSys.Tuples, factory),
+                cSys.PassSchema,
+                null);
+        }
+
+        public static TupleObject<TEntity> TrueIntersect<TEntity>(
+            DisjunctiveTupleSystem<TEntity> dSys,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            return factory.CreateConjunctiveTupleSystem(
+                TrueIntersect(dSys.Schema, dSys.Tuples, factory),
+                dSys.PassSchema,
+                null);
         }
     }
 }

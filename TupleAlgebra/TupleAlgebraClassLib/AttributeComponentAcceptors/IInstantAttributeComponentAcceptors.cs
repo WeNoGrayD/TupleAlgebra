@@ -8,14 +8,14 @@ using TupleAlgebraClassLib.AttributeComponents;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations;
 
-namespace TupleAlgebraClassLib.AttributeComponentAcceptors
+namespace TupleAlgebraClassLib.AttributeComponentVisitors
 {
-    public interface IInstantUnaryAttributeComponentAcceptor<TData, in TOperand, out TOperationResult>
+    public interface IInstantUnaryAttributeComponentVisitor<TData, in TOperand, out TOperationResult>
         : IInstantUnaryOperator<TOperand, TOperationResult>
         where TOperand : IAttributeComponent<TData>
     { }
 
-    public interface IInstantBinaryAttributeComponentAcceptor<TData, in TOperand1, in TOperand2, out TOperationResult>
+    public interface IInstantBinaryAttributeComponentVisitor<TData, in TOperand1, in TOperand2, out TOperationResult>
         : IInstantBinaryOperator<TOperand1, TOperand2, TOperationResult>
         where TOperand1 : IAttributeComponent<TData>
         where TOperand2 : IAttributeComponent<TData>

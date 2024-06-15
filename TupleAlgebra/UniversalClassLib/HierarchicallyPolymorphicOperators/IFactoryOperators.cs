@@ -11,7 +11,7 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
         in TOperationResultFactory,
         out TOperationResult>
     {
-        TOperationResult Accept(TOperand first, TOperationResultFactory factory);
+        TOperationResult Visit(TOperand first, TOperationResultFactory factory);
     }
 
     public interface IFactoryBinaryOperator<
@@ -20,6 +20,9 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
         in TOperationResultFactory, 
         out TOperationResult>
     {
-        TOperationResult Accept(TOperand1 first, TOperand2 second, TOperationResultFactory factory);
+        public abstract TOperationResult Visit(
+            TOperand1 first, 
+            TOperand2 second, 
+            TOperationResultFactory factory);
     }
 }

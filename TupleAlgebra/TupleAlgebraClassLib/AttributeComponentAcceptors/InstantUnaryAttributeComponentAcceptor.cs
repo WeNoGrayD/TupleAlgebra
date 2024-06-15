@@ -6,25 +6,25 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectVisitors;
 
-namespace TupleAlgebraClassLib.AttributeComponentAcceptors
+namespace TupleAlgebraClassLib.AttributeComponentVisitors
 {
-    public abstract class InstantUnaryAttributeComponentAcceptor<TData, TOperand, TOperationResult>
+    public abstract class InstantUnaryAttributeComponentVisitor<TData, TOperand, TOperationResult>
         : InstantUnaryOperator<TOperand, TOperationResult>//,
-          //IInstantUnaryAttributeComponentAcceptor<TData, TOperand, TOperationResult>
+          //IInstantUnaryAttributeComponentVisitor<TData, TOperand, TOperationResult>
         where TOperand : IAttributeComponent<TData>
     {
     }
 
     public abstract class AttributeComponentInstantUnarySetOperator<TData, TOperand>
-        : InstantUnaryAttributeComponentAcceptor<TData, TOperand, IAttributeComponent<TData>>
+        : InstantUnaryAttributeComponentVisitor<TData, TOperand, IAttributeComponent<TData>>
         where TOperand : IAttributeComponent<TData>
     {
     }
 
     public abstract class AttributeComponentInstantUnaryBooleanOperator<TData, TOperand>
-        : InstantUnaryAttributeComponentAcceptor<TData, TOperand, bool>
+        : InstantUnaryAttributeComponentVisitor<TData, TOperand, bool>
         where TOperand : IAttributeComponent<TData>
     {
     }

@@ -5,7 +5,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
-using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators;
 using TupleAlgebraClassLib.TupleObjects;
 
@@ -17,7 +17,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrast
         : TupleObjectIntersectionOperator<TEntity, ConjunctiveTuple<TEntity>>
         where TEntity : new()
     {
-        public override TupleObject<TEntity> Accept(
+        public override TupleObject<TEntity> Visit(
             ConjunctiveTuple<TEntity> first,
             ConjunctiveTuple<TEntity> second,
             TupleObjectFactory factory)
@@ -26,7 +26,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrast
                 new OperationHandler<ConjunctiveTuple<TEntity>>(Intersect));
         }
 
-        public override TupleObject<TEntity> Accept(
+        public override TupleObject<TEntity> Visit(
             ConjunctiveTuple<TEntity> first,
             DisjunctiveTuple<TEntity> second,
             TupleObjectFactory factory)
@@ -34,16 +34,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrast
             return OperationStrategy(first, second, factory, Intersect);
         }
 
-        public override TupleObject<TEntity> Accept(
+        public override TupleObject<TEntity> Visit(
             ConjunctiveTuple<TEntity> first,
             ConjunctiveTupleSystem<TEntity> second,
             TupleObjectFactory factory)
         {
-            return OperationStrategy(first, second, factory,
-                new ReversedOperationHandler<ConjunctiveTupleSystem<TEntity>>(Intersect));
+            return OperationStrategy(first, second, factory, Intersect);
         }
 
-        public override TupleObject<TEntity> Accept(
+        public override TupleObject<TEntity> Visit(
             ConjunctiveTuple<TEntity> first,
             DisjunctiveTupleSystem<TEntity> second,
             TupleObjectFactory factory)

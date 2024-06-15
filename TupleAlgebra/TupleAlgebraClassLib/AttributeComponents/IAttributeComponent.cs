@@ -64,6 +64,14 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         IEnumerator IBufferizedEnumerable.GetBufferizedEnumerator() => GetBufferizedEnumerator();
 
+        IAttributeComponent<TData> IntersectWith(IAttributeComponent<TData> second);
+
+        IAttributeComponent<TData> UnionWith(IAttributeComponent<TData> second);
+
+        IAttributeComponent<TData> ExceptWith(IAttributeComponent<TData> second);
+
+        IAttributeComponent<TData> SymmetricExceptWith(IAttributeComponent<TData> second);
+
         public bool Includes(
             IAttributeComponent<TData> second);
 

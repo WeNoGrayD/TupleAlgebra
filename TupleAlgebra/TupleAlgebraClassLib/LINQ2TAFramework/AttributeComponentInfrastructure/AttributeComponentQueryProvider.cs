@@ -121,7 +121,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure
             /// <param name="selectExpression"></param>
             /// <exception cref="InvalidOperationException"></exception>
             /*
-            protected override void CheckSelectQueryOnAcceptability(MethodCallExpression selectExpression)
+            protected override void CheckSelectQueryOnVisitability(MethodCallExpression selectExpression)
             {
                 if (selectExpression.Arguments[1].NodeType != ExpressionType.Quote)
                     throw new InvalidOperationException(

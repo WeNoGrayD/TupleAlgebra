@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
@@ -36,7 +36,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
                 IFiniteEnumerableAttributeComponent<TData>,
                 TFactory,
                 IAttributeComponent<TData>>
-            .Accept(
+            .Visit(
                 TAttributeComponent first,
                 IFiniteEnumerableAttributeComponent<TData> second,
                 TFactory factory)

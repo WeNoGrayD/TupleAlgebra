@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
 using TupleAlgebraClassLib.AttributeComponents;
@@ -18,28 +18,45 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cro
     /// no except, include or includeorequal
     /// </summary>
     /// <typeparam name="TData"></typeparam>
-    public interface IFilteringFiniteEnumerableAttributeComponentBinaryOperator<
-        TData,
-        CTFactory,
-        CTFactoryArgs>
-        : IFactoryBinaryAttributeComponentAcceptor<
-            TData,
-            IEnumerable<TData>,
+    /*
+    public interface IFilteringFiniteEnumerableAttributeComponentBinaryOperator<TData>
+        : IFactoryBinaryOperator<
             FilteringAttributeComponent<TData>,
-            IFiniteEnumerableAttributeComponent<TData>,
-            CTFactory,
-            CTFactoryArgs,
+            NonFictionalAttributeComponent<TData>,
+            IAttributeComponentFactory<TData>,
             IAttributeComponent<TData>>
-        where CTFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
-    { }
+    {
+        IAttributeComponent<TData> IFactoryBinaryOperator<
+            FilteringAttributeComponent<TData>,
+            NonFictionalAttributeComponent<TData>,
+            IAttributeComponentFactory<TData>,
+            IAttributeComponent<TData>>.Visit(
+            FilteringAttributeComponent<TData> first,
+            NonFictionalAttributeComponent<TData> second,
+            IAttributeComponentFactory<TData> factory)
+        {
+            return second
+
+            IFactoryBinaryOperator<
+                NonFictionalAttributeComponent<TData>,
+                FilteringAttributeComponent<TData>,
+                IAttributeComponentFactory<TData>,
+                IAttributeComponent> binOp = (dynamic)this;
+
+            return binOp.Visit(
+                second,
+                first,
+                factory) as IAttributeComponent<TData>;
+        }
+    }
+    */
 
     public interface IFiniteEnumerableXFilteringAttributeComponentBinaryOperator<
         TData,
         CTOperand1,
         CTFactory,
         CTFactoryArgs>
-        : IFactoryBinaryAttributeComponentAcceptor<
+        : IFactoryBinaryAttributeComponentVisitor<
             TData,
             IEnumerable<TData>,
             CTOperand1,
@@ -56,7 +73,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cro
     public interface IFiniteEnumerableXFilteringAttributeComponentBooleanOperator<
         TData,
         CTOperand1>
-        : IInstantBinaryAttributeComponentAcceptor<
+        : IInstantBinaryAttributeComponentVisitor<
             TData,
             CTOperand1,
             FilteringAttributeComponent<TData>,
@@ -66,7 +83,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cro
 
     public interface IFilteringXFiniteEnumerableAttributeComponentBooleanOperator<
         TData>
-        : IInstantBinaryAttributeComponentAcceptor<
+        : IInstantBinaryAttributeComponentVisitor<
             TData,
             FilteringAttributeComponent<TData>,
             IFiniteEnumerableAttributeComponent<TData>,

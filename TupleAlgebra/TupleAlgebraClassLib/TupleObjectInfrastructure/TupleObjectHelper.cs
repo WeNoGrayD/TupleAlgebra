@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
+using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -63,6 +64,110 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         {
             return new SingleTupleObjectFactoryArgs<TEntity, TAttribute>(
                 getter, componentFactoryArgs);
+        }
+
+        public enum Overlay : sbyte
+        {
+            HaveNotIntersection = -1,
+            HaveIntersection = 0,
+            FullyMatch = 1
+        }
+
+        public static (Overlay Overlay, IEnumerable<AttributeName> Intersected)
+            DefineSchemasOverlay<TEntity>(
+            TupleObjectSchema<TEntity> first,
+            TupleObjectSchema<TEntity> second)
+        {
+            AttributeName[] intersected = first.PluggedAttributeNames
+                .ToHashSet()
+                .Intersect(second.PluggedAttributeNames)
+                .ToArray();
+
+            return (intersected.Length switch
+                {
+                    0 => Overlay.HaveNotIntersection,
+                    int x when x == first.PluggedAttributesCount && 
+                               x == second.PluggedAttributesCount => 
+                         Overlay.FullyMatch,
+                    _ => Overlay.HaveIntersection
+                },
+                intersected);
+        }
+
+        public static bool ConjunctiveTupleObjectMatchAny<TEntity>(
+            TupleObject<TEntity> cObject,
+            TupleObject<TEntity> filter)
+            where TEntity : new()
+        {
+            (Overlay overlay, _) =
+                DefineSchemasOverlay(cObject.Schema, filter.Schema);
+            // Если в D-кортеже/систему отсутствуют эти атрибуты, то он эквивалентен формуле
+            // "для всех _filter.Schema (dTuple & _filter)"
+            if (overlay == Overlay.HaveNotIntersection) return true;
+
+            return ConjunctiveTupleObjectMatchAll(cObject, filter);
+        }
+
+        public static bool DisjunctiveTupleObjectMatchAny<TEntity>(
+            TupleObject<TEntity> dObject,
+            TupleObject<TEntity> filter)
+            where TEntity : new()
+        {
+            (Overlay overlay, _) =
+                DefineSchemasOverlay(dObject.Schema, filter.Schema);
+            // Если в D-кортеже/систему отсутствуют эти атрибуты, то он эквивалентен формуле
+            // "для всех _filter.Schema (dObject & _filter)"
+            if (overlay == Overlay.HaveNotIntersection) return true;
+            TupleObject<TEntity> firstTrimmed = dObject.AlignWithSchema(
+                filter.Schema,
+                filter.Factory,
+                null);
+            // Если D-кортеж/система, приведённые к _filter.Schema, эквивалентен пустому АК-объекту,
+            // то он эквивалентен формуле
+            // "для всех _filter.Schema (dObject & _filter), если dObject is not empty"
+            if (firstTrimmed.IsEmpty()) return !dObject.IsFalse();
+
+            return !(firstTrimmed & filter).IsFalse();
+        }
+
+        public static bool ConjunctiveTupleObjectMatchAll<TEntity>(
+            TupleObject<TEntity> cObject,
+            TupleObject<TEntity> filter)
+            where TEntity : new()
+        {
+            TupleObject<TEntity> firstTrimmed = cObject.AlignWithSchema(
+                filter.Schema,
+                filter.Factory,
+                null);
+            // Если C-кортеж/система, приведённые к _filter.Schema, эквивалентен пустому АК-объекту,
+            // то он эквивалентен формуле
+            // "для всех _filter.Schema (cObject & _filter)"
+            if (firstTrimmed.IsEmpty()) return false;
+            if (firstTrimmed.IsFull()) return true;
+
+            return (filter / firstTrimmed).IsFalse();
+        }
+
+        public static bool DisjunctiveTupleObjectMatchAll<TEntity>(
+            TupleObject<TEntity> dObject,
+            TupleObject<TEntity> filter)
+            where TEntity : new()
+        {
+            (Overlay overlay, _) =
+                DefineSchemasOverlay(dObject.Schema, filter.Schema);
+            // Если в D-кортеже/систему отсутствуют эти атрибуты, то он эквивалентен формуле
+            // "для всех _filter.Schema (dObject & _filter)"
+            if (overlay == Overlay.HaveNotIntersection) return true;
+            TupleObject<TEntity> firstTrimmed = dObject.AlignWithSchema(
+                filter.Schema,
+                filter.Factory,
+                null);
+            // Если D-кортеж/система, приведённые к _filter.Schema, эквивалентен пустому АК-объекту,
+            // то он эквивалентен формуле
+            // "для всех _filter.Schema (dObject & _filter), если dObject is not empty"
+            if (firstTrimmed.IsEmpty()) return !dObject.IsFalse();
+
+            return (filter / firstTrimmed).IsFalse();
         }
 
         #endregion

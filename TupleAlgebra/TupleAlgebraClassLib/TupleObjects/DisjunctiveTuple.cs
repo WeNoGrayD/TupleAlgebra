@@ -8,10 +8,12 @@ using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using System.Collections;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.DisjunctiveTupleInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
     using static TupleObjectHelper;
+    using static TupleObjectStaticDataStorage;
 
     public class ArrayEnumerator<T>
         : IEnumerator<T>
@@ -61,6 +63,15 @@ namespace TupleAlgebraClassLib.TupleObjects
     {
         #region Constructors
 
+        static DisjunctiveTuple()
+        {
+            Storage.RegisterType<TEntity, DisjunctiveTuple<TEntity>>(
+                (factory) => new DisjunctiveTupleOperationExecutorsContainer(factory));
+
+            return;
+        }
+
+
         public DisjunctiveTuple(TupleObjectBuildingHandler<TEntity> onTupleBuilding = null)
             : base(onTupleBuilding)
         { }
@@ -108,5 +119,33 @@ namespace TupleAlgebraClassLib.TupleObjects
         {
             return new AttributeComponentEnumerator(_components);
         }
+
+        #region Nested types
+
+        public class DisjunctiveTupleOperationExecutorsContainer
+            : NonFictionalTupleObjectOperationExecutorsContainer<DisjunctiveTuple<TEntity>>
+        {
+            #region Constructors
+
+            public DisjunctiveTupleOperationExecutorsContainer(
+                TupleObjectFactory factory)
+                : base(factory,
+                       () => new DisjunctiveTupleComplementionOperator<TEntity>(),
+                       () => new DisjunctiveTupleConversionToAlternateOperator<TEntity>(),
+                       () => new DisjunctiveTupleIntersectionOperator<TEntity>(),
+                       () => new DisjunctiveTupleUnionOperator<TEntity>(),
+                       () => new DisjunctiveTupleExceptionOperator<TEntity>(),
+                       () => new DisjunctiveTupleSymmetricExceptionOperator<TEntity>(),
+                       () => new DisjunctiveTupleInclusionComparer<TEntity>(),
+                       () => new DisjunctiveTupleEqualityComparer<TEntity>(),
+                       () => new DisjunctiveTupleInclusionOrEqualityComparer<TEntity>())
+            {
+                return;
+            }
+
+            #endregion
+        }
+
+        #endregion
     }
 }

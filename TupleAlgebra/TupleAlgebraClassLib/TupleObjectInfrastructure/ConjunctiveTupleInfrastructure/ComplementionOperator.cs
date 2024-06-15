@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
-using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjects;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators;
 
@@ -17,7 +17,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrast
         : TupleObjectFactoryUnarySetOperator<TEntity, ConjunctiveTuple<TEntity>>
         where TEntity : new ()
     {
-        public override TupleObject<TEntity> Accept(
+        public override TupleObject<TEntity> Visit(
             ConjunctiveTuple<TEntity> first,
             TupleObjectFactory factory)
         {

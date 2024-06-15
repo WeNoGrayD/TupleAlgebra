@@ -4,56 +4,52 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
-namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
+namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors
 {
-    public abstract class TupleObjectCrossTypeFactoryBinaryAcceptor<TEntity, TOperand1, TOperationResult>
-        : TupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, TOperationResult>,
-          //ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, EmptyTupleObject<TEntity>, TOperationResult>,
-          //ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, TupleObject<TEntity>, TOperationResult>,
-          //ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, FullTupleObject<TEntity>, TOperationResult>
-          ITupleObjectCrossTypeFactoryBinaryAcceptor<TEntity, TOperand1, TOperationResult>
+    public abstract class TupleObjectCrossTypeFactoryBinaryVisitor<TEntity, TOperand1, TOperationResult>
+        : TupleObjectFactoryBinaryVisitor<TEntity, TOperand1, TOperationResult>,
+          ITupleObjectCrossTypeFactoryBinaryVisitor<TEntity, TOperand1, TOperationResult>
         where TEntity : new()
         where TOperand1 : TupleObject<TEntity>
     {
-
-        public abstract TOperationResult Accept(
+        public abstract TOperationResult Visit(
             TOperand1 first,
             EmptyTupleObject<TEntity> second,
             TupleObjectFactory factory);
 
-        public abstract TOperationResult Accept(
+        public abstract TOperationResult Visit(
             TOperand1 first,
             ConjunctiveTuple<TEntity> second,
             TupleObjectFactory factory);
 
-        public abstract TOperationResult Accept(
+        public abstract TOperationResult Visit(
             TOperand1 first,
             DisjunctiveTuple<TEntity> second,
             TupleObjectFactory factory);
 
-        public abstract TOperationResult Accept(
+        public abstract TOperationResult Visit(
             TOperand1 first,
             ConjunctiveTupleSystem<TEntity> second,
             TupleObjectFactory factory);
 
-        public abstract TOperationResult Accept(
+        public abstract TOperationResult Visit(
             TOperand1 first,
             DisjunctiveTupleSystem<TEntity> second,
             TupleObjectFactory factory);
 
-        public abstract TOperationResult Accept(
+        public abstract TOperationResult Visit(
             TOperand1 first,
             FullTupleObject<TEntity> second,
             TupleObjectFactory factory);
     }
 
     public abstract class TupleObjectCrossTypeFactorySetBinaryOperator<TEntity, TOperand1>
-        : TupleObjectCrossTypeFactoryBinaryAcceptor<TEntity, TOperand1, TupleObject<TEntity>>
+        : TupleObjectCrossTypeFactoryBinaryVisitor<TEntity, TOperand1, TupleObject<TEntity>>
         where TEntity : new()
         where TOperand1 : TupleObject<TEntity>
     {
@@ -106,34 +102,4 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors
             return operation(second, first, factory);
         }
     }
-
-    /*
-    public abstract class TupleObjectCrossTypeFactoryBinaryAcceptor<TEntity, TOperand1, TOperationResult>
-        : TupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, TOperationResult>,
-          ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, EmptyTupleObject<TEntity>, TOperationResult>,
-          //ITupleObjectInstantBinaryAcceptor<TEntity, TOperand1, TupleObject<TEntity>, TOperationResult>,
-          ITupleObjectFactoryBinaryAcceptor<TEntity, TOperand1, FullTupleObject<TEntity>, TOperationResult>
-        where TEntity : new()
-        where TOperand1 : TupleObject<TEntity>
-    {
-
-        public abstract TOperationResult Accept(
-            TOperand1 first, 
-            EmptyTupleObject<TEntity> second,
-            TupleObjectFactory factory);
-
-        TOperationResult IInstantBinaryOperator<TOperand1, TupleObject<TEntity>, TOperationResult>.Accept(TOperand1 first, TupleObject<TEntity> second)
-        {
-            return AcceptDefault(first, second);
-        }
-
-        protected abstract TOperationResult AcceptDefault(TOperand1 first, TupleObject<TEntity> second);
-        
-
-        public abstract TOperationResult Accept(
-            TOperand1 first,
-            FullTupleObject<TEntity> second,
-            TupleObjectFactory factory);
-    }
-    */
 }

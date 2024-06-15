@@ -11,9 +11,9 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
     {
         #region Static fields
 
-        public static readonly MethodInfo InstantBinaryOperatorAcceptImplMIPattern;
+        public static readonly MethodInfo InstantBinaryOperatorVisitImplMIPattern;
 
-        public static readonly MethodInfo FactoryBinaryOperatorAcceptImplMIPattern;
+        public static readonly MethodInfo FactoryBinaryOperatorVisitImplMIPattern;
 
         #endregion
 
@@ -21,10 +21,10 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
 
         static OperatorHelper()
         {
-            InstantBinaryOperatorAcceptImplMIPattern = typeof(OperatorHelper)
-                .GetMethod(nameof(InstantBinaryOperatorAcceptImpl), BindingFlags.NonPublic | BindingFlags.Static);
-            FactoryBinaryOperatorAcceptImplMIPattern = typeof(OperatorHelper)
-                .GetMethod(nameof(FactoryBinaryOperatorAcceptImpl), BindingFlags.NonPublic | BindingFlags.Static);
+            InstantBinaryOperatorVisitImplMIPattern = typeof(OperatorHelper)
+                .GetMethod(nameof(InstantBinaryOperatorVisitImpl), BindingFlags.NonPublic | BindingFlags.Static);
+            FactoryBinaryOperatorVisitImplMIPattern = typeof(OperatorHelper)
+                .GetMethod(nameof(FactoryBinaryOperatorVisitImpl), BindingFlags.NonPublic | BindingFlags.Static);
 
             return;
         }
@@ -33,21 +33,21 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
 
         #region Static methods
 
-        private static TOperationResult InstantBinaryOperatorAcceptImpl<TOperand1, DTOperand2, TOperationResult>(
+        private static TOperationResult InstantBinaryOperatorVisitImpl<TOperand1, DTOperand2, TOperationResult>(
             IInstantBinaryOperator<TOperand1, DTOperand2, TOperationResult> ibOperator,
             TOperand1 first,
             DTOperand2 second)
         {
-            return ibOperator.Accept(first, second);
+            return ibOperator.Visit(first, second);
         }
 
-        private static TOperationResult FactoryBinaryOperatorAcceptImpl<TOperand1, DTOperand2, TOperationResultFactory, TOperationResult>(
+        private static TOperationResult FactoryBinaryOperatorVisitImpl<TOperand1, DTOperand2, TOperationResultFactory, TOperationResult>(
             IFactoryBinaryOperator<TOperand1, DTOperand2, TOperationResultFactory, TOperationResult> fbOperator,
             TOperand1 first,
             DTOperand2 second,
             TOperationResultFactory factory)
         {
-            return fbOperator.Accept(first, second, factory);
+            return fbOperator.Visit(first, second, factory);
         }
 
         #endregion

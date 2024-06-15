@@ -119,7 +119,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 tupleSystem[j++] = (tuple as CTSingleTupleObject)!;
             }
 
-            if (j == 0) return CreateEmpty<TEntity>(builder);
+            if (j == 0) return ReduceTupleObjectSystemToFictional<TEntity>(builder);
             if (j == 1) return tuple;
 
             tupleSystem.TrimRedundantRows(j);

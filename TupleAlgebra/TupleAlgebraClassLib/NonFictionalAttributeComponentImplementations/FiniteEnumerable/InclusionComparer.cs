@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
@@ -21,7 +21,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
             IFiniteEnumerableAttributeComponent<TData>,
             IFiniteEnumerableAttributeComponent<TData>,
             bool>
-            .Accept(
+            .Visit(
                 IFiniteEnumerableAttributeComponent<TData> greater,
                 IFiniteEnumerableAttributeComponent<TData> lower)
         {

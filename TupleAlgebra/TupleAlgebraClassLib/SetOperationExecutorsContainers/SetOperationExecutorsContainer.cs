@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
@@ -75,7 +75,7 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 
         public BTOperand Complement(BTOperand first)
         {
-            return ComplementationOperator.Accept((first as CTOperand)!, Factory);
+            return ComplementationOperator.Visit((first as CTOperand)!, Factory);
         }
 
         public abstract BTOperand Intersect(BTOperand first, BTOperand second);
@@ -88,17 +88,17 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 
         public bool Include(BTOperand first, BTOperand second)
         {
-            return InclusionComparer.Accept((first as CTOperand)!, second);
+            return InclusionComparer.Visit((first as CTOperand)!, second);
         }
 
         public bool Equal(BTOperand first, BTOperand second)
         {
-            return EqualityComparer.Accept((first as CTOperand)!, second);
+            return EqualityComparer.Visit((first as CTOperand)!, second);
         }
 
         public bool IncludeOrEqual(BTOperand first, BTOperand second)
         {
-            return InclusionOrEqualityComparer.Accept((first as CTOperand)!, second);
+            return InclusionOrEqualityComparer.Visit((first as CTOperand)!, second);
         }
 
         #endregion

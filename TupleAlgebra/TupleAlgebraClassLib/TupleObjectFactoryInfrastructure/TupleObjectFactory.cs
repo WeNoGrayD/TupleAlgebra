@@ -528,7 +528,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             //TupleObject<TEntity> full= null;
             //SubscribeOnContextDisposing(full);
 
-            return null;
+            return CreateFull<TEntity>(onTupleBuilding: null);
         }
 
         protected void SubscribeOnContextDisposing(IDisposable tupleObject)

@@ -82,12 +82,12 @@ namespace LINQProvider.QueryPipelineInfrastructure
 
         #endregion
 
-        #region IQueryPipelineAcceptor implementation
+        #region IQueryPipelineVisitor implementation
 
-        public abstract TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+        public abstract TPipelineQueryResult VisitToExecuteWithAggregableResult<TPipelineQueryResult>(
             ISingleQueryExecutorResultRequester resultRequster);
 
-        public abstract IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
+        public abstract IEnumerable<TPipelineQueryResultData> VisitToExecuteWithEnumerableResult<TPipelineQueryResultData>(
             System.Collections.IEnumerable dataSource,
             ISingleQueryExecutorResultRequester resultRequster);
 

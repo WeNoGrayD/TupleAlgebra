@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean
@@ -12,7 +12,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
         : NonFictionalAttributeComponentInclusionComparer<bool, BooleanNonFictionalAttributeComponent>,
           IBooleanAttributeComponentBooleanOperator
     {
-        public bool Accept(
+        public bool Visit(
             BooleanNonFictionalAttributeComponent first,
             BooleanNonFictionalAttributeComponent second)
         {

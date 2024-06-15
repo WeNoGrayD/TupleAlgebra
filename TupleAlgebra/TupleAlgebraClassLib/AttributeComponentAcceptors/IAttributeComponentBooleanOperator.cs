@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
 
-namespace TupleAlgebraClassLib.AttributeComponentAcceptors
+namespace TupleAlgebraClassLib.AttributeComponentVisitors
 {
     public interface IAttributeComponentBooleanOperator<
         TData, 
         in CTOperand1, 
         in CTOperand2>
-        : IInstantBinaryAttributeComponentAcceptor<
+        : IInstantBinaryAttributeComponentVisitor<
               TData, 
               CTOperand1, 
               CTOperand2,

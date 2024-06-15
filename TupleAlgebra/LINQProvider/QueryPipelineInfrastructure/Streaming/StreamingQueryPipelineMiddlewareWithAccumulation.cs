@@ -123,16 +123,16 @@ namespace LINQProvider.QueryPipelineInfrastructure.Streaming
             _innerExecutorImpl.AccumulateQueryResult();
         }
 
-        #region IQueryPipelineAcceptor implementation
+        #region IQueryPipelineVisitor implementation
 
-        public override TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+        public override TPipelineQueryResult VisitToExecuteWithAggregableResult<TPipelineQueryResult>(
             ISingleQueryExecutorResultRequester resultRequster)
         {
             return resultRequster.VisitStreamingQueryExecutorWithExpectedAggregableResult<TData, TQueryResult, TPipelineQueryResult>(
                 _innerExecutorImpl);
         }
 
-        public override IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
+        public override IEnumerable<TPipelineQueryResultData> VisitToExecuteWithEnumerableResult<TPipelineQueryResultData>(
             System.Collections.IEnumerable dataSource,
             ISingleQueryExecutorResultRequester resultRequster)
         {

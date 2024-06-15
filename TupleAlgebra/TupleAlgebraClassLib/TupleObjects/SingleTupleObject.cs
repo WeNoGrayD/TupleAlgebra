@@ -114,26 +114,34 @@ namespace TupleAlgebraClassLib.TupleObjects
         public abstract bool IsDefault(IAttributeComponent component);
 
         public override TupleObject<TEntity> AlignWithSchema(
-            TupleObjectSchema<TEntity> schema,
+            TupleObjectSchema<TEntity> newSchema,
             TupleObjectFactory factory,
             TupleObjectBuilder<TEntity> builder = null)
         {
-            if (object.ReferenceEquals(Schema, schema)) return this;
+            TupleObjectSchema<TEntity> oldSchema = Schema;
+            if (object.ReferenceEquals(oldSchema, newSchema)) return this;
 
             builder = builder ?? factory.GetBuilder<TEntity>();
 
-            int len = Schema.PluggedAttributesCount;
-            IndexedComponentFactoryArgs<IAttributeComponent>[] components =
-                new IndexedComponentFactoryArgs<IAttributeComponent>[len];
+            return Reproduce(
+                GetFactoryArgs(), 
+                factory, 
+                newSchema.PassToBuilder,
+                builder);
 
-            int attrLoc = 0;
-            for (int i = 0; i < Schema.PluggedAttributesCount; i++)
+            IEnumerable< IndexedComponentFactoryArgs<IAttributeComponent>> 
+                GetFactoryArgs()
             {
-                attrLoc = schema.GetAttributeLoc(Schema.AttributeAt(i));
-                components[i] = new(attrLoc, builder, this[i]);
-            }
+                int oldAttrLoc, newAttrLoc;
+                foreach (AttributeName attrName in newSchema.PluggedAttributeNames)
+                {
+                    oldAttrLoc = oldSchema.GetAttributeLoc(attrName);
+                    newAttrLoc = newSchema.GetAttributeLoc(attrName);
+                    yield return new(newAttrLoc, builder, this[oldAttrLoc]);
+                }
 
-            return Reproduce(components, factory, schema.PassToBuilder, builder);
+                yield break;
+            }
         }
 
         public override bool IsEmpty()

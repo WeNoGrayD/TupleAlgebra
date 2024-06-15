@@ -9,31 +9,34 @@ using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 {
+    using static TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectHelper;
     using static TupleObjectFactoryMethods;
-
+    
     public static class TupleObjectComplementionOperations
     {
         private static TupleObject<TEntity> ComplementTuple<TEntity>(
             SingleTupleObject<TEntity> tuple,
             TupleObjectFactory factory,
-            SingleTupleObjectFactoryHandler<TEntity> tupleComplementionFactory,
-            IndexedComponentFactoryArgs<IAttributeComponent>[] tupleFactoryArgs = null)
+            SingleTupleObjectFactoryHandler<TEntity> tupleComplementionFactory)
             where TEntity : new()
         {
             TupleObjectSchema<TEntity> schema = tuple.Schema;
             int len = tuple.RowLength;
-            tupleFactoryArgs ??= new IndexedComponentFactoryArgs<IAttributeComponent>[len];
-
-            for (int attrLoc = 0; attrLoc < len; attrLoc++)
-            {
-                tupleFactoryArgs[attrLoc] = 
-                    new (attrLoc, schema, tuple[attrLoc].ComplementThe());
-            }
 
             return tupleComplementionFactory(
-                tupleFactoryArgs,
+                GetFactoryArgs(),
                 schema.PassToBuilder, 
                 factory);
+
+            IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> GetFactoryArgs()
+            {
+                for (int attrLoc = 0; attrLoc < len; attrLoc++)
+                {
+                    yield return new(attrLoc, schema, tuple[attrLoc].ComplementThe());
+                }
+
+                yield break;
+            }
         }
 
         private static TupleObject<TEntity> ComplementTupleSystem<
@@ -47,8 +50,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             where TSingleTupleObject : SingleTupleObject<TEntity>
         {
             TupleObjectSchema<TEntity> schema = tupleSys.Schema;
-            IndexedComponentFactoryArgs<IAttributeComponent>[] components =
-                new IndexedComponentFactoryArgs<IAttributeComponent>[tupleSys.RowLength];
 
             return tupleSysComplementionFactory(
                 MakeTuples(), 
@@ -63,8 +64,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
                     yield return ComplementTuple(
                         tupleSys[i],
                         factory,
-                        tupleComplementionFactory,
-                        components);
+                        tupleComplementionFactory);
                 }
 
                 yield break;

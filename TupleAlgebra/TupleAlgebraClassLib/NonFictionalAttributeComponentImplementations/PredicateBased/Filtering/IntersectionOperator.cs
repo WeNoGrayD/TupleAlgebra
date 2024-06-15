@@ -9,6 +9,9 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBase
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.CrossType.FiniteEnumerableXFiltering;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
+using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.Filtering
 {
@@ -19,9 +22,14 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
             FilteringAttributeComponent<TData>,
             IFilteringAttributeComponentFactory<TData>,
             FilteringAttributeComponentFactoryArgs<TData>>,
-          IFilteringAttributeComponentBinaryOperator<TData>
+          IFilteringAttributeComponentBinaryOperator<TData>,
+          IFactoryBinaryOperator<
+              FilteringAttributeComponent<TData>,
+              NonFictionalAttributeComponent<TData>,
+              IAttributeComponentFactory<TData>,
+              IAttributeComponent<TData>>
     {
-        public IAttributeComponent<TData> Accept(
+        public IAttributeComponent<TData> Visit(
             FilteringAttributeComponent<TData> first,
             FilteringAttributeComponent<TData> second,
             IFilteringAttributeComponentFactory<TData> factory)
@@ -29,12 +37,25 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
             IFilteringAttributeComponentBinaryOperator<TData>
                 binOp = this;
 
-            return binOp.AcceptStrategy(
+            return binOp.VisitStrategy(
                 first,
                 second,
                 factory,
                 PredicateBuilder<TData>.Intersect,
                 AttributeComponentContentTypeHelper.IntersectWith);
+        }
+
+        IAttributeComponent<TData> IFactoryBinaryOperator<
+              FilteringAttributeComponent<TData>,
+              NonFictionalAttributeComponent<TData>,
+              IAttributeComponentFactory<TData>,
+              IAttributeComponent<TData>>
+            .Visit(
+            FilteringAttributeComponent<TData> first,
+            NonFictionalAttributeComponent<TData> second,
+            IAttributeComponentFactory<TData> factory)
+        {
+            return second.IntersectWith(first);
         }
     }
 }

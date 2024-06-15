@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponents;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
 
@@ -80,22 +80,22 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
 
         public override BTOperand Intersect(BTOperand first, BTOperand second)
         {
-            return IntersectionOperator.Accept((first as CTOperand)!, second);
+            return IntersectionOperator.Visit((first as CTOperand)!, second);
         }
 
         public override BTOperand Union(BTOperand first, BTOperand second)
         {
-            return UnionOperator.Accept((first as CTOperand)!, second);
+            return UnionOperator.Visit((first as CTOperand)!, second);
         }
 
         public override BTOperand Except(BTOperand first, BTOperand second)
         {
-            return DifferenceOperator.Accept((first as CTOperand)!, second);
+            return DifferenceOperator.Visit((first as CTOperand)!, second);
         }
 
         public override BTOperand SymmetricExcept(BTOperand first, BTOperand second)
         {
-            return SymmetricExceptionOperator.Accept((first as CTOperand)!, second);
+            return SymmetricExceptionOperator.Visit((first as CTOperand)!, second);
         }
 
         #endregion

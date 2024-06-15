@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
 
@@ -14,7 +14,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
         TAttributeComponent,
         TFactory,
         TFactoryArgs>
-        : IFactoryBinaryAttributeComponentAcceptor<
+        : IFactoryBinaryAttributeComponentVisitor<
             TData,
             IEnumerable<TData>,
             TAttributeComponent,

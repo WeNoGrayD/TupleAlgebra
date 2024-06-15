@@ -20,7 +20,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cro
             IFiniteEnumerableAttributeComponent<TData>,
             FilteringAttributeComponent<TData>,
             bool>
-            .Accept(
+            .Visit(
                 IFiniteEnumerableAttributeComponent<TData> first,
                 FilteringAttributeComponent<TData> second)
         {

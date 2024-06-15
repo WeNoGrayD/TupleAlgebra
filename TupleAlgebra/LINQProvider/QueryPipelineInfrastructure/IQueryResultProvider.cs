@@ -21,13 +21,13 @@ namespace LINQProvider.QueryPipelineInfrastructure
         /// <param name="isResultEnumerable"></param>
         /// <param name="queryPipeline"></param>
         /// <returns></returns>
-        //TPipelineQueryResult Accept<TPipelineQueryResultParam, TPipelineQueryResult>(
+        //TPipelineQueryResult Visit<TPipelineQueryResultParam, TPipelineQueryResult>(
         //    bool isResultEnumerable, ISingleQueryExecutorVisitor queryPipeline);
 
-        TPipelineQueryResult AcceptToExecuteWithAggregableResult<TPipelineQueryResult>(
+        TPipelineQueryResult VisitToExecuteWithAggregableResult<TPipelineQueryResult>(
             ISingleQueryExecutorResultRequester resultRequster);
 
-        IEnumerable<TPipelineQueryResultData> AcceptToExecuteWithEnumerableResult<TPipelineQueryResultData>(
+        IEnumerable<TPipelineQueryResultData> VisitToExecuteWithEnumerableResult<TPipelineQueryResultData>(
             System.Collections.IEnumerable dataSource,
             ISingleQueryExecutorResultRequester resultRequster);
 

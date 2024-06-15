@@ -82,6 +82,54 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                     filterTuple.Expression)) as TupleObject<TEntity>;
         }
 
+        public static bool All<TEntity>(
+            this TupleObject<TEntity> tuple,
+            Expression<Func<TEntity, bool>> filterExpr)
+            where TEntity : new()
+        {
+            return All(tuple, TranslatePredicate(tuple, filterExpr));
+        }
+
+        private static bool All<TEntity>(
+            TupleObject<TEntity> tuple,
+            TupleObject<TEntity> filterTuple)
+            where TEntity : new()
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            IQueryable<TEntity> res = tuple.Provider.CreateQuery<TEntity>(
+                BuildCoveredExpression(
+                    tuple,
+                    queryMethodInfo,
+                    [typeof(TEntity)],
+                    filterTuple.Expression));
+            return res.Provider.Execute<bool>(res.Expression);
+        }
+
+        public static bool Any<TEntity>(
+            this TupleObject<TEntity> tuple,
+            Expression<Func<TEntity, bool>> filterExpr)
+            where TEntity : new()
+        {
+            return Any(tuple, TranslatePredicate(tuple, filterExpr));
+        }
+
+        private static bool Any<TEntity>(
+            TupleObject<TEntity> tuple,
+            TupleObject<TEntity> filterTuple)
+            where TEntity : new()
+        {
+            MethodInfo queryMethodInfo = MethodBase.GetCurrentMethod() as MethodInfo;
+
+            IQueryable<TEntity> res = tuple.Provider.CreateQuery<TEntity>(
+                BuildCoveredExpression(
+                    tuple,
+                    queryMethodInfo,
+                    [typeof(TEntity)],
+                    filterTuple.Expression));
+            return res.Provider.Execute<bool>(res.Expression);
+        }
+
         private static QueriedTupleType ProjectOntoQueriedTupleType(
             ExpressionType operatorType)
         {
@@ -131,7 +179,13 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                 new MemberAccessExpressionReplacer(
                     _entityParameterExpr);
 
+                _searchForMember = true;
                 VisitLambda(predicateExpr);
+                if (!_searchForMember)
+                {
+                    CreateQueryLayer(ExpressionType.AndAlso);
+                    AddQueryToLayer(ExpressionType.AndAlso, _memberExpr, predicateExpr.Body);
+                }
 
                 return _currentQueryLayer.AsTupleObject(factory, builder);
             }
@@ -185,7 +239,6 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
 
             protected override Expression VisitBinary(BinaryExpression node)
             {
-
                 return node.NodeType switch
                 {
                     ExpressionType.AndAlso => VisitBinaryImpl(node),
@@ -228,23 +281,23 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                     case (null, null):
                         {
                             _currentQueryLayer =
-                                leftLayer.Accept(rightLayer, node.NodeType);
+                                leftLayer.Visit(rightLayer, node.NodeType);
 
                             break;
                         }
                     case (_, null):
                         {
                             CreateQueryLayer(node.NodeType);
-                            AddQueryToLayer(leftMember, result);
+                            AddQueryToLayer(node.NodeType, leftMember, result);
                             _currentQueryLayer =
-                                _currentQueryLayer.Accept(rightLayer, node.NodeType);
+                                _currentQueryLayer.Visit(rightLayer, node.NodeType);
 
                             break;
                         }
                     case (null, _):
                         {
                             _currentQueryLayer = leftLayer;
-                            AddQueryToLayer(rightMember, right);
+                            AddQueryToLayer(node.NodeType, rightMember, right);
                             /*
                             if (leftLayer.HasSameLogicalForm(node.NodeType))
                             {
@@ -256,7 +309,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                                 CreateQueryLayer(node.NodeType);
                                 AddQueryToLayer(rightMember, right);
                                 _currentQueryLayer =
-                                    leftLayer.Accept(_currentQueryLayer, node.NodeType);
+                                    leftLayer.Visit(_currentQueryLayer, node.NodeType);
                             }
                             */
 
@@ -272,12 +325,12 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                                  * Нужно научиться соединять запроса вида:
                                  * (f1(e.A) && f2(e.A)) && f3(e.A)
                                  */
-                                AddQueryToLayer(leftMember, result);
+                                AddQueryToLayer(node.NodeType, leftMember, result);
                             }
                             else
                             {
-                                AddQueryToLayer(leftMember, left);
-                                AddQueryToLayer(rightMember, right);
+                                AddQueryToLayer(node.NodeType, leftMember, left);
+                                AddQueryToLayer(node.NodeType, rightMember, right);
                             }
 
                             break;
@@ -285,25 +338,28 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                 }
 
                 return result;
+            }
 
-                void AddQueryToLayer(MemberExpression memberExpr, Expression queryBody)
-                {
-                    LambdaExpression attributeGettetExpr =
-                        DefineMemberAccess(memberExpr);
-                    ParameterExpression memberParameterExpr =
-                        GetMemberAccessAsParameter(memberExpr);
-                    queryBody = _memberAccessReplacer.Replace(
-                        memberExpr,
-                        memberParameterExpr,
-                        queryBody);
-                    LambdaExpression queryBodyLambda =
-                        Expression.Lambda(queryBody, memberParameterExpr);
-                    _currentQueryLayer = _currentQueryLayer.Accept(
-                        new QueryTreeNode(attributeGettetExpr, queryBodyLambda),
-                        node.NodeType);
+            private void AddQueryToLayer(
+                ExpressionType nodeType,
+                MemberExpression memberExpr, 
+                Expression queryBody)
+            {
+                LambdaExpression attributeGettetExpr =
+                    DefineMemberAccess(memberExpr);
+                ParameterExpression memberParameterExpr =
+                    GetMemberAccessAsParameter(memberExpr);
+                queryBody = _memberAccessReplacer.Replace(
+                    memberExpr,
+                    memberParameterExpr,
+                    queryBody);
+                LambdaExpression queryBodyLambda =
+                    Expression.Lambda(queryBody, memberParameterExpr);
+                _currentQueryLayer = _currentQueryLayer.Visit(
+                    new QueryTreeNode(attributeGettetExpr, queryBodyLambda),
+                    nodeType);
 
-                    return;
-                }
+                return;
             }
 
             protected override Expression VisitUnary(UnaryExpression node)
@@ -423,11 +479,11 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                     return col;
                 }
 
-                public abstract QueryLayer Accept(
+                public abstract QueryLayer Visit(
                     QueryTreeNode node,
                     ExpressionType operatorType);
 
-                public abstract QueryLayer Accept(
+                public abstract QueryLayer Visit(
                     QueryLayer queryLayer,
                     ExpressionType logicalForm);
 
@@ -506,7 +562,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                     return LogicalForm == logicalForm;
                 }
 
-                public override QueryLayer Accept(
+                public override QueryLayer Visit(
                     QueryTreeNode node,
                     ExpressionType operatorType)
                 {
@@ -515,7 +571,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                     return this;
                 }
 
-                public override QueryLayer Accept(
+                public override QueryLayer Visit(
                     QueryLayer queryLayer,
                     ExpressionType logicalForm)
                 {
@@ -535,7 +591,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                             }
                         default:
                             {
-                                return queryLayer.Accept(this, logicalForm);
+                                return queryLayer.Visit(this, logicalForm);
                             }
                     }
                 }
@@ -605,15 +661,15 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                     return;
                 }
 
-                public override QueryLayer Accept(
+                public override QueryLayer Visit(
                     QueryTreeNode node,
                     ExpressionType operatorType)
                 {
-                    return Accept(
+                    return Visit(
                         CreateQueryRow(node, Not(LogicalForm)), operatorType);
                 }
 
-                public override QueryLayer Accept(
+                public override QueryLayer Visit(
                     QueryLayer queryLayer,
                     ExpressionType logicalForm)
                 {
@@ -655,7 +711,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                                 }
                                 */
 
-                                return expr.Accept(this, logicalForm);
+                                return expr.Visit(this, logicalForm);
                             }
                         default:
                             {
@@ -691,14 +747,14 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                     return;
                 }
 
-                public override QueryLayer Accept(
+                public override QueryLayer Visit(
                     QueryTreeNode node,
                     ExpressionType operatorType)
                 {
-                    return Accept(CreateQueryRow(node, operatorType), operatorType);
+                    return Visit(CreateQueryRow(node, operatorType), operatorType);
                 }
 
-                public override QueryLayer Accept(
+                public override QueryLayer Visit(
                     QueryLayer queryLayer,
                     ExpressionType logicalForm)
                 {

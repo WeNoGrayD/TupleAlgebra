@@ -61,6 +61,9 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         public TupleObjectBuilder<TEntity> GetBuilder<TEntity>(
             TupleObjectBuildingHandler<TEntity> onTupleBuilding)
         {
+            if (onTupleBuilding is null)
+                return GetDefaultBuilder<TEntity>();
+
             TupleObjectBuilder<TEntity> builder = GetBuilder<TEntity>();
             onTupleBuilding(builder);
 

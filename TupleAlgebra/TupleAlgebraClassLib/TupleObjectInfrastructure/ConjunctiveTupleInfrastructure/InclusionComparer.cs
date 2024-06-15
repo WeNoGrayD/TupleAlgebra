@@ -3,34 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjects;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrastructure
 {
+    using static TupleObjectInclusionComparer;
+
     public sealed class ConjunctiveTupleInclusionComparer<TEntity>
-        : TupleObjectCrossTypeInstantBinaryAcceptor<TEntity, ConjunctiveTuple<TEntity>, bool>
+        : TupleObjectInclusionComparer<TEntity, ConjunctiveTuple<TEntity>>
         where TEntity : new()
     {
-        public override bool Accept(
+        public override bool Visit(
             ConjunctiveTuple<TEntity> first,
-            EmptyTupleObject<TEntity> second)
+            ConjunctiveTuple<TEntity> second)
         {
-            return true;
+            return Includes(first, second);
         }
 
-        public override bool AcceptDefault(
+        public override bool Visit(
             ConjunctiveTuple<TEntity> first,
-            TupleObject<TEntity> second)
+            DisjunctiveTuple<TEntity> second)
         {
-            return false;
+            return Includes(first, second);
         }
 
-        public override bool Accept(
+        public override bool Visit(
             ConjunctiveTuple<TEntity> first,
-            FullTupleObject<TEntity> second)
+            ConjunctiveTupleSystem<TEntity> second)
         {
-            return false;
+            return Includes(first, second);
+        }
+
+        public override bool Visit(
+            ConjunctiveTuple<TEntity> first,
+            DisjunctiveTupleSystem<TEntity> second)
+        {
+            return Includes(first, second);
         }
     }
 }

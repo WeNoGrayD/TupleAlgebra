@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
-using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectAcceptors;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrastructure
@@ -13,7 +13,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.EmptyTupleObjectInfrast
         : TupleObjectFactoryUnarySetOperator<TEntity, EmptyTupleObject<TEntity>>
         where TEntity : new()
     {
-        public override TupleObject<TEntity> Accept(
+        public override TupleObject<TEntity> Visit(
             EmptyTupleObject<TEntity> first, 
             TupleObjectFactory factory)
         {

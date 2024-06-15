@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
@@ -20,7 +20,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
         where TFactoryArgs : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         where TFactory : IOrderedFiniteEnumerableAttributeComponentFactory<TData, CTOperand1, TFactoryArgs>
     {
-        public IAttributeComponent<TData> Accept(
+        public IAttributeComponent<TData> Visit(
             CTOperand1 first,
             IOrderedFiniteEnumerableAttributeComponent<TData> second,
             TFactory factory)

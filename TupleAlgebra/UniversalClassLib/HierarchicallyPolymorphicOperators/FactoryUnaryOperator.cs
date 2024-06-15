@@ -8,6 +8,6 @@ namespace UniversalClassLib.HierarchicallyPolymorphicOperators
 {
     public abstract class FactoryUnaryOperator<TOperand, TOperationResultFactory, TOperationResult>
     {
-        public abstract TOperationResult Accept(TOperand first, TOperationResultFactory factory);
+        public abstract TOperationResult Visit(TOperand first, TOperationResultFactory factory);
     }
 }

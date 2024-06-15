@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponents;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
@@ -12,12 +12,12 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
         : NonFictionalAttributeComponentBooleanBinaryOperator<TData, CTOperand1>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
     {
-        public override bool Accept(NonFictionalAttributeComponent<TData> first, EmptyAttributeComponent<TData> second)
+        public override bool Visit(NonFictionalAttributeComponent<TData> first, EmptyAttributeComponent<TData> second)
         {
             return true;
         }
 
-        public override bool Accept(NonFictionalAttributeComponent<TData> first, FullAttributeComponent<TData> second)
+        public override bool Visit(NonFictionalAttributeComponent<TData> first, FullAttributeComponent<TData> second)
         {
             return false;
         }

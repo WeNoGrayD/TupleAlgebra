@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
@@ -14,7 +14,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boo
     public class ComplementationOperator
         : AttributeComponentFactoryUnarySetOperator<bool, bool, BooleanNonFictionalAttributeComponent, IBooleanAttributeComponentFactory, BooleanAttributeComponentFactoryArgs>
     {
-        public override IAttributeComponent<bool> Accept(
+        public override IAttributeComponent<bool> Visit(
             BooleanNonFictionalAttributeComponent first,
             IBooleanAttributeComponentFactory factory)
         {

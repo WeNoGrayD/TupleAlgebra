@@ -11,7 +11,7 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure;
 using System.Numerics;
 using UniversalClassLib.HierarchicallyPolymorphicOperators;
-using TupleAlgebraClassLib.AttributeComponentAcceptors;
+using TupleAlgebraClassLib.AttributeComponentVisitors;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
@@ -375,19 +375,19 @@ namespace TupleAlgebraClassLib.AttributeComponents
                 IAttributeComponentFactory<TData> factory,
                 Func<AttributeComponentFactoryUnarySetOperator<TData, CTOperand>>
                     complementionOperator,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, IAttributeComponent<TData>>>
                     intersectionOperator,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, IAttributeComponent<TData>>>
                     unionOperator,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, IAttributeComponent<TData>>>
                     differenceOperator,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, IAttributeComponent<TData>>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, IAttributeComponent<TData>>>
                     symmetricExceptionOperator,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     inclusionComparer,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     equalityComparer,
-                Func<InstantBinaryAttributeComponentAcceptor<TData, CTOperand, bool>>
+                Func<InstantBinaryAttributeComponentVisitor<TData, CTOperand, bool>>
                     inclusionOrEquationComparer)
                 : base(factory,
                        complementionOperator,
