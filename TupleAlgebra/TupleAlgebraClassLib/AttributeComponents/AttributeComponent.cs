@@ -41,6 +41,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
 
         #region Instance properties
 
+        public virtual bool IsLazy { get => false; }
+
         public AttributeComponentPower Power { get; private set; }
 
         public virtual AttributeDomain<TData> Domain 

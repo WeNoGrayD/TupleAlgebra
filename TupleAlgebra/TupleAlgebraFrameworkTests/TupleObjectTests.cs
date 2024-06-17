@@ -115,7 +115,7 @@ namespace TupleAlgebraFrameworkTests
             {
                 Console.Write($"{i,-3} ");
                 PrintSingleTupleObject(
-                    tupleSys[i], 
+                    tupleSys[i],
                     defaultAcSymbol,
                     openingBracket,
                     closingBracket,
@@ -393,7 +393,7 @@ namespace TupleAlgebraFrameworkTests
             TupleObject<ForumUser> likedPersons = factory
                 .CreateConjunctiveTuple<ForumUser>(fu);
 
-            TupleObject<ForumUser> dLikedPersons = 
+            TupleObject<ForumUser> dLikedPersons =
                 likedPersons.ConvertToAlternate();
 
             TupleObject<ForumUser> dSysLikedPersons = factory
@@ -975,6 +975,269 @@ namespace TupleAlgebraFrameworkTests
                  all = alphabet.All(a => alls.Contains(a.A));
             Console.WriteLine($"any: {any}");
             Console.WriteLine($"all: {all}");
+
+            return;
+        }
+
+        [TestMethod]
+        public void IsDisjunctiveTupleSystemFalse()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<Alphabet<int, int, int>>.Configure(CustomAlphabet);
+
+            bool isFalse;
+            ISingleTupleObjectFactoryArgs[][] factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 7, 10, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 4, 8, 11, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 6, 9, 12, 15])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 7])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 9])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
+                ];
+
+            // 2 монотонных атрибута, должна быть непустая
+            TupleObject<Alphabet<int, int, int>> alphabet = factory
+                .CreateDisjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            isFalse = alphabet.IsFalse();
+            Console.WriteLine($"2 монотонных атрибута. IsFalse: {isFalse}");
+
+            factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 7, 10, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 4, 8, 11, 14])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 8])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 9])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
+                ];
+
+            // 1 монотонный атрибут, должна быть непустая
+            alphabet = factory
+                .CreateDisjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            isFalse = alphabet.IsFalse();
+            Console.WriteLine($"1 монотонный атрибут. IsFalse: {isFalse}");
+
+            factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 7, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 4, 8, 11])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 6, 9, 12, 15])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 7])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 8])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
+                ];
+
+            // 1 бесконфликтный атрибут, должна быть непустая
+            alphabet = factory
+                .CreateDisjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            isFalse = alphabet.IsFalse();
+            Console.WriteLine($"1 бесконфликтный атрибут. IsFalse: {isFalse}");
+
+            factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 10, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 4, 11, 14])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([7])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([8])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 12])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
+                ];
+
+            // 1 бесконфликтный атрибут, должна быть пустая
+            alphabet = factory
+                .CreateDisjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            isFalse = alphabet.IsFalse();
+            Console.WriteLine($"1 бесконфликтный атрибут. IsFalse: {isFalse}");
+
+            factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 7, 10, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 6, 9, 12, 15])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 7])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
+                ];
+
+            // 2 бесконфликтных атрибута, должна быть непустая
+            alphabet = factory
+                .CreateDisjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            isFalse = alphabet.IsFalse();
+            Console.WriteLine($"2 бесконфликтных атрибута. IsFalse: {isFalse}");
+
+            factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 10, 13])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([7])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 10])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 15])),
+                    ]
+                ];
+
+            // 2 бесконфликтных атрибута, должна быть пустая
+            alphabet = factory
+                .CreateDisjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            isFalse = alphabet.IsFalse();
+            Console.WriteLine($"2 бесконфликтных атрибута. IsFalse: {isFalse}");
+
+            factoryArgs =
+                [
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 2, 7, 10, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 6, 9, 12, 15])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 7])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 11])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.C,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([5, 12])),
+                    ],
+                    [
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.A,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([1, 13])),
+                        SetAC<Alphabet<int, int, int>, int>(abc => abc.B,
+                            new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<int>([3, 14])),
+                    ]
+                ];
+
+            // 3 бесконфликтных атрибута, должна быть непустая
+            alphabet = factory
+                .CreateDisjunctiveTupleSystem<Alphabet<int, int, int>>(
+                tupleSysFactoryArgs: factoryArgs);
+            isFalse = alphabet.IsFalse();
+            Console.WriteLine($"3 бесконфликтных атрибута. IsFalse: {isFalse}");
 
             return;
         }

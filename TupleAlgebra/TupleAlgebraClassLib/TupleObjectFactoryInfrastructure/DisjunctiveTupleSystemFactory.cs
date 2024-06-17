@@ -243,7 +243,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
                 DisjunctiveTuple<TEntity>,
                 TupleObject<TEntity>>(
                 tupleSysFactoryArgs,
-                (tuple, b) => tuple,
+                (tuple, b) => tuple.AlignWithSchema(b.Schema, _factory, b),
                 onTupleBuilding,
                 builder);
         }

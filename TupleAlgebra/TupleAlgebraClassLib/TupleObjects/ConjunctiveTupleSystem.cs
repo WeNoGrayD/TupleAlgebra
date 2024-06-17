@@ -44,6 +44,20 @@ namespace TupleAlgebraClassLib.TupleObjects
             : base(schema, tuples)
         { }
 
+        /// <summary>
+        /// C-система непустая, если хотя бы один её кортеж непустой.
+        /// </summary>
+        /// <returns></returns>
+        public override bool IsFalse()
+        {
+            for (int tuplePtr = 0; tuplePtr < _tuples.Length; tuplePtr++)
+            {
+                if (!this[tuplePtr].IsFalse()) return false;
+            }
+
+            return true;
+        }
+
         public override IAttributeComponent<TAttribute>
             GetDefaultFictionalAttributeComponent<TAttribute>(
                 IAttributeComponentFactory<TAttribute> factory)

@@ -135,9 +135,12 @@ namespace TupleAlgebraClassLib.TupleObjects
                 int oldAttrLoc, newAttrLoc;
                 foreach (AttributeName attrName in newSchema.PluggedAttributeNames)
                 {
-                    oldAttrLoc = oldSchema.GetAttributeLoc(attrName);
-                    newAttrLoc = newSchema.GetAttributeLoc(attrName);
-                    yield return new(newAttrLoc, builder, this[oldAttrLoc]);
+                    if (oldSchema.IsPlugged(attrName))
+                    {
+                        oldAttrLoc = oldSchema.GetAttributeLoc(attrName);
+                        newAttrLoc = newSchema.GetAttributeLoc(attrName);
+                        yield return new(newAttrLoc, builder, this[oldAttrLoc]);
+                    }
                 }
 
                 yield break;
@@ -152,6 +155,21 @@ namespace TupleAlgebraClassLib.TupleObjects
         public override bool IsFull()
         {
             return false;
+        }
+
+        /// <summary>
+        /// Кортеж непустой, если имеется хотя бы одна неленивая компонента
+        /// либо ленивая непустая компонента.
+        /// </summary>
+        /// <returns></returns>
+        public override bool IsFalse()
+        {
+            for (int attrLoc = 0; attrLoc < _components.Length; attrLoc++)
+            {
+                if (!this[attrLoc].IsFalse()) return false;
+            }
+
+            return true;
         }
 
         /// <summary>

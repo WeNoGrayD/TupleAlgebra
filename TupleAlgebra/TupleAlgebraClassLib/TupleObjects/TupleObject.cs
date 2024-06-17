@@ -168,7 +168,10 @@ namespace TupleAlgebraClassLib.TupleObjects
             return IsEmpty() || !GetEnumerator().MoveNext();
         }
 
-        public virtual bool IsTrue() => IsFull();
+        public virtual bool IsTrue()
+        {
+            return IsFull();
+        }
 
         /*
         protected void SchemaAttributeChanged(object sender, AttributeChangedEventArgs eventArgs)

@@ -28,6 +28,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
 
         #region Instance properties
 
+        public override bool IsLazy { get => true; }
+
         public Expression<Func<TData, bool>> PredicateExpression
         { get => _predicateExpression; }
 

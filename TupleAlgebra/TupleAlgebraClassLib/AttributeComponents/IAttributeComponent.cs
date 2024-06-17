@@ -18,11 +18,23 @@ namespace TupleAlgebraClassLib.AttributeComponents
     {
         AttributeComponentPower Power { get; }
 
+        bool IsLazy { get; }
+
         bool IsEmpty { get; }
 
         bool IsFull { get; }
 
         bool IsDefault { get => IsEmpty || IsFull; }
+
+        bool IsFalse()
+        {
+            if (IsEmpty) return true;
+            if (IsFull) return false;
+            if (!IsLazy) return false;
+            if (GetEnumerator().MoveNext()) return false;
+
+            return true;
+        }
 
         new IAttributeComponent ComplementThe();
 
