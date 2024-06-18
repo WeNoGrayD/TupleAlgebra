@@ -88,19 +88,18 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         }
 
         public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
-            IEnumerable<TEntity> entitySet)
+            IEnumerable<TEntity> entitySet,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
+            TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
-            TupleObjectBuilder<TEntity> builder =
-                GetDefaultBuilder<TEntity>();
-
             return CreateTupleObjectSystemStrategy<
                 TEntity,
                 ConjunctiveTuple<TEntity>,
                 TEntity>(
                 PassVerticalEntitySet(builder, entitySet),
                 _singleTupleObjectFactory.CreateConjunctive,
-                null,
+                onTupleBuilding,
                 builder);
         }
 
