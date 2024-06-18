@@ -341,11 +341,15 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         }
 
         public TupleObject<TEntity> CreateConjunctiveTupleSystem<TEntity>(
-            IEnumerable<TEntity> tupleSysFactoryArgs)
+            IEnumerable<TEntity> tupleSysFactoryArgs,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
+            TupleObjectBuilder<TEntity> builder = null)
             where TEntity : new()
         {
             return _csysFactory.CreateConjunctiveTupleSystem(
-                tupleSysFactoryArgs);
+                tupleSysFactoryArgs,
+                onTupleBuilding,
+                builder);
         }
 
         public TupleObject<TEntity> CreateDisjunctiveTuple<TEntity>(
