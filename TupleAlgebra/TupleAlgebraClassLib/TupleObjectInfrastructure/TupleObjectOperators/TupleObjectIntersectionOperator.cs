@@ -99,11 +99,13 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             var traverseInfo = MakeTraverseInfo(first, second, factory);
 
             return traverseInfo.HasMaskedPart ?
+                /*
                 traverseInfo.Intersect(
                     first, 
                     second, 
                     factory, 
-                    (op1, op2, f) => IntersectImpl(op1, op2, f)) :
+                    (op1, op2, f) => IntersectImpl(op1, op2, f)) :*/
+                first.Unfold() & second.Unfold() :
                 IntersectImpl(first, second, factory);
         }
 

@@ -107,6 +107,15 @@ namespace TupleAlgebraClassLib.TupleObjects
                 maskedSchema);
         }
 
+        public TupleObject<TEntity> Unfold()
+        {
+            var traverseInfo = MakeTraverseInfo(this);
+
+            return traverseInfo.HasMaskedPart ?
+                traverseInfo.Enumerate(this, Factory) :
+                this;
+        }
+
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {
             /*
