@@ -9,6 +9,9 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.TupleBased;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Variable;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -52,11 +55,40 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return tuple[_attributeName].IsFull;
         }
 
+        public AttributeComponent<TAttribute> CreateVariable(string name)
+        {
+            IAttributeComponentFactory<TAttribute> factory =
+                AttributeInfo.ComponentFactory;
+
+            IAttributeComponentFactoryArgs factoryArgs =
+                new VariableAttributeComponentFactoryArgs<TAttribute>(name);
+
+            return factoryArgs.ProvideTo(factory);
+        }
+
+        IVariableAttributeComponent ITupleObjectAttributeManager
+            .CreateVariable(string name)
+        {
+            return CreateVariable(name) as IVariableAttributeComponent;
+        }
+
         public ITupleObjectAttributeManager SetComponent(
             ISingleTupleObject tuple,
             IAttributeComponent ac)
         {
             tuple[_attributeName] = ac;
+            if (ac is IAttributeComponentWithVariables acWithVariables)
+            {
+                if (tuple.VariableContainer is null)
+                    tuple.VariableContainer = new VariableContainer();
+                tuple.VariableContainer.AddVariableRange(acWithVariables);
+            }
+            if (ac is IVariableAttributeComponent variable)
+            {
+                if (tuple.VariableContainer is null)
+                    tuple.VariableContainer = new VariableContainer();
+                tuple.VariableContainer.AddVariable(variable);
+            }
 
             return this;
         }

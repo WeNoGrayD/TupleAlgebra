@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentVisitors;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
 {
@@ -20,7 +21,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
             TIntermediateResult, 
             CTOperand1, 
             TFactory,
-            CTFactoryArgs>
+            CTFactoryArgs>,
+          IAnyXVariableAttributeComponentIntersectionOperator<TData>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
         where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand1, CTFactoryArgs>
         where CTFactoryArgs : AttributeComponentFactoryArgs

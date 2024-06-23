@@ -12,6 +12,23 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 {
     internal static class TupleObjectFactoryMethods
     {
+        public static void AlignOperandsWithSchema<TEntity, TOperand1, TOperand2>(
+            ref TOperand1 first,
+            ref TOperand2 second,
+            TupleObjectFactory factory,
+            TupleObjectSchema<TEntity> generalSchema = null)
+            where TEntity : new()
+            where TOperand1 : TupleObject<TEntity>
+            where TOperand2 : TupleObject<TEntity>
+        {
+            generalSchema ??= first.Schema.GeneralizeWith(second.Schema);
+            TupleObjectBuilder<TEntity> builder =
+            factory.GetBuilder(generalSchema);
+
+            first = (first.AlignWithSchema(generalSchema, factory, builder) as TOperand1)!;
+            second = (second.AlignWithSchema(generalSchema, factory, builder) as TOperand2)!;
+        }
+
         public static void InitDefaultFactoryArgs<TEntity>(
             IndexedComponentFactoryArgs<IAttributeComponent>[] factoryArgs,
             ITupleObjectSchemaProvider schema)

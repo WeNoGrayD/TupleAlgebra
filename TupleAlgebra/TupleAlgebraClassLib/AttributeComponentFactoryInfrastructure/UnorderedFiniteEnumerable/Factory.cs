@@ -7,6 +7,9 @@ using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.UnorderedFiniteEnumerable;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.TupleBased;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable
 {
@@ -14,7 +17,10 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Unordered
         : IEnumerableNonFictionalAttributeComponentFactory<
               TData,
               UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
-              UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+              UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>,
+          IVariableAttributeComponentFactory<TData>,
+          ITupleBasedAttributeComponentFactory<TData>,
+          IFilteringAttributeComponentFactory<TData>
     {
         UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
             ISetOperationResultFactory<

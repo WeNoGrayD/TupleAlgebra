@@ -228,6 +228,18 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         */
 
         public TupleObject<TEntity> CreateConjunctiveTuple<TEntity>(
+            IEnumerable<NamedComponentFactoryArgs<IAttributeComponent>> attributes,
+            TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
+            TupleObjectBuilder<TEntity> builder = null)
+            where TEntity : new()
+        {
+            return _cFactory.CreateConjunctive(
+                attributes,
+                onTupleBuilding,
+                builder);
+        }
+
+        public TupleObject<TEntity> CreateConjunctiveTuple<TEntity>(
             IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>> attributes,
             TupleObjectBuildingHandler<TEntity> onTupleBuilding = null,
             TupleObjectBuilder<TEntity> builder = null)

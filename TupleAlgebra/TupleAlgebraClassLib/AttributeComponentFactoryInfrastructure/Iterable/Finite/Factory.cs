@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.TupleBased;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Iterable.Finite;
 using TupleAlgebraClassLib.SetOperationExecutorsContainers;
@@ -13,7 +16,10 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.
         : IEnumerableNonFictionalAttributeComponentFactory<
               TData,
               FiniteIterableAttributeComponent<TData>,
-              FiniteIterableAttributeComponentFactoryArgs<TData>>
+              FiniteIterableAttributeComponentFactoryArgs<TData>>,
+          IVariableAttributeComponentFactory<TData>,
+          ITupleBasedAttributeComponentFactory<TData>,
+          IFilteringAttributeComponentFactory<TData>
     {
         FiniteIterableAttributeComponentFactoryArgs<TData>
             ISetOperationResultFactory<

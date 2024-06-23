@@ -23,6 +23,9 @@ using TupleAlgebraClassLib.TupleObjectInfrastructure.AttributeContainers;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.DisjunctiveTupleSystemInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleSystemInfrastructure;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.TupleBased;
 
 namespace TupleAlgebraFrameworkTests
 {
@@ -257,6 +260,7 @@ namespace TupleAlgebraFrameworkTests
             return;
         }
 
+        /*
         [TestMethod]
         public void CreateConjunctiveTupleTimeTest()
         {
@@ -283,6 +287,7 @@ namespace TupleAlgebraFrameworkTests
 
             return;
         }
+        */
 
         [TestMethod]
         public void Complement()
@@ -356,6 +361,10 @@ namespace TupleAlgebraFrameworkTests
                weno3 = factory.CreateConjunctiveTupleSystem<ForumUser>(ForumDatabase.Domain);
 
             TupleObject<ForumUser> res;
+            res = weno3 & weno1;
+            res = weno3 & weno2;
+            res = weno1 & weno2;
+            /*
 
             Stopwatch sw = new Stopwatch();
             int testCount = 10000;
@@ -376,8 +385,189 @@ namespace TupleAlgebraFrameworkTests
                 sw.Reset();
             }
             time = time / testCount;
+            */
             //Console.WriteLine($"Intersecting ctuple 3 times (sync) costs {time} ms.");
-            Console.WriteLine($"Intersecting ctuple 3 times (async) costs {time} ms.");
+            //Console.WriteLine($"Intersecting ctuple 3 times (async) costs {time} ms.");
+
+            return;
+        }
+
+        [TestMethod]
+        public void Union()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<ForumUser>.Configure(CustomLikedUsers);
+
+            ForumUser fu = new ForumUser(-1, "WeNoGrayD", 10, 5, 1, 1);
+            TupleObject<ForumUser> weno1 = factory.CreateConjunctiveTuple(fu),
+                weno2 = factory.CreateConjunctiveTuple<ForumUser>(
+                factoryArgs: [
+                    SetAC((ForumUser fu) => fu.Nickname,
+                     new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
+                    ),
+                    SetAC((ForumUser fu) => fu.LikeCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([10, 100])
+                    ),
+                    SetAC((ForumUser fu) => fu.PostCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([5, 55])
+                    ),
+                    SetAC((ForumUser fu) => fu.Followers,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
+                    ),
+                    SetAC((ForumUser fu) => fu.Following,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 2])
+                    )]),
+               weno3 = factory.CreateConjunctiveTupleSystem<ForumUser>(ForumDatabase.Domain);
+
+            TupleObject<ForumUser> res;
+            res = weno3 & weno1;
+            res = weno3 & weno2;
+            res = weno1 & weno2;
+            Task.Delay(54);
+            /*
+
+            Stopwatch sw = new Stopwatch();
+            int testCount = 10000;
+            double time = 0;
+
+            for (int i = 0; i < testCount; i++)
+            {
+                sw.Start();
+
+                res = weno3 & weno1;
+                res = weno3 & weno2;
+                res = weno1 & weno2;
+
+                sw.Stop();
+
+                time += sw.ElapsedMilliseconds;
+
+                sw.Reset();
+            }
+            time = time / testCount;
+            */
+            //Console.WriteLine($"Intersecting ctuple 3 times (sync) costs {time} ms.");
+            //Console.WriteLine($"Intersecting ctuple 3 times (async) costs {time} ms.");
+
+            return;
+        }
+
+        [TestMethod]
+        public void Except()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<ForumUser>.Configure(CustomLikedUsers);
+
+            ForumUser fu = new ForumUser(-1, "WeNoGrayD", 10, 5, 1, 1);
+            TupleObject<ForumUser> weno1 = factory.CreateConjunctiveTuple(fu),
+                weno2 = factory.CreateConjunctiveTuple<ForumUser>(
+                factoryArgs: [
+                    SetAC((ForumUser fu) => fu.Nickname,
+                     new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
+                    ),
+                    SetAC((ForumUser fu) => fu.LikeCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([10, 100])
+                    ),
+                    SetAC((ForumUser fu) => fu.PostCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([5, 55])
+                    ),
+                    SetAC((ForumUser fu) => fu.Followers,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
+                    ),
+                    SetAC((ForumUser fu) => fu.Following,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 2])
+                    )]),
+               weno3 = factory.CreateConjunctiveTupleSystem<ForumUser>(ForumDatabase.Domain);
+
+            TupleObject<ForumUser> res;
+            res = weno3 & weno1;
+            res = weno3 & weno2;
+            res = weno1 & weno2;
+            Task.Delay(124);
+            /*
+
+            Stopwatch sw = new Stopwatch();
+            int testCount = 10000;
+            double time = 0;
+
+            for (int i = 0; i < testCount; i++)
+            {
+                sw.Start();
+
+                res = weno3 & weno1;
+                res = weno3 & weno2;
+                res = weno1 & weno2;
+
+                sw.Stop();
+
+                time += sw.ElapsedMilliseconds;
+
+                sw.Reset();
+            }
+            time = time / testCount;
+            */
+            //Console.WriteLine($"Intersecting ctuple 3 times (sync) costs {time} ms.");
+            //Console.WriteLine($"Intersecting ctuple 3 times (async) costs {time} ms.");
+
+            return;
+        }
+
+        [TestMethod]
+        public void SymmetricExcept()
+        {
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<ForumUser>.Configure(CustomLikedUsers);
+
+            ForumUser fu = new ForumUser(-1, "WeNoGrayD", 10, 5, 1, 1);
+            TupleObject<ForumUser> weno1 = factory.CreateConjunctiveTuple(fu),
+                weno2 = factory.CreateConjunctiveTuple<ForumUser>(
+                factoryArgs: [
+                    SetAC((ForumUser fu) => fu.Nickname,
+                     new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<string>(["WeNoGrayD", "NewRevan"])
+                    ),
+                    SetAC((ForumUser fu) => fu.LikeCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([10, 100])
+                    ),
+                    SetAC((ForumUser fu) => fu.PostCount,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([5, 55])
+                    ),
+                    SetAC((ForumUser fu) => fu.Followers,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 5])
+                    ),
+                    SetAC((ForumUser fu) => fu.Following,
+                     new FiniteIterableAttributeComponentFactoryArgs<int>([1, 2])
+                    )]),
+               weno3 = factory.CreateConjunctiveTupleSystem<ForumUser>(ForumDatabase.Domain);
+
+            TupleObject<ForumUser> res;
+            res = weno3 & weno1;
+            res = weno3 & weno2;
+            res = weno1 & weno2;
+            Task.Delay(88);
+            /*
+
+            Stopwatch sw = new Stopwatch();
+            int testCount = 10000;
+            double time = 0;
+
+            for (int i = 0; i < testCount; i++)
+            {
+                sw.Start();
+
+                res = weno3 & weno1;
+                res = weno3 & weno2;
+                res = weno1 & weno2;
+
+                sw.Stop();
+
+                time += sw.ElapsedMilliseconds;
+
+                sw.Reset();
+            }
+            time = time / testCount;
+            */
+            //Console.WriteLine($"Intersecting ctuple 3 times (sync) costs {time} ms.");
+            //Console.WriteLine($"Intersecting ctuple 3 times (async) costs {time} ms.");
 
             return;
         }
@@ -759,12 +949,14 @@ namespace TupleAlgebraFrameworkTests
             //builder.Attribute(user => user.LatestComments).OneToOneRelation().SetDomain(comments.ShiftMany(EnumerateComments));
         }
 
+        /*
         private IEnumerable<KeyValuePair<DateTime, string>> EnumerateComments(IGrouping<DateTime, string> comments)
         {
             IEnumerator<string> commentsEnumerator = comments.GetEnumerator();
             while (commentsEnumerator.MoveNext())
                 yield return new KeyValuePair<DateTime, string>(comments.Key, commentsEnumerator.Current);
         }
+        */
 
         [TestMethod]
         public void CreateConjunctiveTuple2()
@@ -1240,6 +1432,197 @@ namespace TupleAlgebraFrameworkTests
             Console.WriteLine($"3 бесконфликтных атрибута. IsFalse: {isFalse}");
 
             return;
+        }
+
+        public record Person()
+        {
+            public string Name { get; set; }
+
+            public Person(string name) : this()
+            {
+                Name = name;
+            }
+        }
+
+        public record Parent
+        {
+            public Person The { get; set; }
+            
+            public Person Child { get; set; }
+
+            public Parent() : base() { }
+
+            public Parent(Person the, Person child)
+            {
+                The = the;
+                Child = child;
+            }
+        }
+
+        public record Father
+            : Parent
+        {
+            public Father() : base() { }
+
+            public Father(Person the, Person child)
+                : base(the, child)
+            { }
+        }
+
+        public record Grandfather
+        {
+            public Person The { get; set; }
+
+            public Person Grandchild { get; set; }
+
+            public Grandfather() : base() { }
+
+            public Grandfather(Person the, Person grandchild)
+            {
+                The = the;
+                Grandchild = grandchild;
+            }
+        }
+
+        [TestMethod]
+        public void TestVariables()
+        {
+            InitPersonsDb();
+            TupleObjectFactory factory = new TupleObjectFactory(null);
+            TupleObject<Person>.Configure(CustomPerson);
+            TupleObject<Parent>.Configure(CustomParent);
+            TupleObject<Father>.Configure(CustomFather);
+            TupleObject<Grandfather>.Configure(CustomGrandfather);
+
+            TupleObjectBuilder<Parent> parentBuilder = factory.GetDefaultBuilder<Parent>();
+            TupleObjectBuilder<Father> fatherBuilder = factory.GetDefaultBuilder<Father>();
+            IAttributeComponent parentVariable = parentBuilder
+                .Attribute(p => p.The)
+                .CreateManager()
+                .CreateVariable("ChildOfGrandfather");
+            TupleObject<Parent> mockParents = factory.CreateConjunctiveTuple(
+                    new Parent(_persons["Alice"], _persons["Ginnie"]));
+            TupleObject<Father> mockFathers = factory.CreateConjunctiveTuple(
+                    new Father(_persons["Bob"], _persons["Alice"]));
+            TupleObject <Parent> parents = factory
+                .CreateConjunctiveTupleSystem([
+                    new Parent(_persons["Bob"], _persons["Alice"]),
+                    new Parent(_persons["Fitzgerald"], _persons["Bob"]),
+                    new Parent(_persons["Carl"], _persons["Douglas"]),
+                    new Parent(_persons["Douglas"], _persons["Emma"]),
+                    new Parent(_persons["Emma"], _persons["Alice"]),
+                    new Parent(_persons["Alice"], _persons["Ginnie"])]),
+                    parentsMask = factory
+                .CreateConjunctiveTuple<Parent>(
+                        [SetAC((Parent p) => p.The,
+                         parentVariable,
+                         parentBuilder)]);
+            TupleObject<Father> fathers = factory
+                .CreateConjunctiveTupleSystem([
+                    new Father(_persons["Bob"], _persons["Alice"]),
+                    new Father(_persons["Fitzgerald"], _persons["Bob"]),
+                    new Father(_persons["Carl"], _persons["Douglas"]),
+                    new Father(_persons["Douglas"], _persons["Emma"])]),
+                    fathersMask = factory
+                .CreateConjunctiveTuple<Father>(
+                        [SetAC((Father f) => f.Child,
+                         parentVariable,
+                         fatherBuilder)]);
+            TupleObject<Grandfather> grandpas = factory
+                .CreateConjunctiveTuple<Grandfather>([
+                    SetAC((Grandfather gf) => gf.The,
+                          new TupleBasedAttributeComponentFactoryArgs<Person>(fathers, fathersMask, "The")),
+                    SetAC((Grandfather gf) => gf.Grandchild,
+                          new TupleBasedAttributeComponentFactoryArgs<Person>(parents, parentsMask, "Child"))]),
+                bobIsGrandfather = factory.CreateConjunctiveTuple<Grandfather>([
+                    SetAC((Grandfather gf) => gf.The,
+                        new UnorderedFiniteEnumerableAttributeComponentFactoryArgs<Person>(new HashSet<Person>{ _persons["Bob"] }))]),
+                emmaIsNotGrandfather = factory.CreateConjunctiveTuple<Grandfather>([
+                    SetAC((Grandfather gf) => gf.The,
+                        new UnorderedFiniteEnumerableAttributeComponentFactoryArgs<Person>(new HashSet<Person>{ _persons["Emma"] }))]),
+                aliceHasManyGrandfathers = factory.CreateConjunctiveTuple<Grandfather>([
+                    SetAC((Grandfather gf) => gf.Grandchild,
+                        new UnorderedFiniteEnumerableAttributeComponentFactoryArgs<Person>(new HashSet<Person>{ _persons["Alice"] }))]);
+
+            bobIsGrandfather = grandpas & bobIsGrandfather;
+            Console.WriteLine("Bob is grandfather:");
+            PrintConjunctiveTuple(bobIsGrandfather as ISingleTupleObject);
+            emmaIsNotGrandfather = grandpas & emmaIsNotGrandfather;
+            Console.WriteLine("Emma is not grandfather.");
+            Assert.IsTrue(emmaIsNotGrandfather.IsFalse());
+            aliceHasManyGrandfathers = grandpas & aliceHasManyGrandfathers;
+            Console.WriteLine("Alice has many grandfathers:");
+            PrintConjunctiveTupleSystem(aliceHasManyGrandfathers as ITupleObjectSystem);
+            Console.WriteLine("All the grandfathers:");
+            foreach (var g in grandpas)
+                Console.WriteLine(g);
+            //PrintConjunctiveTuple(grandpas as ISingleTupleObject);
+
+            return;
+        }
+
+        private IDictionary<string, Person> _persons;
+
+        private void InitPersonsDb()
+        {
+            _persons = new Dictionary<string, Person>();
+            AddPerson(new Person("Alice"));
+            AddPerson(new Person("Bob"));
+            AddPerson(new Person("Carl"));
+            AddPerson(new Person("Douglas"));
+            AddPerson(new Person("Emma"));
+            AddPerson(new Person("Fitzgerald"));
+            AddPerson(new Person("Ginnie"));
+
+            return;
+
+            void AddPerson(Person p)
+            {
+                _persons.Add(p.Name, p);
+
+                return;
+            }
+        }
+
+        public void CustomPerson(
+            TupleObjectBuilder<Person> builder)
+        {
+            IAttributeComponentFactory<string> nameFactory =
+                new OrderedFiniteEnumerableAttributeComponentFactory<string>(
+                    (IEnumerable<string>)
+                    ["Alice", "Bob", "Carl", "Douglas", "Emma", "Fitzgerald", "Ginnie"]);
+
+            builder.Attribute(p => p.Name).SetFactory(nameFactory).Attach();
+        }
+
+        public void CustomParent(
+            TupleObjectBuilder<Parent> builder)
+        {
+            IAttributeComponentFactory<Person> peopleFactory =
+                new UnorderedFiniteEnumerableAttributeComponentFactory<Person>(
+                    _persons.Values.ToHashSet());
+            builder.Attribute(p => p.The).SetFactory(peopleFactory).Attach();
+            builder.Attribute(p => p.Child).SetFactory(peopleFactory).Attach();
+        }
+
+        public void CustomFather(
+            TupleObjectBuilder<Father> builder)
+        {
+            IAttributeComponentFactory<Person> peopleFactory =
+                new UnorderedFiniteEnumerableAttributeComponentFactory<Person>(
+                    _persons.Values.ToHashSet());
+            builder.Attribute(p => p.The).SetFactory(peopleFactory).Attach();
+            builder.Attribute(p => p.Child).SetFactory(peopleFactory).Attach();
+        }
+
+        public void CustomGrandfather(
+            TupleObjectBuilder<Grandfather> builder)
+        {
+            IAttributeComponentFactory<Person> peopleFactory =
+                new UnorderedFiniteEnumerableAttributeComponentFactory<Person>(
+                    _persons.Values.ToHashSet());
+            builder.Attribute(p => p.The).SetFactory(peopleFactory).Attach();
+            builder.Attribute(p => p.Grandchild).SetFactory(peopleFactory).Attach();
         }
     }
 }

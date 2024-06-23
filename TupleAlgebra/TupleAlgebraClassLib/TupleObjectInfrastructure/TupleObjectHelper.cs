@@ -9,6 +9,10 @@ using System.Linq.Expressions;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Variable;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
+using TupleAlgebraClassLib.AttributeComponents;
+using System.Xml.Linq;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -65,6 +69,56 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return new SingleTupleObjectFactoryArgs<TEntity, TAttribute>(
                 getter, componentFactoryArgs);
         }
+
+        public static NamedComponentFactoryArgs<IAttributeComponent>
+            SetAC<TEntity, TAttribute>(
+                Expression<AttributeGetterHandler<TEntity, TAttribute>> getter,
+                IAttributeComponent componentFactoryArgs,
+                TupleObjectBuilder<TEntity> builder)
+        {
+            return new NamedComponentFactoryArgs<IAttributeComponent>(
+                getter,
+                builder,
+                componentFactoryArgs);
+        }
+
+        public static NamedComponentFactoryArgs<IAttributeComponent>
+            SetVariable<TEntity, TAttribute>(
+                Expression<AttributeGetterHandler<TEntity, TAttribute>> getter,
+                string name,
+                TupleObjectBuilder<TEntity> builder)
+        {
+            return new NamedComponentFactoryArgs<IAttributeComponent>(
+                getter,
+                builder,
+                builder.Attribute(getter).CreateManager().CreateVariable(name));
+        }
+
+        /*
+        public static TupleObject<TEntity> CreateMasked<TEntity>(
+            TupleObjectFactory factory,
+            params Expression<AttributeGetterHandler<TEntity, object>>[] maskedAttributes)
+            where TEntity : new()
+        {
+            return factory.CreateConjunctiveTuple();
+
+            IEnumerable<IVariableAttributeComponent> GetFactoryArgs()
+            {
+                foreach (var e in maskedAttributes)
+                {
+                    yield return 
+                }
+
+                yield break;
+            }
+
+            IVariableAttributeComponent GetVariable<TAttribute>(
+                Expression<AttributeGetterHandler<TEntity, TAttribute>> getter)
+            {
+                return new VariableAttributeComponentFactoryArgs(
+            }
+        }
+        */
 
         public enum Overlay : sbyte
         {

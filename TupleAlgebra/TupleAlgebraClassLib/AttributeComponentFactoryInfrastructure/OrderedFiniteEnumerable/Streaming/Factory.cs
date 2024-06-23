@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.TupleBased;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.OrderedFiniteEnumerable.Streaming;
@@ -16,7 +19,10 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
         : IOrderedFiniteEnumerableAttributeComponentFactory<
               TData,
               StreamingOrderedFiniteEnumerableAttributeComponent<TData>,
-              StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+              StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>,
+          IVariableAttributeComponentFactory<TData>,
+          ITupleBasedAttributeComponentFactory<TData>,
+          IFilteringAttributeComponentFactory<TData>
     {
         StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
             ISetOperationResultFactory<

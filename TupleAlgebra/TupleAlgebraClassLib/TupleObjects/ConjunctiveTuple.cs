@@ -10,6 +10,8 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.ConjunctiveTupleInfrastructure;
 using UniversalClassLib;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.TupleBased;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators;
 
 namespace TupleAlgebraClassLib.TupleObjects
 {
@@ -61,12 +63,49 @@ namespace TupleAlgebraClassLib.TupleObjects
             TupleObjectBuilder<TEntity> builder)
         {
             return factory.CreateConjunctiveTuple(
-                components, 
+            components, 
                 onTupleBuilding, 
                 builder);
         }
 
         #endregion
+
+        private TraverseInfo<TEntity> MakeTraverseInfo(
+            ConjunctiveTuple<TEntity> first)
+        {
+            TupleObjectBuilder<TEntity> builder = Factory.GetBuilder<TEntity>();
+            TupleObjectSchema<TEntity> generalSchema = first.Schema;
+            TupleObjectSchema<TEntity> staticSchema = generalSchema.Clone();
+            TupleObjectSchema<TEntity> maskedSchema = generalSchema.Clone();
+            TupleObjectBuildingHandler<TEntity> onStaticTupleBuilding =
+                staticSchema.PassToBuilder,
+                                                onMaskedTupleBuilding =
+                maskedSchema.PassToBuilder;
+
+            for (int attrLoc = 0; attrLoc < first.RowLength; attrLoc++)
+            {
+                int ai = attrLoc;
+                if (first[attrLoc] is IAttributeComponentWithVariables)
+                {
+                    onStaticTupleBuilding += (b) => b.Attribute(
+                        generalSchema.AttributeAt(ai)).Detach();
+                }
+                else
+                {
+                    onMaskedTupleBuilding += (b) => b.Attribute(
+                        generalSchema.AttributeAt(ai)).Detach();
+                }
+            }
+            onStaticTupleBuilding += (b) => b.EndSchemaInitialization();
+            onMaskedTupleBuilding += (b) => b.EndSchemaInitialization();
+            onStaticTupleBuilding(builder);
+            onMaskedTupleBuilding(builder);
+
+            return new TraverseInfo<TEntity>(
+                first.Schema,
+                staticSchema,
+                maskedSchema);
+        }
 
         protected override IEnumerator<TEntity> GetEnumeratorImpl()
         {
@@ -78,9 +117,23 @@ namespace TupleAlgebraClassLib.TupleObjects
              */
             return TupleObjectSchema<TEntity>.IsEntityPrimitive ?
                 GetPrimitiveEnumerator<IAttributeComponent, TEntity>(_components) :
-                GetCartesianProductEnumeratorWithBuffering(
-                    Schema.EntityFactory, 
-                    _components, 
+                GetComplicatedEnumerator();
+        }
+
+        private IEnumerator<TEntity> GetComplicatedEnumerator()
+        {
+            var traverseInfo = MakeTraverseInfo(this);
+
+            return traverseInfo.HasMaskedPart ?
+                traverseInfo.Enumerate(this, Factory).GetEnumerator() :
+                GetCartesianEnumerator();
+        }
+
+        private IEnumerator<TEntity> GetCartesianEnumerator()
+        {
+            return GetCartesianProductEnumeratorWithBuffering(
+                    Schema.EntityFactory,
+                    _components,
                     (c) => c.Power);
         }
 

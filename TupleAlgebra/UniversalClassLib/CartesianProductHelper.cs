@@ -153,6 +153,45 @@ namespace UniversalClassLib
             }
         }
 
+        public static IEnumerable<TResult> GetCartesianProduct<
+            TPartial,
+            TPartialData,
+            TResult>(
+            EntityFactoryHandler<TResult> entityFactory,
+            TPartial[] parts,
+            Func<TPartial, IEnumerable<TPartialData>> getEnumerable)
+        {
+            int partsCount = parts.Length;
+
+            /*
+             * Если число компонент равно 1, то производится упрощённый перебор значений
+             * одного атрибута.
+             * Если больше 1, то производится поочерёдный перебор значений каждой
+             * компоненты в соответствии с прямым произведением компонент.
+             */
+            return partsCount > 1 ?
+                IterateOverManyAttachedAttributes() :
+                IterateOverOneAttachedAttribute(
+                    entityFactory, 
+                    parts,
+                    part => getEnumerable(part).GetEnumerator());
+
+            /*
+             * TODO: сделать возможность обхода компонентов по желанию пользователя.
+             * Буферизация перечислителей должна происходить иначе, без допкопирования.
+             */
+            IEnumerable<TResult> IterateOverManyAttachedAttributes()
+            {
+                IEnumerator[] partsEnumerators = new IEnumerator[partsCount];
+                for (int i = 0; i < partsCount; i++)
+                    partsEnumerators[i] = new ResettableEnumerator<TPartialData>(
+                        getEnumerable(parts[i]));
+                return EnumerateCartesianProduct(
+                            entityFactory,
+                            partsEnumerators);
+            }
+        }
+
         private static IEnumerator<TResult> IterateOverOneAttachedAttribute<
             TPartial,
             TResult>(
@@ -163,10 +202,11 @@ namespace UniversalClassLib
             return IterateOverOneAttachedAttribute(
                 entityFactory,
                 parts,
-                (p) => p.GetEnumerator());
+                (p) => p.GetEnumerator())
+                .GetEnumerator();
         }
 
-        private static IEnumerator<TResult> IterateOverOneAttachedAttribute<
+        private static IEnumerable<TResult> IterateOverOneAttachedAttribute<
             TPartial,
             TPartialEnumerator,
             TResult>(
@@ -199,24 +239,27 @@ namespace UniversalClassLib
             IEnumerator[] partsEnumerators,
             int startPartLoc = 0)
         {
-            int stackPtr = startPartLoc,
-                partsCount = partsEnumerators.Length - stackPtr;
+            int stackPtr = startPartLoc;
+            //int stackPtr = startPartLoc,
+            //    partsCount = partsEnumerators.Length - stackPtr;
             IEnumerator partEnumerator;
 
-            Stack<IEnumerator> partsStack = new Stack<IEnumerator>(partsCount);
+            //Stack<IEnumerator> partsStack = new Stack<IEnumerator>(partsCount);
+            Stack<IEnumerator> partsStack = new Stack<IEnumerator>(
+                partsEnumerators.Length - stackPtr);
             partsStack.Push(partEnumerator = partsEnumerators[stackPtr]);
 
             do
             {
                 if (partEnumerator.MoveNext())
                 {
-                    if (stackPtr == partsCount)
+                    if (stackPtr < partsEnumerators.Length - 1)
                     {
-                        yield return entityFactory(partsEnumerators);
+                        partsStack.Push(partsEnumerators[++stackPtr]);
                     }
                     else
                     {
-                        partsStack.Push(partsEnumerators[++stackPtr]);
+                        yield return entityFactory(partsEnumerators);
                     }
                 }
                 else
@@ -235,7 +278,7 @@ namespace UniversalClassLib
             yield break;
         }
 
-        public static IEnumerator<TResult> GetCartesianProductEnumerator<
+        public static IEnumerable<TResult> GetCartesianProduct<
             TPartial,
             TPartialEnumerator,
             TResult>(
@@ -260,7 +303,7 @@ namespace UniversalClassLib
              * TODO: сделать возможность обхода компонентов по желанию пользователя.
              * Буферизация перечислителей должна происходить иначе, без допкопирования.
              */
-            IEnumerator<TResult> IterateOverManyAttachedAttributes()
+            IEnumerable<TResult> IterateOverManyAttachedAttributes()
             {
                 IEnumerator[] partsEnumerators = new TPartialEnumerator[partsCount];
                 for (int i = 0; i < partsCount; i++)
@@ -268,8 +311,7 @@ namespace UniversalClassLib
 
                 return EnumerateCartesianProduct(
                             entityFactory,
-                            partsEnumerators)
-                    .GetEnumerator();
+                            partsEnumerators);
             }
         }
 
@@ -585,7 +627,7 @@ namespace UniversalClassLib
         CutOffBranchSelectSecond = 2
     }
 
-    internal class ResettableEnumerator<T> : IEnumerator<T>
+    public class ResettableEnumerator<T> : IEnumerator<T>
     {
         private IEnumerable<T> _source;
 

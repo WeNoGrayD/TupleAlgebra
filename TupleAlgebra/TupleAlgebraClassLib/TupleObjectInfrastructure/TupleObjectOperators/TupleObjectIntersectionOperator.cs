@@ -1,20 +1,66 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.TupleBased;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectVisitors;
 using TupleAlgebraClassLib.TupleObjects;
+using UniversalClassLib;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 {
+    using static TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectHelper;
     using static TupleObjectConversionToAlternateOperator;
+    using static UniversalClassLib.CartesianProductHelper;
 
     public static class TupleObjectIntersectionOperations
     {
+        private static TraverseInfo<TEntity> MakeTraverseInfo<TEntity>(
+            ConjunctiveTuple<TEntity> first,
+            ConjunctiveTuple<TEntity> second,
+            TupleObjectFactory factory)
+            where TEntity : new()
+        {
+            TupleObjectBuilder<TEntity> builder = factory.GetBuilder<TEntity>();
+            TupleObjectSchema<TEntity> generalSchema = first.Schema;
+            TupleObjectSchema<TEntity> staticSchema = generalSchema.Clone();
+            TupleObjectSchema<TEntity> maskedSchema = generalSchema.Clone();
+            TupleObjectBuildingHandler<TEntity> onStaticTupleBuilding = 
+                staticSchema.PassToBuilder,
+                                                onMaskedTupleBuilding = 
+                maskedSchema.PassToBuilder;
+
+            for (int attrLoc = 0; attrLoc < first.RowLength; attrLoc++)
+            {
+                int ai = attrLoc;
+                if (first[attrLoc] is IAttributeComponentWithVariables ||
+                    second[attrLoc] is IAttributeComponentWithVariables)
+                {
+                    onStaticTupleBuilding += (b) => b.Attribute(
+                        generalSchema.AttributeAt(ai)).Detach();
+                }
+                else
+                {
+                    onMaskedTupleBuilding += (b) => b.Attribute(
+                        generalSchema.AttributeAt(ai)).Detach();
+                }
+            }
+            onStaticTupleBuilding += (b) => b.EndSchemaInitialization();
+            onMaskedTupleBuilding += (b) => b.EndSchemaInitialization();
+            onStaticTupleBuilding(builder);
+            onMaskedTupleBuilding(builder);
+
+            return new TraverseInfo<TEntity>(
+                first.Schema,
+                staticSchema,
+                maskedSchema);
+        }
+
         private static TupleObject<TEntity> IntersectImpl<TEntity>(
             ConjunctiveTuple<TEntity> first,
             ConjunctiveTuple<TEntity> second,
@@ -50,7 +96,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
             where TEntity : new()
         {
-            return IntersectImpl(first, second, factory);
+            var traverseInfo = MakeTraverseInfo(first, second, factory);
+
+            return traverseInfo.HasMaskedPart ?
+                traverseInfo.Intersect(
+                    first, 
+                    second, 
+                    factory, 
+                    (op1, op2, f) => IntersectImpl(op1, op2, f)) :
+                IntersectImpl(first, second, factory);
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -86,7 +140,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             where TEntity : new()
         {
             //return IntersectAsync(first, second, factory);
-            
+
             return factory.CreateConjunctiveTupleSystem(
                 PairwiseIntersection(),
                 first.Schema.PassToBuilder,
@@ -98,12 +152,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
                 int len = tuples.Length;
                 for (int i = 0; i < len; i++)
                 {
-                    yield return IntersectImpl(second, tuples[i], factory);
+                    yield return Intersect(second, tuples[i], factory);
                 }
 
                 yield break;
             }
-            
         }
 
         public static TupleObject<TEntity> Intersect<TEntity>(
@@ -121,12 +174,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
 
             IEnumerable<ConjunctiveTuple<TEntity>> PairwiseIntersection()
             {
-                SingleTupleObject<TEntity>[] tuples = first.Tuples;
+                ConjunctiveTuple<TEntity>[] tuples = first.Tuples;
                 ConjunctiveTuple<TEntity> tuple;
                 int len = tuples.Length;
                 for (int i = 0; i < len; i++)
                 {
-                    tuple = (tuples[i] as ConjunctiveTuple<TEntity>)!;
+                    tuple = tuples[i];
                     switch (Intersect(second, tuple, factory))
                     {
                         case ConjunctiveTuple<TEntity> ct:
@@ -536,6 +589,120 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
                     return;
                 }
             }*/
+
+        public static IEnumerable<TupleObject<TEntity>> IntersectEnum<
+            TEntity>(
+            ConjunctiveTuple<TEntity> first,
+            ConjunctiveTuple<TEntity> second,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder = null,
+            IAttributeComponentWithVariables[] tupleBasedComponents = null)
+            where TEntity : new()
+        {
+            builder ??= factory.GetBuilder<TEntity>(first.PassSchema);
+            tupleBasedComponents ??=
+                new IAttributeComponentWithVariables[first.RowLength];
+            // тут возникнет ошибка, поскольку такие переменные могут встречаться у обоих операндов и не во всех атрибутах в каждом
+            for (int attrLoc = 0; attrLoc < first.RowLength; attrLoc++)
+            {
+                tupleBasedComponents[attrLoc] =
+                    first[attrLoc] as IAttributeComponentWithVariables;
+            }
+
+            return GetCartesianProduct(
+                IntersectImpl,
+                tupleBasedComponents,
+                (cmp) => (cmp as IAttributeComponentWithVariables).UnfoldAsEnum());
+
+            TupleObject<TEntity> IntersectImpl(IEnumerator[] components)
+            {
+                return factory.CreateConjunctiveTuple(
+                    GetFactoryArgs(),
+                    null,
+                    builder);
+
+                IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+                    GetFactoryArgs()
+                {
+                    IAttributeComponent intersected;
+                    for (int attrLoc = 0; attrLoc < first.RowLength; attrLoc++)
+                    {
+                        intersected = (components[attrLoc].Current as IAttributeComponent)
+                            .IntersectWith(second[attrLoc]);
+                        if (first.VariableContainer
+                            .AnyIsEmpty(tupleBasedComponents[attrLoc]))
+                        {
+                            // возвращение пустой компоненты и обрыв дальнейшего вычисления
+                            yield return new IndexedComponentFactoryArgs<IAttributeComponent>(
+                                attrLoc,
+                                builder);
+                        }
+                        yield return new IndexedComponentFactoryArgs<IAttributeComponent>(
+                            attrLoc,
+                            builder,
+                            intersected);
+                    }
+
+                    yield break;
+                }
+            }
+        }
+
+        public static IEnumerable<TupleObject<TEntity>> IntersectEnum<
+            TEntity>(
+            ConjunctiveTuple<TEntity> first,
+            ConjunctiveTupleSystem<TEntity> second,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder = null,
+            IAttributeComponentWithVariables[] tupleBasedComponents = null)
+            where TEntity : new()
+        {
+            builder ??= factory.GetBuilder<TEntity>(first.PassSchema);
+            tupleBasedComponents ??=
+                new IAttributeComponentWithVariables[first.RowLength];
+
+            for (int tuplePtr = 0; tuplePtr < first.RowLength; tuplePtr++)
+            {
+                foreach (TupleObject<TEntity> res
+                     in IntersectEnum(
+                         first,
+                         second[tuplePtr],
+                         factory,
+                         builder,
+                         tupleBasedComponents))
+                    yield return res;
+            }
+
+            yield break;
+        }
+
+        public static IEnumerable<TupleObject<TEntity>> IntersectEnum<
+            TEntity>(
+            ConjunctiveTupleSystem<TEntity> first,
+            ConjunctiveTupleSystem<TEntity> second,
+            TupleObjectFactory factory,
+            TupleObjectBuilder<TEntity> builder = null,
+            IAttributeComponentWithVariables[] tupleBasedComponents = null)
+            where TEntity : new()
+        {
+            builder ??= factory.GetBuilder<TEntity>(first.PassSchema);
+            tupleBasedComponents ??=
+                new IAttributeComponentWithVariables[first.RowLength];
+
+            for (int tuplePtr = 0; tuplePtr < first.RowLength; tuplePtr++)
+            {
+                foreach (TupleObject<TEntity> res
+                     in IntersectEnum(
+                         first[tuplePtr],
+                         second,
+                         factory,
+                         builder,
+                         tupleBasedComponents))
+                    yield return res;
+            }
+
+            yield break;
+        }
     }
 
     public abstract class TupleObjectIntersectionOperator<TEntity, TOperand1>
@@ -557,6 +724,134 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectOperators
             TupleObjectFactory factory)
         {
             return first;
+        }
+    }
+
+    public readonly record struct TraverseInfo<TEntity>(
+        TupleObjectSchema<TEntity> GeneralSchema,
+        TupleObjectSchema<TEntity> StaticPartSchema,
+        TupleObjectSchema<TEntity> MaskedPartSchema)
+        where TEntity : new()
+    {
+        public delegate TupleObject<TEntity> IntersectionHandler<TOperand1, TOperand2>(
+            TOperand1 first,
+            TOperand2 second,
+            TupleObjectFactory factory);
+
+        public bool HasStaticPart 
+        { get => StaticPartSchema.PluggedAttributesCount > 0; }
+
+        public bool HasMaskedPart
+        { get => MaskedPartSchema.PluggedAttributesCount > 0; }
+
+        public TupleObject<TEntity> Enumerate(
+            ConjunctiveTuple<TEntity> first,
+            TupleObjectFactory factory)
+        {
+            TupleObjectBuilder<TEntity> builder;
+            TupleObjectSchema<TEntity> maskedSchema = MaskedPartSchema;
+            TupleObject<TEntity> maskedFirst =
+                first.AlignWithSchema(MaskedPartSchema, factory, null);
+            IAttributeComponentWithVariables[] tupleBasedComponents =
+                new IAttributeComponentWithVariables[first.RowLength];
+            // тут возникнет ошибка, поскольку такие переменные могут встречаться у обоих операндов и не во всех атрибутах в каждом
+            for (int attrLoc = 0; attrLoc < first.RowLength; attrLoc++)
+            {
+                tupleBasedComponents[attrLoc] =
+                    first[attrLoc] as IAttributeComponentWithVariables;
+            }
+            builder = factory.GetBuilder<TEntity>(maskedSchema.PassToBuilder);
+
+            return (first.AlignWithSchema(StaticPartSchema, factory, null)
+                         .AlignWithSchema(GeneralSchema, factory, null))
+                & factory.CreateConjunctiveTupleSystem(
+                    GetCartesianProduct(
+                        EnumerateImpl,
+                        tupleBasedComponents,
+                        (cmp) => (cmp as IAttributeComponentWithVariables).UnfoldAsEnum()),
+                    GeneralSchema.PassToBuilder,
+                    null);
+
+            TupleObject<TEntity> EnumerateImpl(IEnumerator[] components)
+            {
+                return factory.CreateConjunctiveTuple(
+                    GetFactoryArgs(),
+                    null,
+                    builder);
+
+                IEnumerable<IndexedComponentFactoryArgs<IAttributeComponent>>
+                    GetFactoryArgs()
+                {
+                    for (int attrLoc = 0; attrLoc < first.RowLength; attrLoc++)
+                    {
+                        yield return new IndexedComponentFactoryArgs<IAttributeComponent>(
+                            attrLoc,
+                            builder,
+                            (components[attrLoc].Current as IAttributeComponent)!);
+                    }
+
+                    yield break;
+                }
+            }
+        }
+
+        public TupleObject<TEntity> Intersect(
+            ConjunctiveTuple<TEntity> first,
+            ConjunctiveTuple<TEntity> second,
+            TupleObjectFactory factory,
+            IntersectionHandler<ConjunctiveTuple<TEntity>, ConjunctiveTuple<TEntity>> operation/*,
+            Func<TupleObject<TEntity>, 
+                ConjunctiveTuple<TEntity>, 
+                TupleObject<TEntity>> factoryHandler*/)
+        {
+            TupleObjectBuilder<TEntity> builder;
+            TupleObject<TEntity> resStaticPart;
+            ConjunctiveTuple<TEntity> maskedFirst;
+            ConjunctiveTuple<TEntity> maskedSecond;
+
+            if (HasStaticPart)
+            {
+                builder = factory.GetBuilder<TEntity>();
+                ConjunctiveTuple<TEntity> staticFirst =
+                    first.AlignWithSchema(StaticPartSchema, factory, builder)
+                         .AlignWithSchema(GeneralSchema, factory, builder)
+                    as ConjunctiveTuple<TEntity>;
+                ConjunctiveTuple<TEntity> staticSecond =
+                    second.AlignWithSchema(StaticPartSchema, factory, builder)
+                          .AlignWithSchema(GeneralSchema, factory, builder)
+                    as ConjunctiveTuple<TEntity>;
+                resStaticPart = operation(staticFirst, staticSecond, factory);
+                if (resStaticPart.IsEmpty()) return resStaticPart;
+
+                maskedFirst =
+                    first.AlignWithSchema(MaskedPartSchema, factory, builder)
+                    as ConjunctiveTuple<TEntity>;
+                maskedSecond =
+                    second.AlignWithSchema(MaskedPartSchema, factory, builder)
+                    as ConjunctiveTuple<TEntity>;
+            }
+            else
+            {
+                builder = factory.GetBuilder<TEntity>(MaskedPartSchema.PassToBuilder);
+                resStaticPart = factory.CreateFull<TEntity>(
+                    GeneralSchema.PassToBuilder);
+                maskedFirst = first;
+                maskedSecond = second;
+            }
+
+            return factory.CreateConjunctiveTupleSystem(
+                    MakeTuples(), 
+                    null,
+                    builder);
+
+            IEnumerable<TupleObject<TEntity>> MakeTuples()
+            {
+                foreach (var tuple in TupleObjectIntersectionOperations
+                    .IntersectEnum(maskedFirst, maskedSecond, factory, builder))
+                    yield return resStaticPart & tuple;
+
+                yield break;
+            }
         }
     }
 }

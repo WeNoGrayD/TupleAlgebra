@@ -28,6 +28,12 @@ namespace TupleAlgebraClassLib.TupleObjects
     {
         public ITupleObjectSchemaProvider Schema { get; }
 
+        public IVariableContainer VariableContainer { get; set; }
+
+        public bool IsEmpty();
+
+        public bool IsFull();
+
         public void PassSchema<TEntity>(ITupleObjectBuilder builder)
         {
             builder.SetSchema<TEntity>(Schema as TupleObjectSchema<TEntity>);
@@ -61,6 +67,8 @@ namespace TupleAlgebraClassLib.TupleObjects
         /// Схема кортежа. Содержит данные 
         /// </summary>
         public TupleObjectSchema<TEntity> Schema { get; private set; }
+
+        public IVariableContainer VariableContainer { get; set; }
 
         ITupleObjectSchemaProvider ITupleObject.Schema { get => Schema; }
 
