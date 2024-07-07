@@ -270,6 +270,6 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Pre
             return tupleBased.Sample.IsFull() && tupleBased.Mask.IsFull();
         }
 
-        #endregion}
+        #endregion
     }
 }

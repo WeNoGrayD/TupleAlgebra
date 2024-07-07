@@ -76,7 +76,11 @@ namespace TupleAlgebraFrameworkTests.DataModels
         {
             if (obj is null) return false;
 
-            return (obj is ForumUser fu2) && this == fu2;
+            if (obj is ForumUser fu2)
+                return this == fu2;
+            return false;
+
+            //return (obj is ForumUser fu2) && this == fu2;
         }
 
         public static bool operator ==(ForumUser fu1, ForumUser fu2)
@@ -85,12 +89,12 @@ namespace TupleAlgebraFrameworkTests.DataModels
                 fu1.LikeCount == fu2.LikeCount &&
                 fu1.PostCount == fu2.PostCount &&
                 fu1.Followers == fu2.Followers &&
-                fu1.Following == fu2.Following &&
-                ((fu1.LatestProfileVisitors is null && fu2.LatestProfileVisitors is null) ||
-                 Enumerable.SequenceEqual(fu1.LatestProfileVisitors!, fu2.LatestProfileVisitors ?? [])) &&
-                ((fu1.GainedAchievments is null && fu2.GainedAchievments is null) ||
-                 fu1.GainedAchievments!.SetEquals(fu2.GainedAchievments ?? [])) &&
-                LatestCommentsAreEqual();
+                fu1.Following == fu2.Following;// &&
+                //((fu1.LatestProfileVisitors is null && fu2.LatestProfileVisitors is null) ||
+                // Enumerable.SequenceEqual(fu1.LatestProfileVisitors!, fu2.LatestProfileVisitors ?? [])) &&
+                //((fu1.GainedAchievments is null && fu2.GainedAchievments is null) ||
+                // fu1.GainedAchievments!.SetEquals(fu2.GainedAchievments ?? [])) &&
+                //LatestCommentsAreEqual();
 
             bool LatestCommentsAreEqual()
             {

@@ -388,7 +388,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                 return null;
             }
 
-            private LambdaExpression//Expression<AttributeGetterHandler<TEntity, TAttribute>>
+            private LambdaExpression//Expression<Func<TEntity, TAttribute>>
                 DefineMemberAccess(
                     MemberExpression memberExpr)
             {

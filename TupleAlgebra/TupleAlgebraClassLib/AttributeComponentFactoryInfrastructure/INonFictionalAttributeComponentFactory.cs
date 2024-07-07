@@ -8,6 +8,8 @@ using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
+    using static AttributeComponentFactoryHelper;
+
     public interface INonFictionalAttributeComponentFactory<
         TData,
         in TFactoryValues>

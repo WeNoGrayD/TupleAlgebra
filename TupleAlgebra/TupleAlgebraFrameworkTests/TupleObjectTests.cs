@@ -31,6 +31,7 @@ namespace TupleAlgebraFrameworkTests
 {
     using static TupleObjectHelper;
     using static TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure.LINQ2TupleAlgebra;
+    using static Logger;
 
     [TestClass]
     public class TupleObjectTests
@@ -48,114 +49,6 @@ namespace TupleAlgebraFrameworkTests
             TupleObject<Alphabet<int, int, int>>.Configure(CustomAlphabet);
 
             var full = factory.CreateFull<Alphabet<int, int, int>>();
-
-            return;
-        }
-
-        protected void PrintSchema(ITupleObject tupleObject)
-        {
-            Console.WriteLine();
-            Console.Write("[");
-            foreach (var attrName in tupleObject.Schema.PluggedAttributeNames)
-            {
-                Console.Write($"{attrName,14}|");
-            }
-            Console.WriteLine("]");
-
-            return;
-        }
-
-        protected void PrintSingleTupleObject(
-            ISingleTupleObject tuple,
-            string defaultAcSymbol,
-            string openingBracket,
-            string closingBracket,
-            bool printSchema = true)
-        {
-            if (printSchema)
-            {
-                PrintSchema(tuple);
-            }
-
-            IAttributeComponent ac;
-
-            Console.Write(openingBracket);
-            for (int attrLoc = 0; attrLoc < tuple.RowLength; attrLoc++)
-            {
-                if (attrLoc > 0) Console.Write(", ");
-                ac = tuple[attrLoc];
-                if (ac.IsDefault)
-                {
-                    Console.Write($"{defaultAcSymbol + "      ",15}");
-                    continue;
-                }
-                Console.Write($"[{string.Join(',', ExplodeAC()),13}]");
-            }
-            Console.WriteLine(closingBracket);
-
-            return;
-
-            IEnumerable<string> ExplodeAC()
-            {
-                foreach (object d in (IEnumerable)ac)
-                {
-                    yield return d.ToString();
-                }
-
-                yield break;
-            }
-        }
-
-        protected void PrintTupleObjectSystem(
-            ITupleObjectSystem tupleSys,
-            string defaultAcSymbol,
-            string openingBracket,
-            string closingBracket)
-        {
-            PrintSchema(tupleSys);
-
-            for (int i = 0; i < tupleSys.ColumnLength; i++)
-            {
-                Console.Write($"{i,-3} ");
-                PrintSingleTupleObject(
-                    tupleSys[i],
-                    defaultAcSymbol,
-                    openingBracket,
-                    closingBracket,
-                    false);
-            }
-
-            return;
-        }
-
-        protected void PrintConjunctiveTuple(
-            ISingleTupleObject tuple)
-        {
-            PrintSingleTupleObject(tuple, "*", "[", "]");
-
-            return;
-        }
-
-        protected void PrintDisjunctiveTuple(
-            ISingleTupleObject tuple)
-        {
-            PrintSingleTupleObject(tuple, "Ø", "]", "[");
-
-            return;
-        }
-
-        protected void PrintConjunctiveTupleSystem(
-            ITupleObjectSystem tupleSys)
-        {
-            PrintTupleObjectSystem(tupleSys, "*", "[", "]");
-
-            return;
-        }
-
-        protected void PrintDisjunctiveTupleSystem(
-            ITupleObjectSystem tupleSys)
-        {
-            PrintTupleObjectSystem(tupleSys, "Ø", "]", "[");
 
             return;
         }

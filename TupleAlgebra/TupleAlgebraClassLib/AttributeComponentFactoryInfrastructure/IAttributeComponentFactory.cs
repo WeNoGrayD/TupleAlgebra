@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.EmptyAttributeComponentInfrastructure;
+using TupleAlgebraClassLib.FullAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {

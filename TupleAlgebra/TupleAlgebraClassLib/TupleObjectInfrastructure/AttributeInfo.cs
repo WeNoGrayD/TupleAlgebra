@@ -9,10 +9,15 @@ using System.Linq.Expressions;
 using UniversalClassLib;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigational;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Navigational.WithSimpleKey;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     using static TupleObjectHelper;
+    using static AttributeComponentHelper;
 
     public enum AttributeQuery : sbyte
     {
@@ -21,23 +26,121 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         None = 0,
         Attached = 1
     }
+    public interface ITupleObjectAttributeInfo
+    {
+        public AttributeName Name { get; }
 
-    public record AttributeInfo<TEntity, TAttribute>
+        public AttributeQuery Query { get; protected set; }
+
+        /// <summary>
+        /// Отношение эквивалентности.
+        /// </summary>
+        public bool HasEquivalenceRelation { get; }
+
+        /// <summary>
+        /// Информация о члене типа, соответствующем атрибуту.
+        /// </summary>
+        public MemberInfo AttributeMember { get; }
+
+        //public ITupleObjectAttributeSetupWizard SetupWizard { get; }
+
+        public AttributeSetupWizardFactoryHandler SetupWizardFactory { get; }
+
+        /*
+        public ITupleObjectAttributeInfo GeneralizeWith(
+            ITupleObjectAttributeInfo second,
+            out bool gotFirst,
+            out bool gotSecond);
+        */
+
+        public ITupleObjectAttributeInfo PlugIn();
+
+        public ITupleObjectAttributeInfo Unplug();
+
+        public ITupleObjectAttributeInfo SetEquivalenceRelation();
+
+        public ITupleObjectAttributeInfo UnsetEquivalenceRelation();
+
+        public void UndoQuery()
+        {
+            Query = AttributeQuery.None;
+
+            return;
+        }
+
+        public void AttachQuery()
+        {
+            Query = AttributeQuery.Attached;
+
+            return;
+        }
+
+        public void DetachQuery()
+        {
+            Query = AttributeQuery.Detached;
+
+            return;
+        }
+
+        public void RemoveQuery()
+        {
+            Query = AttributeQuery.Removed;
+
+            return;
+        }
+    }
+
+    public interface ITupleObjectAttributeInfo<TAttribute>
+        : ITupleObjectAttributeInfo
+    {
+        public IAttributeComponentFactory<TAttribute> ComponentFactory { get; }
+
+        /*
+        public new ITupleObjectAttributeSetupWizard<TAttribute> SetupWizard { get; }
+
+        ITupleObjectAttributeSetupWizard 
+            ITupleObjectAttributeInfo.SetupWizard { get => SetupWizard; }
+        */
+
+        public new AttributeSetupWizardFactoryHandler<TAttribute>
+            SetupWizardFactory
+        { get; }
+
+        AttributeSetupWizardFactoryHandler
+            ITupleObjectAttributeInfo.SetupWizardFactory
+        { get => (schema, attrName) => SetupWizardFactory(schema, attrName); }
+
+        public ITupleObjectAttributeInfo<TAttribute> SetFactory(
+            IAttributeComponentFactory<TAttribute> factory);
+    }
+
+    public interface ITupleObjectAttributeInfo<TEntity, TAttribute>
+        : ITupleObjectAttributeInfo<TAttribute>
+    {
+        public Func<TEntity, TAttribute> AttributeGetter { get; }
+    }
+
+    public record AttributeInfo<TEntity, TAttribute, TComponentFactory>
         : ITupleObjectAttributeInfo<TEntity, TAttribute>
+        where TComponentFactory : class, IAttributeComponentFactory<TAttribute>
     {
         public AttributeName Name { get => AttributeMember.Name; }
 
         /// <summary>
         /// Запрос к атрибуту: 
         /// </summary>
-        public AttributeQuery Query { get; private set; }
+        public AttributeQuery Query { get; set; }
 
-        public AttributeGetterHandler<TEntity, TAttribute> AttributeGetter 
+        public Func<TEntity, TAttribute> AttributeGetter 
         { get; init; }
 
         public MemberInfo AttributeMember { get; init; }
 
-        public IAttributeComponentFactory<TAttribute> ComponentFactory { get; init; }
+        IAttributeComponentFactory<TAttribute>
+            ITupleObjectAttributeInfo<TAttribute>.ComponentFactory 
+            { get => ComponentFactory; }
+
+        public TComponentFactory ComponentFactory { get; init; }
 
         //public ITupleObjectAttributeSetupWizard<TAttribute> SetupWizard { get; init; }
 
@@ -53,7 +156,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         /*
         public AttributeInfo(
-            Expression<AttributeGetterHandler<TEntity, TAttribute>> 
+            Expression<Func<TEntity, TAttribute>> 
                 attributeGetterExpr,
             IAttributeComponentFactory<TAttribute> componentFactory = null,
             ITupleObjectAttributeSetupWizard<TAttribute> setupWizard = null,
@@ -72,9 +175,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         */
 
         public AttributeInfo(
-            Expression<AttributeGetterHandler<TEntity, TAttribute>>
+            Expression<Func<TEntity, TAttribute>>
                 attributeGetterExpr,
-            IAttributeComponentFactory<TAttribute> componentFactory = null,
+            TComponentFactory componentFactory = null,
             AttributeSetupWizardFactoryHandler<TAttribute> setupWizardFactory = null,
             bool hasEquivalenceRelation = false)
         {
@@ -114,7 +217,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeInfo<TAttribute> SetFactory(
             IAttributeComponentFactory<TAttribute> factory)
         {
-            return this with { ComponentFactory = factory };
+            return this with { ComponentFactory = factory as TComponentFactory };
         }
 
         public ITupleObjectAttributeInfo PlugIn()
@@ -152,43 +255,233 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         }
 
         public override int GetHashCode() => Name.GetHashCode();
+    }
 
-        public void UndoQuery()
+    /*
+    public record CalculatedAttributeInfo<TEntity, TAttribute> 
+        : AttributeInfo<TEntity, TAttribute>
+    {
+        private ITupleObjectAttributeInfo[] _relatedAttributes;
+
+        public CalculatedAttributeInfo(
+            Expression<Func<TEntity, TAttribute>>
+                attributeGetterExpr,
+            ITupleObjectAttributeInfo[] relatedAttributes,
+            IAttributeComponentFactory<TAttribute> componentFactory = null,
+            AttributeSetupWizardFactoryHandler<TAttribute> setupWizardFactory = null,
+            bool hasEquivalenceRelation = false)
+            : base(
+                  attributeGetterExpr,
+                  componentFactory,
+                  setupWizardFactory,
+                  hasEquivalenceRelation)
         {
-            Query = AttributeQuery.None;
+            _relatedAttributes = relatedAttributes;
 
             return;
         }
 
-        /// <summary>
-        /// Создание запроса к атрибуту на его прикрепление.
-        /// </summary>
-        /// <returns></returns>
-        public void AttachQuery()
+        public void ReattachRelatedAttributes(TupleObjectBuilder<TEntity> builder)
         {
-            Query = AttributeQuery.Attached;
+            foreach (var attr in _relatedAttributes)
+                builder.Attribute(attr.Name).Attach();
+
+            return;
+        }
+    }
+    */
+
+    /*
+    public record NavigationalAttributeInfo<TEntity, TKey, TAttribute, TKeyContainer>
+        : AttributeInfo<TEntity, TAttribute>
+    {
+        public NavigationalAttributeInfo(
+            Expression<Func<TEntity, TAttribute>>
+                navAttrGetterExpr,
+            IAttributeComponentFactory<TAttribute> componentFactory = null,
+            AttributeSetupWizardFactoryHandler<TAttribute> setupWizardFactory = null,
+            bool hasEquivalenceRelation = false)
+            : base(
+                  navAttrGetterExpr,
+                  componentFactory,
+                  setupWizardFactory,
+                  hasEquivalenceRelation)
+        {
+
+            return;
+        }
+    }
+    */
+
+    public record AttributeInfo<TEntity, TAttribute>
+        : AttributeInfo<TEntity, TAttribute, IAttributeComponentFactory<TAttribute>>
+    {
+        public AttributeInfo(
+            Expression<Func<TEntity, TAttribute>>
+                attributeGetterExpr,
+            IAttributeComponentFactory<TAttribute> componentFactory = null,
+            AttributeSetupWizardFactoryHandler<TAttribute> setupWizardFactory = null,
+            bool hasEquivalenceRelation = false)
+            : base(
+                  attributeGetterExpr,
+                  componentFactory,
+                  setupWizardFactory,
+                  hasEquivalenceRelation)
+        {
+            return;
+        }
+    }
+
+    public interface INavigationalAttributeInfo<TKey, TNavigationalAttribute>
+        : ITupleObjectAttributeInfo<TNavigationalAttribute>
+        where TNavigationalAttribute : new()
+    {
+        public IAttributeComponentFactory<TKey> 
+            KeyComponentFactory { get; }
+
+        public IAttributeComponentFactory<TNavigationalAttribute> 
+            NavigationalComponentFactory { get => ComponentFactory; }
+
+
+        public AttributeSetupWizardFactoryHandler<TKey>
+            KeyAttributeSetupWizardFactory
+        { get; }
+
+
+        public AttributeSetupWizardFactoryHandler<TNavigationalAttribute>
+            NavigationalAttributeSetupWizardFactory
+        { get => SetupWizardFactory; }
+
+        public ITupleObjectAttributeInfo<TKey> SetKeyAttributeFactory(
+            IAttributeComponentFactory<TKey> factory);
+
+        public ITupleObjectAttributeInfo<TNavigationalAttribute>
+            SetNavigationalAttributeFactory(
+            IAttributeComponentFactory<TNavigationalAttribute> factory)
+        {
+            return SetFactory(factory);
+        }
+    }
+
+    /*
+    public record struct NavigationalAttributeMemberInfo<TEntity, TAttribute>
+        (Expression<Func<TEntity, TAttribute>> AttributeGetterExpr)
+    { }
+    */
+
+    public record NavigationalAttributeWithSimpleKeyInfo<
+        TEntity, TKey, TNavigationalAttribute>
+        : AttributeInfo<
+            TEntity, 
+            TNavigationalAttribute,
+            NavigationalAttributeComponentWithSimpleKeyFactory<TKey, TNavigationalAttribute>>//,
+            //INavigationalAttributeInfo<TKey, TNavigationalAttribute>
+        where TNavigationalAttribute : new()
+    {
+        public AttributeName KeyAttributeName { get => KeyAttributeMember.Name; }
+
+        public MemberInfo KeyAttributeMember { get; init; }
+
+        public Func<TEntity, TKey> KeyAttributeGetter
+        { get; init; }
+
+        public Expression<Func<TEntity, TKey>> KeyAttributeGetterExpr
+        { get; private set; }
+
+        public Expression<Func<TEntity, TNavigationalAttribute>> 
+            NavigationalAttributeGetterExpr 
+        { get; private set; }
+
+        public TupleObject<TNavigationalAttribute> SourceTable 
+        { get; private set; }
+
+        public AttributeSetupWizardFactoryHandler<TKey>
+            KeyAttributeSetupWizardFactory
+        { get; }
+
+        private static TupleObjectFactory _toFactory = new(null);
+
+        public NavigationalAttributeWithSimpleKeyInfo(
+            Expression<Func<TEntity, TKey>>
+                keyAttrGetterExpr,
+            Expression<Func<TEntity, TNavigationalAttribute>>
+                navAttrGetterExpr,
+            TupleObject<TNavigationalAttribute> source,
+            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector,
+            AttributeSetupWizardFactoryHandler<TNavigationalAttribute> setupWizardFactory = null,
+            bool hasEquivalenceRelation = false)
+            : base(
+                  navAttrGetterExpr,
+                  CreateFactory(source, principalKeySelector),
+                  setupWizardFactory,
+                  hasEquivalenceRelation)
+        {
+            KeyAttributeGetterExpr = keyAttrGetterExpr;
+            KeyAttributeGetter = keyAttrGetterExpr.Compile();
+            KeyAttributeMember = MemberExtractor.ExtractFrom(keyAttrGetterExpr);
+            NavigationalAttributeGetterExpr = navAttrGetterExpr;
+            SourceTable = source;
+
+            Helper.RegisterNavigational<
+                TKey,
+                TNavigationalAttribute,
+                AttributeComponent<TKey>,
+                NavigationalAttributeComponentWithSimpleKey<TKey, TNavigationalAttribute>>(
+                ComponentFactory.Domain,
+                NavigateByKey);
 
             return;
         }
 
-        /// <summary>
-        /// Создание запроса к атрибуту на его открепление.
-        /// </summary>
-        /// <returns></returns>
-        public void DetachQuery()
+        private static NavigationalAttributeComponentWithSimpleKeyFactory<TKey, TNavigationalAttribute> 
+            CreateFactory(
+            TupleObject<TNavigationalAttribute> source,
+            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
         {
-            Query = AttributeQuery.Detached;
+            var builder = _toFactory.GetDefaultBuilder<TNavigationalAttribute>();
+            var navFactory = new NavigationalAttributeComponentWithSimpleKeyFactory<TKey, TNavigationalAttribute>(
+                builder.Attribute(principalKeySelector).GetFactory().Domain,
+                source,
+                principalKeySelector.Compile());
 
-            return;
+            return navFactory;
         }
 
-        /// <summary>
-        /// Создание запроса к атрибуту на его открепление.
-        /// </summary>
-        /// <returns></returns>
-        public void RemoveQuery()
+        private AttributeComponent<TNavigationalAttribute>
+            NavigateByKey(AttributeComponent<TKey> ac)
         {
-            Query = AttributeQuery.Removed;
+            var builder = _toFactory.GetDefaultBuilder<TNavigationalAttribute>();
+            var tupleRes = SourceTable & _toFactory.CreateConjunctiveTuple(
+                [new NamedComponentFactoryArgs<IAttributeComponent>(
+                    KeyAttributeName, builder, ac)],
+                null,
+                builder);
+
+            return ComponentFactory.SelectValue(tupleRes);
+        }
+    }
+
+    public record NavigationalAttributeWithComplexKeyInfo<
+        TEntity, 
+        TKey, 
+        TNavigationalAttribute>
+        : AttributeInfo<TEntity, TNavigationalAttribute>
+        where TKey : new()
+        where TNavigationalAttribute : new()
+    {
+        public NavigationalAttributeWithComplexKeyInfo(
+            TupleObjectSchema<TKey> keySchema,
+            Expression<Func<TEntity, TNavigationalAttribute>>
+                navAttrGetterExpr,
+            IAttributeComponentFactory<TNavigationalAttribute> componentFactory = null,
+            AttributeSetupWizardFactoryHandler<TNavigationalAttribute> setupWizardFactory = null,
+            bool hasEquivalenceRelation = false)
+            : base(
+                  navAttrGetterExpr,
+                  componentFactory,
+                  setupWizardFactory,
+                  hasEquivalenceRelation)
+        {
 
             return;
         }

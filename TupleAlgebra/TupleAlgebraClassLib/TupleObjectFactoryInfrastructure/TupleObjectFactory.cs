@@ -148,7 +148,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             //TupleObject<TEntity> empty = null;
             //SubscribeOnContextDisposing(empty);
 
-            return null;
+            return CreateEmpty<TEntity>(onTupleBuilding: null);
         }
 
         public override TupleObject<TEntity> CreateEmpty<TEntity>(

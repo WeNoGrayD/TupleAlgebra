@@ -202,15 +202,65 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         }
 
         public void AddAttribute<TAttribute>(
-            Expression<AttributeGetterHandler<TEntity, TAttribute>>
-                attributeGetterExpr,
-            AttributeName attributeName)
+            AttributeName attributeName,
+            Expression<Func<TEntity, TAttribute>>
+                attributeGetterExpr)
         {
             ITupleObjectAttributeInfo attributeInfo = 
                 new AttributeInfo<TEntity, TAttribute>(
                     attributeGetterExpr);
             _attributes.AddAttribute(attributeName, attributeInfo);
 
+            return;
+        }
+
+        internal void AddNavigationalAttribute<TKey, TNavigationalAttribute>(
+            //AttributeName simpleKeyAttrName,
+            //AttributeName navigationalAttrName,
+            Expression<Func<TEntity, TKey>>
+                simpleKeyAttrGetterExpr,
+            Expression<Func<TEntity, TNavigationalAttribute>>
+                navigationalAttrGetterExpr,
+            TupleObject<TNavigationalAttribute> source,
+            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
+            where TNavigationalAttribute : new()
+        {
+            var attributeInfo =
+                new NavigationalAttributeWithSimpleKeyInfo<TEntity, TKey, TNavigationalAttribute>(
+                    simpleKeyAttrGetterExpr,
+                    navigationalAttrGetterExpr,
+                    source,
+                    principalKeySelector);
+            _attributes.RemoveAttribute(attributeInfo.KeyAttributeName);
+            _attributes.AddAttribute(attributeInfo.KeyAttributeName, attributeInfo);
+            _attributes.AddAttribute(attributeInfo.Name, attributeInfo);
+
+            return;
+        }
+
+        public void AddNavigationalAttribute<TKey, TNavigationalAttribute>(
+            IEnumerable<AttributeName> complexKeyAttrNames,
+            AttributeName navigationalAttrName,
+            Expression<Func<TEntity, TNavigationalAttribute>>
+                navigationalAttrGetterExpr,
+            TupleObject<TNavigationalAttribute> source,
+            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
+            where TKey : new()
+            where TNavigationalAttribute : new()
+        {
+            /*
+            var navAttrSchema = source.Schema;
+            IDictionary <AttributeName, 
+            ITupleObjectAttributeInfo attributeInfo =
+                new NavigationalAttributeWithComplexKeyInfo<TEntity, TKey, TNavigationalAttribute>(
+                    );
+            foreach (AttributeName complexKeyAttrName in complexKeyAttrNames)
+            {
+                _attributes.RemoveAttribute(complexKeyAttrName);
+                _attributes.AddAttribute(complexKeyAttrName, attributeInfo);
+            }
+            _attributes.AddAttribute(navigationalAttrGetterExpr, attributeInfo);
+            */
             return;
         }
 

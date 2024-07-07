@@ -29,10 +29,6 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public delegate void TupleObjectBuildingHandler<TEntity>(
             TupleObjectBuilder<TEntity> builder);
 
-        public delegate TData AttributeGetterHandler<TEntity, TData>(TEntity entity);
-
-        public delegate TEntity AttributeGetterHandler<TEntity>(TEntity entity);
-
         public delegate TEntity PrimitiveEntityFactoryHandler<TEntity>(IEnumerator<TEntity> property);
 
         public delegate ITupleObjectAttributeSetupWizard
@@ -63,7 +59,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public static SingleTupleObjectFactoryArgs<TEntity, TAttribute>
             SetAC<TEntity, TAttribute>(
-                Expression<AttributeGetterHandler<TEntity, TAttribute>> getter,
+                Expression<Func<TEntity, TAttribute>> getter,
                 NonFictionalAttributeComponentFactoryArgs<TAttribute> componentFactoryArgs)
         {
             return new SingleTupleObjectFactoryArgs<TEntity, TAttribute>(
@@ -72,7 +68,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public static NamedComponentFactoryArgs<IAttributeComponent>
             SetAC<TEntity, TAttribute>(
-                Expression<AttributeGetterHandler<TEntity, TAttribute>> getter,
+                Expression<Func<TEntity, TAttribute>> getter,
                 IAttributeComponent componentFactoryArgs,
                 TupleObjectBuilder<TEntity> builder)
         {
@@ -84,7 +80,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public static NamedComponentFactoryArgs<IAttributeComponent>
             SetVariable<TEntity, TAttribute>(
-                Expression<AttributeGetterHandler<TEntity, TAttribute>> getter,
+                Expression<Func<TEntity, TAttribute>> getter,
                 string name,
                 TupleObjectBuilder<TEntity> builder)
         {
@@ -97,7 +93,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         /*
         public static TupleObject<TEntity> CreateMasked<TEntity>(
             TupleObjectFactory factory,
-            params Expression<AttributeGetterHandler<TEntity, object>>[] maskedAttributes)
+            params Expression<Func<TEntity, object>>[] maskedAttributes)
             where TEntity : new()
         {
             return factory.CreateConjunctiveTuple();
@@ -113,7 +109,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             }
 
             IVariableAttributeComponent GetVariable<TAttribute>(
-                Expression<AttributeGetterHandler<TEntity, TAttribute>> getter)
+                Expression<Func<TEntity, TAttribute>> getter)
             {
                 return new VariableAttributeComponentFactoryArgs(
             }

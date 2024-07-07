@@ -28,7 +28,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public static TupleObjectOneToManyAttributeSetupWizard<TDictionary, KeyValuePair<TKey, TAttribute>> Construct<TEntity, TDictionary, TKey>(
             ITupleObjectSchemaProvider schema,
-            Expression<AttributeGetterHandler<TEntity, TDictionary>> memberAccess)
+            Expression<Func<TEntity, TDictionary>> memberAccess)
             where TDictionary : TAttributeContainer, IDictionary<TKey, TAttribute>
         {
             return new TupleObjectOneToManyAttributeSetupWizard<TDictionary, KeyValuePair<TKey, TAttribute>>(schema, memberAccess);

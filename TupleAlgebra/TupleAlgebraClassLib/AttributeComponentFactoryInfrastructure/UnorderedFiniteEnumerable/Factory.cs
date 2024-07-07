@@ -83,5 +83,10 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Unordered
             HashSet<TData> universeData)
             : this(new UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(universeData))
         { }
+
+        public UnorderedFiniteEnumerableAttributeComponentFactory(
+            IEnumerable<TData> universeData)
+            : this(universeData.ToHashSet())
+        { }
     }
 }

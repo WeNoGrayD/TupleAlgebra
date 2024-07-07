@@ -33,6 +33,18 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Unordered
             return;
         }
 
+        public UnorderedFiniteEnumerableAttributeComponentFactoryArgs(
+            IEnumerable<TData> values = null,
+            bool isQuery = false,
+            IQueryProvider queryProvider = null,
+            Expression queryExpression = null)
+            : base(isQuery, queryProvider, queryExpression)
+        {
+            Values = values.ToHashSet();
+
+            return;
+        }
+
         protected override AttributeComponentPower CreatePower()
         {
             return FiniteEnumerableAttributeComponentPower.Instance;

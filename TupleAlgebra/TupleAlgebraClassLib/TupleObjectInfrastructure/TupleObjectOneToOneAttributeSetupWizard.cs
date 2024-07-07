@@ -32,7 +32,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public static TupleObjectOneToOneAttributeSetupWizard<TAttribute> Construct<TEntity>(
             ITupleObjectSchemaProvider schema,
-            Expression<AttributeGetterHandler<TEntity, TAttribute>> memberAccess)
+            Expression<Func<TEntity, TAttribute>> memberAccess)
         {
             return new TupleObjectOneToOneAttributeSetupWizard<TAttribute>(schema, memberAccess);
         }

@@ -208,7 +208,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
     public record SingleTupleObjectFactoryArgs<TEntity, TAttribute>
         : ISingleTupleObjectFactoryArgs
     {
-        private Expression<AttributeGetterHandler<TEntity, TAttribute>> _getter;
+        private Expression<Func<TEntity, TAttribute>> _getter;
 
         private NonFictionalAttributeComponentFactoryArgs<TAttribute> _componentFactoryArgs;
 
@@ -221,7 +221,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         { get => _componentFactoryArgs; }
 
         public SingleTupleObjectFactoryArgs(
-            Expression<AttributeGetterHandler<TEntity, TAttribute>> getter,
+            Expression<Func<TEntity, TAttribute>> getter,
             NonFictionalAttributeComponentFactoryArgs<TAttribute> componentFactoryArgs)
         {
             _getter = getter;
@@ -231,7 +231,7 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
         }
 
         public static implicit operator SingleTupleObjectFactoryArgs<TEntity, TAttribute>(
-            (Expression<AttributeGetterHandler<TEntity, TAttribute>> Getter,
+            (Expression<Func<TEntity, TAttribute>> Getter,
              NonFictionalAttributeComponentFactoryArgs<TAttribute> ComponentFactoryArgs)
             factoryArgs)
         {

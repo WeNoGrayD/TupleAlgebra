@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
+using TupleAlgebraClassLib.TupleObjectInfrastructure.Annotations;
+using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -135,14 +137,16 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             {
                 do
                 {
-                    foreach (FieldInfo fieldInfo in entityType.DeclaredFields.Where(fi => fi.IsPublic))
+                    foreach (FieldInfo fieldInfo in entityType.DeclaredFields
+                        .Where(fi => fi.IsPublic && !fi.IsStatic))
                     {
                         BuildAddAttributeMethodInfo(fieldInfo.FieldType)
                             .Invoke(this, new object[] { fieldInfo });
                     }
 
+                    // удаляем статические свойства
                     foreach (PropertyInfo propertyInfo in entityType.DeclaredProperties
-                        .Where(pi => (pi.SetMethod?.IsPublic ?? false) && (pi.GetMethod?.IsPublic ?? false)))
+                        .Where(PropertyIsValid))
                     {
                         BuildAddAttributeMethodInfo(propertyInfo.PropertyType)
                             .Invoke(this, new object[] { propertyInfo });
@@ -152,6 +156,13 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                        .Name != objTypeName);
 
                 return;
+
+                bool PropertyIsValid(PropertyInfo pi)
+                {
+                    return !pi.GetAccessors(false)[0].IsStatic &&
+                        ((pi.GetMethod?.IsPublic ?? false) && (pi.SetMethod?.IsPublic ?? false)) ||
+                        (pi.GetCustomAttribute<CalculatedPropertyAttribute>() is not null);
+                }
             }
         }
 
@@ -164,12 +175,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             AttributeName attrName = entityType.Name;
             ParameterExpression entityParameterExpr =
                 Expression.Parameter(entityType, ENTITY_PARAM_NAME);
-            Expression<AttributeGetterHandler<TEntity, TEntity>>
+            Expression<Func<TEntity, TEntity>>
                 attributeGetterExpr = Expression
-                .Lambda<AttributeGetterHandler<TEntity, TEntity>>(
+                .Lambda<Func<TEntity, TEntity>>(
                     entityParameterExpr,
                     entityParameterExpr);
-            Schema.AddAttribute(attributeGetterExpr, attrName);
+            Schema.AddAttribute(attrName, attributeGetterExpr);
 
             return;
         }
@@ -184,18 +195,68 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 {
                     MemberTypes.Field => 
                         Expression.Field(entityParameterExpr, (attributeMember as FieldInfo)!),
-                    MemberTypes.Property => 
-                        Expression.Property(entityParameterExpr, (attributeMember as PropertyInfo)!)
+                    MemberTypes.Property => MakePropertyExpr()
+
                 };
-            Expression<AttributeGetterHandler<TEntity, TAttribute>> 
+            Expression<Func<TEntity, TAttribute>> 
                 attributeGetterExpr = Expression
-                .Lambda<AttributeGetterHandler<TEntity, TAttribute>>(
+                .Lambda<Func<TEntity, TAttribute>>(
                     memberGetterExpr, 
                     entityParameterExpr);
-            Schema.AddAttribute(attributeGetterExpr, attrName);
+            Schema.AddAttribute(attrName, attributeGetterExpr);
+
+            return;
+
+            MemberExpression MakePropertyExpr()
+            {
+                var propertyInfo = (attributeMember as PropertyInfo)!;
+                CalculatedPropertyAttribute calcPropAttr =
+                    propertyInfo.GetCustomAttribute<CalculatedPropertyAttribute>();
+
+                //propertyInfo.SetMethod.
+
+                return Expression.Property(entityParameterExpr, propertyInfo);
+            }
+        }
+
+        internal void AddNavigationalAttribute<TKey, TNavigationalAttribute>(
+            Expression<Func<TEntity, TKey>>
+                simpleKeyAttrGetterExpr,
+            Expression<Func<TEntity, TNavigationalAttribute>>
+                navigationalAttrGetterExpr,
+            TupleObject<TNavigationalAttribute> source,
+            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
+            where TNavigationalAttribute : new()
+        {
+            Schema.AddNavigationalAttribute(
+                simpleKeyAttrGetterExpr,
+                navigationalAttrGetterExpr,
+                source,
+                principalKeySelector);
 
             return;
         }
+
+        internal void AddNavigationalAttribute<TKey, TNavigationalAttribute>(
+            IEnumerable<AttributeName> complexKeyAttrNames,
+            AttributeName navigationalAttrName,
+            Expression<Func<TEntity, TNavigationalAttribute>>
+                navigationalAttrGetterExpr,
+            TupleObject<TNavigationalAttribute> source,
+            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
+            where TKey : new()
+            where TNavigationalAttribute : new()
+        {
+            Schema.AddNavigationalAttribute(
+                complexKeyAttrNames,
+                navigationalAttrName,
+                navigationalAttrGetterExpr,
+                source,
+                principalKeySelector);
+
+            return;
+        }
+
         void ITupleObjectBuilder.SetSchema<TBEntity>(
             TupleObjectSchema<TBEntity> schema)
         {
@@ -258,6 +319,107 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 .SetupWizardFactory(Schema, memberAccess);
         }
 
+        public INavigationalMemberSetupWizard<TEntity, TAttribute>
+            HasOne<TAttribute>(Expression<Func<TEntity, TAttribute>> memberAccess)
+            where TAttribute : new()
+        {
+            return new OneToOneNavigationalMemberSetupWizard<TEntity, TAttribute>(
+                this,
+                memberAccess);
+        }
+
         #endregion
+    }
+
+    public interface INavigationalMemberSetupWizard<TEntity, TAttribute>
+        where TAttribute : new()
+    {
+        public INavigationalMemberSetupWizard<TEntity, TAttribute>
+            HasForeignKey<TKey>(Expression<Func<TEntity, TKey>> keySelector);
+
+        public ITupleObjectAttributeSetupWizard<TAttribute>
+            HasPrincipalKey<TKey>(
+            TupleObject<TAttribute> source,
+            Expression<Func<TAttribute, TKey>> principalKeySelector);
+    }
+
+    public class OneToOneNavigationalMemberSetupWizard<TEntity, TAttribute>
+        : INavigationalMemberSetupWizard<TEntity, TAttribute>
+        where TAttribute : new()
+    {
+        private TupleObjectBuilder<TEntity> _builder;
+
+        private LambdaExpression _foreignKeySelector;
+
+        private Expression<Func<TEntity, TAttribute>> _navigationalMemberAccess;
+
+        AttributeName[] _keyAttributeNames;
+
+        public OneToOneNavigationalMemberSetupWizard(
+            TupleObjectBuilder<TEntity> builder,
+            Expression<Func<TEntity, TAttribute>> navigationalMemberAccess)
+        {
+            _builder = builder;
+            _navigationalMemberAccess = navigationalMemberAccess;
+            _builder.Attribute(e => navigationalMemberAccess).Ignore();
+
+            return;
+        }
+
+        public INavigationalMemberSetupWizard<TEntity, TAttribute>
+            HasForeignKey<TKey>(Expression<Func<TEntity, TKey>> foreignKeySelector)
+        {
+            /*
+            AttributeMemberExtractor memberExtractor = new();
+            _keyAttributeNames = memberExtractor
+                .ExtractManyFrom(foreignKeySelector)
+                .Select<MemberInfo, AttributeName>(mi => mi.Name)
+                .ToArray();
+            */
+            _foreignKeySelector = foreignKeySelector;
+
+            return this;
+        }
+
+        public ITupleObjectAttributeSetupWizard<TAttribute>
+            HasPrincipalKey<TKey>(
+            TupleObject<TAttribute> source, 
+            Expression<Func<TAttribute, TKey>> principalKeySelector)
+        {
+            switch (_keyAttributeNames.Length)
+            {
+                case 0:
+                    {
+                        throw new Exception();
+                    }
+                case 1:
+                    {
+                        _builder.AddNavigationalAttribute(
+                            _foreignKeySelector as Expression<Func<TEntity, TKey>>,
+                            _navigationalMemberAccess,
+                            source,
+                            principalKeySelector);
+
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+
+            return _builder.Attribute(_navigationalMemberAccess);
+        }
+
+        private bool DefineKeyComplexity<TData, TKey>(
+            Expression<Func<TData, TKey>> keySelector)
+        {
+            return keySelector.Body switch
+            {
+                MemberExpression => false,
+                NewExpression => true,
+                _ => throw new Exception()
+            };
+        }
     }
 }

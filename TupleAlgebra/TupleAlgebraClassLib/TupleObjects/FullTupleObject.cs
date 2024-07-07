@@ -20,6 +20,8 @@ namespace TupleAlgebraClassLib.TupleObjects
     {
         private ConjunctiveTuple<TEntity> _inner;
 
+        public ConjunctiveTuple<TEntity> Inner => _inner;
+
         static FullTupleObject()
         {
             Storage.RegisterType<TEntity, FullTupleObject<TEntity>>(

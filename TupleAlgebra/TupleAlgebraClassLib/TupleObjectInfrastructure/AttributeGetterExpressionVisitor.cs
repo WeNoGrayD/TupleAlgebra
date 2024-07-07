@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
 using UniversalClassLib;
+using System.Collections;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -28,7 +29,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public PropertyInfo AttributeProperty { get; private set; }
 
         public void Inspect<TEntity, TData>(
-            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
+            Expression<Func<TEntity, TData>> attributeGetterExpr)
         {
             _inspector = new NodeTreeInspector<Expression>(
                 "Инспектор выражения (x) => x.y",
@@ -142,9 +143,20 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
     public class AttributeMemberExtractor : AttributeGetterExpressionVisitor
     {
+        private List<MemberInfo> _members;
+
         public MemberInfo ExtractFrom<TEntity, TData>(
-            Expression<AttributeGetterHandler<TEntity, TData>> attributeGetterExpr)
+            Expression<Func<TEntity, TData>> attributeGetterExpr)
         {
+            if (_members is null)
+                _members = new();
+            else
+                _members.Clear();
+
+            Visit(attributeGetterExpr);
+
+            return _members.Single();
+            /*
             Expression attributeMemberValueExpr =
                 Visit(attributeGetterExpr);
 
@@ -153,11 +165,21 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 ConstantExpression ce => (ce.Value as MemberInfo)!,
                 ParameterExpression pe => (pe.Type).GetTypeInfo()
             };
+            */
         }
 
         public MemberInfo ExtractFrom(
             LambdaExpression attributeGetterExpr)
         {
+            if (_members is null)
+                _members = new();
+            else
+                _members.Clear();
+
+            Visit(attributeGetterExpr);
+
+            return _members.Single();
+            /*
             Expression attributeMemberValueExpr =
                 Visit(attributeGetterExpr);
 
@@ -166,16 +188,40 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 ConstantExpression ce => (ce.Value as MemberInfo)!,
                 ParameterExpression pe => (pe.Type).GetTypeInfo()
             };
+            */
+        }
+
+        public IReadOnlyList<MemberInfo> ExtractManyFrom<TEntity, TData>(
+            Expression<Func<TEntity, TData>> attributeGetterExpr)
+        {
+            if (_members is null)
+                _members = new();
+            else
+                _members.Clear();
+
+            Visit(attributeGetterExpr);
+
+            return _members;
+        }
+
+        /*
+        protected override Expression VisitNew(NewExpression expr)
+        {
+            return expr;
         }
 
         protected override Expression VisitParameter(ParameterExpression expr)
         {
             return expr;
         }
+        */
 
         protected override Expression VisitMember(MemberExpression expr)
         {
-            return Expression.Constant(expr.Member)!;
+            //return Expression.Constant(expr.Member);
+            _members.Add(expr.Member);
+
+            return expr;
         }
     }
 }

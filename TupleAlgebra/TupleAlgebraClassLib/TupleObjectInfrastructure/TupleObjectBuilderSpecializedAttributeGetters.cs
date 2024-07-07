@@ -17,7 +17,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     public partial class TupleObjectBuilder<TEntity>
     {
         public TupleObjectOneToManyAttributeSetupWizard<TEnumerable, TAttribute> Attribute<TEnumerable, TAttribute>(
-            Expression<AttributeGetterHandler<TEntity, TEnumerable>> memberAccess)
+            Expression<Func<TEntity, TEnumerable>> memberAccess)
             where TEnumerable : IEnumerable<TAttribute>
         {
             return null;
@@ -25,26 +25,26 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         }
 
         public TupleObjectOneToManyAttributeSetupWizard<TDictionary, KeyValuePair<TKey, TAttribute>> Attribute<TDictionary, TKey, TAttribute>(
-            Expression<AttributeGetterHandler<TEntity, TDictionary>> memberAccess)
+            Expression<Func<TEntity, TDictionary>> memberAccess)
             where TDictionary : IDictionary<TKey, TAttribute>
         {
             return TupleObjectOneToManyAttributeSetupWizard<TDictionary, TAttribute>.Construct<TEntity, TDictionary, TKey>(Schema, memberAccess);
         }
 
         public TupleObjectOneToManyAttributeSetupWizard<List<TAttribute>, TAttribute> Attribute<TAttribute>(
-            Expression<AttributeGetterHandler<TEntity, List<TAttribute>>> memberAccess)
+            Expression<Func<TEntity, List<TAttribute>>> memberAccess)
         {
             return Attribute<List<TAttribute>, TAttribute>(memberAccess);
         }
 
         public TupleObjectOneToManyAttributeSetupWizard<HashSet<TAttribute>, TAttribute> Attribute<TAttribute>(
-            Expression<AttributeGetterHandler<TEntity, HashSet<TAttribute>>> memberAccess)
+            Expression<Func<TEntity, HashSet<TAttribute>>> memberAccess)
         {
             return Attribute<HashSet<TAttribute>, TAttribute>(memberAccess);
         }
 
         public TupleObjectOneToManyAttributeSetupWizard<Dictionary<TKey, TAttribute>, KeyValuePair<TKey, TAttribute>> Attribute<TAttribute, TKey>(
-            Expression<AttributeGetterHandler<TEntity, Dictionary<TKey, TAttribute>>> memberAccess)
+            Expression<Func<TEntity, Dictionary<TKey, TAttribute>>> memberAccess)
         {
             return Attribute<Dictionary<TKey, TAttribute>, TKey, TAttribute>(memberAccess);
         }

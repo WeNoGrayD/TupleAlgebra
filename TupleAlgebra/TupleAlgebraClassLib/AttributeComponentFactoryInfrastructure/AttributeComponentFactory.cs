@@ -11,6 +11,48 @@ using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 {
+    public static class AttributeComponentFactoryHelper
+    {
+        #region Delegates
+
+        public delegate AttributeComponent<TData>
+            CreateSpecificNonFictionalComponentHandler<TData, CTFactoryArgs>(
+                CTFactoryArgs factoryArgs);
+
+        #endregion
+
+        public static AttributeComponent<TData> CreateNonFictional<
+            TData, CTFactoryArgs>(
+            this IAttributeComponentFactory<TData> factory,
+            CTFactoryArgs factoryArgs,
+            CreateSpecificNonFictionalComponentHandler<TData, CTFactoryArgs> factoryFunc)
+            where CTFactoryArgs : AttributeComponentFactoryArgs
+        {
+            /*
+             * Прежде всего создаётся нефиктивная компонента с предоставленными фабричными аргументами.
+             */
+            AttributeComponent<TData> ac = factoryFunc(factoryArgs);
+
+            /*
+             * Если созданная нефиктивная компонента не является продуктом запроса, то
+             * появляется возможность проверить компоненту на пустоту и полноту.
+             */
+            if (!factoryArgs.IsQuery)
+            /*
+             * Предполагается, что проверка компоненты на пустотность
+             * является более простой, чем проверка на полноту.
+             */
+            {
+                if (factoryArgs.Power.EqualsZero(ac))
+                    ac = factory.CreateEmpty(factoryArgs);
+                else if (factoryArgs.Power.EqualsContinuum(ac))
+                    ac = factory.CreateFull(factoryArgs);
+            }
+
+            return ac;
+        }
+    }
+
     public class AttributeComponentFactory<TData>
         : IAttributeComponentFactory<TData>
     {
@@ -23,14 +65,6 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         #region Instance properties
 
         public AttributeDomain<TData> Domain { get; protected set; }
-
-        #endregion
-
-        #region Delegates
-
-        protected delegate AttributeComponent<TData>
-            CreateSpecificNonFictionalComponentHandler<CTFactoryArgs>(
-                CTFactoryArgs factoryArgs);
 
         #endregion
 
@@ -86,35 +120,6 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             return CreateEmpty(factoryArgs);
         }
 
-        protected AttributeComponent<TData> CreateNonFictional<CTFactoryArgs>(
-            CTFactoryArgs factoryArgs,
-            CreateSpecificNonFictionalComponentHandler<CTFactoryArgs> factoryFunc)
-            where CTFactoryArgs : AttributeComponentFactoryArgs
-        {
-            /*
-             * Прежде всего создаётся нефиктивная компонента с предоставленными фабричными аргументами.
-             */
-            AttributeComponent<TData> ac = factoryFunc(factoryArgs);
-
-            /*
-             * Если созданная нефиктивная компонента не является продуктом запроса, то
-             * появляется возможность проверить компоненту на пустоту и полноту.
-             */
-            if (!factoryArgs.IsQuery)
-            /*
-             * Предполагается, что проверка компоненты на пустотность
-             * является более простой, чем проверка на полноту.
-             */
-            {
-                if (factoryArgs.Power.EqualsZero(ac))
-                    ac = CreateEmpty(factoryArgs);
-                else if (factoryArgs.Power.EqualsContinuum(ac))
-                    ac = CreateFull(factoryArgs);
-            }
-
-            return ac;
-        }
-
         /// <summary>
         /// Создание нефиктивной компоненты атрибута.
         /// </summary>
@@ -124,7 +129,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         public AttributeComponent<TData> CreateNonFictional(
             AttributeComponentFactoryArgs factoryArgs)
         {
-            return CreateNonFictional(
+            return this.CreateNonFictional(
                 factoryArgs,
                 CreateSpecificNonFictional);
 
@@ -152,7 +157,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             TFactoryArgs factoryArgs)
             where TFactoryArgs : AttributeComponentFactoryArgs
         {
-            return CreateNonFictional(
+            return this.CreateNonFictional(
                 factoryArgs,
                 CreateSpecificNonFictional<TFactoryArgs>);
         }

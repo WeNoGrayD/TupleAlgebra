@@ -9,6 +9,7 @@ using TupleAlgebraClassLib.SetOperationExecutorsContainers;
 using UniversalClassLib;
 using static TupleAlgebraClassLib.AttributeComponents.AttributeComponentHelper;
 using System.Reflection.Metadata;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Navigational;
 
 namespace TupleAlgebraClassLib.AttributeComponents
 {
@@ -47,6 +48,11 @@ namespace TupleAlgebraClassLib.AttributeComponents
             AttributeComponentSetOperationsCreationHandler<TData>(
                 IAttributeComponentFactory<TData> factory);
 
+        internal delegate AttributeComponent<TData> NavigationByKeyHandler<
+            TKeyContainer, 
+            TData>(
+            TKeyContainer key);
+
         #endregion
 
         #region Constructors
@@ -83,12 +89,13 @@ namespace TupleAlgebraClassLib.AttributeComponents
         /// <param name="considerAsNonGeneric"></param>
         /// <param name="acFactory"></param>
         /// <param name="setOperations"></param>
-        public void RegisterType<TData, TAttributeComponent>(
+        private void RegisterTypeImpl<TData, TAttributeComponent>(
             bool considerAsNonGeneric = false,
-            AttributeComponentFactoryCreationHandler<TData> 
+            AttributeComponentFactoryCreationHandler<TData>
                 acFactory = null,
             AttributeComponentSetOperationsCreationHandler<TData>
-                setOperations = null)
+                setOperations = null,
+            params (object Data, Action<object> Registration)[] additionalParamsToRegister)
             where TAttributeComponent : IAttributeComponent<TData>
         {
             Type acType = typeof(TAttributeComponent);
@@ -110,11 +117,57 @@ namespace TupleAlgebraClassLib.AttributeComponents
             else
             {
                 RegisterNonGenericType(
-                    acType, 
+                    acType,
                     manifold,
                     acFactory,
                     setOperations);
             }
+
+            if (additionalParamsToRegister.Length > 0)
+            {
+                foreach (var p in additionalParamsToRegister)
+                    p.Registration(p.Data);
+            }
+
+            return;
+        }
+
+        /// <summary>
+        /// Регистрация типа.
+        /// </summary>
+        /// <typeparam name="TData"></typeparam>
+        /// <typeparam name="TAttributeComponent"></typeparam>
+        /// <param name="considerAsNonGeneric"></param>
+        /// <param name="acFactory"></param>
+        /// <param name="setOperations"></param>
+        public void RegisterType<TData, TAttributeComponent>(
+            bool considerAsNonGeneric = false,
+            AttributeComponentFactoryCreationHandler<TData> 
+                acFactory = null,
+            AttributeComponentSetOperationsCreationHandler<TData>
+                setOperations = null)
+            where TAttributeComponent : IAttributeComponent<TData>
+        {
+            RegisterTypeImpl<TData, TAttributeComponent>(
+                considerAsNonGeneric, 
+                acFactory, 
+                setOperations);
+
+            return;
+        }
+
+        internal void RegisterNavigational<
+            TKey,
+            TData,
+            TKeyContainer,
+            TAttributeComponent>(
+            AttributeDomain<TData> domain,
+            NavigationByKeyHandler<TKeyContainer, TData> navigationByKey)
+            where TData : new()
+            where TAttributeComponent : NavigationalAttributeComponent<TKey, TData, TKeyContainer>
+        {
+            _nodes[typeof(TAttributeComponent)].RegisterNodeForNavigational(
+                domain, navigationByKey);
 
             return;
         }
@@ -328,6 +381,25 @@ namespace TupleAlgebraClassLib.AttributeComponents
             return setOpsContainer;
         }
 
+        internal NavigationByKeyHandler<TKeyContainer, TData> 
+            GetNavigationByKeyHandler<TKey, TData, TKeyContainer>(
+            NavigationalAttributeComponent<TKey, TData, TKeyContainer> ac)
+            where TData : new()
+        {
+            NavigationByKeyHandler<TKeyContainer, TData> navigator;
+
+            Type acType = ac.GetType();
+            if (!_registrar.IsTypeRegistered(acType))
+            {
+                _registrar.RegisterTypeWithForce(acType);
+            }
+            navigator = (_nodes[acType].GetNode<TData>(ac.Domain)
+                as NavigationalAttributeComponentNode<TKeyContainer, TData>)
+                .NavigationByKey.Value;
+
+            return navigator;
+        }
+
         #endregion
 
         #endregion
@@ -346,6 +418,16 @@ namespace TupleAlgebraClassLib.AttributeComponents
                 AttributeDomain<TData> domain)
             {
                 return (this as AttributeDomainManifold<TData>)![domain];
+            }
+
+            internal void RegisterNodeForNavigational<TKeyContainer, TData>(
+                AttributeDomain<TData> domain,
+                NavigationByKeyHandler<TKeyContainer, TData> navigationByKey)
+            {
+                (this as AttributeDomainManifold<TData>)!.
+                    RegisterNodeForNavigational(domain, navigationByKey);
+
+                return;
             }
         };
 
@@ -396,6 +478,23 @@ namespace TupleAlgebraClassLib.AttributeComponents
                     NodePattern.SetOperationsSetter.Value);
 
                 return node;
+            }
+
+            internal void RegisterNodeForNavigational<TKeyContainer>(
+                AttributeDomain<TData> domain,
+                NavigationByKeyHandler<TKeyContainer, TData> navigationByKey)
+            {
+                var node =
+                    new NavigationalAttributeComponentNode<TKeyContainer, TData>(
+                        domain);
+                _nodes.Add(domain, node);
+                node.ProvideFactorySetter(
+                    NodePattern.FactorySetter.Value);
+                node.ProvideSetOperationsSetter(
+                    NodePattern.SetOperationsSetter.Value);
+                node.ProvideNavigationByKeyHandler(navigationByKey);
+
+                return;
             }
         }
 
@@ -485,6 +584,29 @@ namespace TupleAlgebraClassLib.AttributeComponents
             {
                 this.SetOperations = InitProperty(
                     () => setOperationsSetter(Factory.Value));
+
+                return;
+            }
+        }
+
+        internal class NavigationalAttributeComponentNode<TKeyContainer, TData>
+            : AttributeComponentNode<TData>
+        {
+            public PropertyNode<NavigationByKeyHandler<TKeyContainer, TData>>
+                NavigationByKey
+            { get; protected set; }
+
+            public NavigationalAttributeComponentNode(
+                AttributeDomain<TData> navAttrDomain)
+                : base(navAttrDomain)
+            {
+                return;
+            }
+
+            public void ProvideNavigationByKeyHandler(
+                NavigationByKeyHandler<TKeyContainer, TData> navigationByKey)
+            {
+                this.NavigationByKey = InitProperty(navigationByKey);
 
                 return;
             }
