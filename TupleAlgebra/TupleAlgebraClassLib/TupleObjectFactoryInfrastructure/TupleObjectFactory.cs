@@ -547,6 +547,13 @@ namespace TupleAlgebraClassLib.TupleObjectFactoryInfrastructure
             return CreateFull<TEntity>(onTupleBuilding: null);
         }
 
+        public TupleObject<TEntity> CreateFullConjunctive<TEntity>(
+            TupleObjectBuilder<TEntity> builder = null)
+            where TEntity : new()
+        {
+            return _cFactory.CreateFullConjunctive(builder);
+        }
+
         protected void SubscribeOnContextDisposing(IDisposable tupleObject)
         {
             if (tupleObject is not null) _context.Disposing += () => tupleObject.Dispose();

@@ -12,6 +12,7 @@ using TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure;
 
 namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Navigational.WithSimpleKey
 {
+    /*
     public class IntersectionOperator<TKey, TData>
         : NonFictionalAttributeComponentIntersectionOperator<
             TData,
@@ -38,4 +39,5 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Nav
             return factory.CreateNonFictional(factoryArgs);
         }
     }
+    */
 }

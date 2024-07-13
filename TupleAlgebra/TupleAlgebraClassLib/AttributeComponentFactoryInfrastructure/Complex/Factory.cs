@@ -82,7 +82,13 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Complex
 
         public ComplexAttributeComponentFactory()
             : base(new ComplexAttributeComponentFactoryArgs<TData>(
-                _tupleFactory.CreateFull<TData>()))
+                _tupleFactory.CreateFullConjunctive<TData>()))
+        { }
+
+        public ComplexAttributeComponentFactory(
+            TupleObject<TData> referencedKb)
+            : base(new ComplexAttributeComponentFactoryArgs<TData>(
+                referencedKb))
         { }
     }
 }

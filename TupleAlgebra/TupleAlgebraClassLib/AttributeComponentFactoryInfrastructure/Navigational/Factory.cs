@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Complex;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Navigational;
@@ -15,19 +16,93 @@ using static TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectHelper;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigational
 {
-    /*
-    public class NavigationalAttributeComponentFactory<TKey, TData>
-        : AttributeComponentFactory<TData>,
-          INonFictionalAttributeComponentFactory<
+    public interface INavigationalAttributeComponentFactory<TKey, TData>
+        : INonFictionalAttributeComponentFactory<
             TData,
             NavigationalAttributeComponentFactoryArgs<TKey, TData>,
             NavigationalAttributeComponent<TKey, TData>,
-            NavigationalAttributeComponentFactoryArgs<TKey, TData>>
+            NavigationalAttributeComponentFactoryArgs<TKey, TData>>,
+          INonFictionalAttributeComponentFactory2<
+            TData,
+            NonFictionalAttributeComponentFactoryArgs<TKey>>//,
+          //INonFictionalAttributeComponentFactory2<
+          //  TData,
+          //  NonFictionalAttributeComponentFactoryArgs<TData>>
+        where TKey : new()
+        where TData : new()
     {
+        NonFictionalAttributeComponent<TData>
+            INonFictionalAttributeComponentFactory2<
+                TData,
+                NonFictionalAttributeComponentFactoryArgs<TKey>>
+            .CreateSpecificNonFictional(
+            NonFictionalAttributeComponentFactoryArgs<TKey> keyArgs)
+        {
+            NavigationalAttributeComponentFactoryArgs<TKey, TData> navArgs =
+                new NavigationalAttributeComponentFactoryArgs<TKey, TData>(
+                    keyArgs);
+
+            return CreateSpecificNonFictional(navArgs);
+        }
+
+        /*
+        NonFictionalAttributeComponent<TData>
+            INonFictionalAttributeComponentFactory2<
+                TData,
+                NonFictionalAttributeComponentFactoryArgs<TData>>
+            .CreateSpecificNonFictional(
+            NonFictionalAttributeComponentFactoryArgs<TData> valueArgs)
+        {
+            NavigationalAttributeComponentFactoryArgs<TKey, TData> navArgs =
+                new NavigationalAttributeComponentFactoryArgs<TKey, TData>(
+                    valueArgs);
+
+            return CreateSpecificNonFictional(navArgs);
+        }
+        */
+    }
+
+    public class NavigationalAttributeComponentFactory<TKey, TData>
+        : AttributeComponentFactory<TData>,
+          INavigationalAttributeComponentFactory<TKey, TData>
+        where TKey : new()
+        where TData : new()
+    {
+        public IAttributeComponentFactory<TKey> KeyAttributeComponentFactory 
+        { get; set; }
+
+        public IAttributeComponentFactory<TData> ValueAttributeComponentFactory
+        { get; set; }
+
         public NavigationalAttributeComponentFactory(
-            AttributeDomain<TData> domain)
-            : base(domain)
+            AttributeDomain<TKey> keyAttrDomain,
+            AttributeDomain<TData> navAttrDomain)
+            : base(navAttrDomain)
         { 
+            return;
+        }
+
+        public NavigationalAttributeComponentFactory(
+            IAttributeComponentFactory<TKey> keyAttributeComponentFactory,
+            IAttributeComponentFactory<TData> valueAttributeComponentFactory)
+            : base(valueAttributeComponentFactory.Domain)
+        {
+            KeyAttributeComponentFactory = keyAttributeComponentFactory;
+            ValueAttributeComponentFactory = valueAttributeComponentFactory;
+
+            return;
+        }
+
+        public NavigationalAttributeComponentFactory(
+            IAttributeComponentFactory<TKey> keyAttributeComponentFactory,
+            TupleObject<TData> referencedKb)
+            : base(null)
+        {
+            KeyAttributeComponentFactory = keyAttributeComponentFactory;
+            ValueAttributeComponentFactory =
+                new ComplexAttributeComponentFactory<TData>(referencedKb);
+            Domain = ValueAttributeComponentFactory.Domain;
+
             return;
         }
 
@@ -51,7 +126,34 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
             .CreateSpecificNonFictional(
                 NavigationalAttributeComponentFactoryArgs<TKey, TData> args)
         {
-            return args;
+            return args.Member switch
+            {
+                NavigationalPropertyMember.Key =>
+                    new NavigationalAttributeComponent<TKey, TData>(
+                        args.Power,
+                        args.KeyFactoryArgs.ProvideTo(KeyAttributeComponentFactory),
+                        args.QueryProvider,
+                        args.QueryExpression),
+                NavigationalPropertyMember.Value =>
+                    CreateValuesAttributeComponent(args),
+                _ => throw new Exception()
+            };
+        }
+
+        private NonFictionalAttributeComponent<TData> CreateValuesAttributeComponent(
+                NavigationalAttributeComponentFactoryArgs<TKey, TData> args)
+        {
+            AttributeComponent<TData> valuesAc = 
+                args.Values is not null ?
+                (ValueAttributeComponentFactory as IEnumerableNonFictionalAttributeComponentFactory<TData>)
+                    .CreateNonFictional(args.Values) :
+                args.ValueFactoryArgs.ProvideTo(ValueAttributeComponentFactory);
+
+            return new NavigationalAttributeComponent<TKey, TData>(
+                args.Power,
+                valuesAc,
+                args.QueryProvider,
+                args.QueryExpression);
         }
 
         NavigationalAttributeComponentFactoryArgs<TKey, TData>
@@ -67,16 +169,15 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
             throw new NotImplementedException();
         }
     }
-    */
 
+    /*
     public class NavigationalAttributeComponentWithSimpleKeyFactory<TKey, TData>
         : AttributeComponentFactory<TData>,
           INonFictionalAttributeComponentFactory<
             TData,
             NavigationalAttributeComponentWithSimpleKeyFactoryArgs<TKey, TData>,
             NavigationalAttributeComponentWithSimpleKey<TKey, TData>,
-            NavigationalAttributeComponentWithSimpleKeyFactoryArgs<TKey, TData>>//,
-          //IUnorderedFiniteEnumerableAttributeComponentFactory<TKey>
+            NavigationalAttributeComponentWithSimpleKeyFactoryArgs<TKey, TData>>
         where TData : new()
     {
         private UnorderedFiniteEnumerableAttributeComponentFactory<TKey>
@@ -225,4 +326,5 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
             throw new NotImplementedException();
         }
     }
+    */
 }

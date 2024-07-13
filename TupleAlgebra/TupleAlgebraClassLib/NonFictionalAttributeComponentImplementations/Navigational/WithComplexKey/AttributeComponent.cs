@@ -14,6 +14,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Nav
 {
     using static AttributeComponentHelper;
 
+    /*
     public class NavigationalAttributeComponentWithComplexKey<TKey, TData>
         : NavigationalAttributeComponent<TKey, TData, TupleObject<TKey>>
         where TKey : new()
@@ -105,4 +106,5 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Nav
 
         #endregion
     }
+    */
 }

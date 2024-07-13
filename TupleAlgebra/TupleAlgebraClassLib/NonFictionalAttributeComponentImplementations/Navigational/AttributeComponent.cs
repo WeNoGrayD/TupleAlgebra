@@ -8,7 +8,9 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigational;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.Default;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Complex;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.TupleBased;
+using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
 
@@ -16,29 +18,77 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Nav
 {
     using static AttributeComponentHelper;
 
-    public abstract class NavigationalAttributeComponent<TKey, TData, TKeyContainer>
+    internal static class NavigationalAttributeComponentHelper
+    {
+        private static TupleObjectFactory _toFactory = new(null);
+
+        public static NavigationByKeyHandler<TKey, TData>
+            CreateNavigationBySimpleForeignKey<TKey, TData>(
+            TupleObject<TData> source,
+            Func<TupleObjectFactory, AttributeComponent<TKey>, TupleObject<TData>> toEntityTuple,
+            Func<TupleObject<TData>, AttributeComponent<TData>> toEntityComponent)
+            where TKey : new()
+            where TData : new()
+        {
+            return (AttributeComponent<TKey> foreignKey) =>
+            {
+                TupleObject<TData> entityTuple = toEntityTuple(_toFactory, foreignKey),
+                                   resTuple = source & entityTuple;
+                return toEntityComponent(resTuple);
+            };
+        }
+
+        public static NavigationByKeyHandler<TKey, TData>
+            CreateNavigationByComplexForeignKey<TKey, TData>(
+            TupleObject<TData> source,
+            Func<TupleObjectFactory, ComplexAttributeComponent<TKey>, TupleObject<TData>> toEntityTuple,
+            Func<TupleObject<TData>, AttributeComponent<TData>> toEntityComponent)
+            where TKey : new()
+            where TData : new()
+        {
+            return (AttributeComponent<TKey> foreignKey) =>
+            {
+                ComplexAttributeComponent<TKey> complexForeignKey =
+                    foreignKey as ComplexAttributeComponent<TKey>;
+                TupleObject<TData> entityTuple = toEntityTuple(_toFactory, complexForeignKey),
+                                   resTuple = source & entityTuple;
+                return toEntityComponent(resTuple);
+            };
+        }
+    }
+
+    public class NavigationalAttributeComponent<TKey, TData>
         : NonFictionalAttributeComponent<TData>
+        where TKey : new()
         where TData : new()
     {
         private AttributeComponent<TData> _navigationalAttribute;
 
         private Func<AttributeComponent<TData>> _navigationalAttributeGetter;
 
-        public TKeyContainer ForeignKey { get; private set; }
+        public AttributeComponent<TKey> ForeignKey { get; private set; }
 
         public AttributeComponent<TData> NavigationalAttribute 
         { get => _navigationalAttribute ??= _navigationalAttributeGetter(); }
 
-        internal delegate AttributeComponent<TData> NavigateByKeyHandler(
-            TKeyContainer key);
-
-        internal static NavigateByKeyHandler NavigateByKey { private get; set; }
+        internal NavigationByKeyHandler<TKey, TData> NavigateByKey 
+        {
+            get => Helper.GetNavigationByKeyHandler<TKey, TData>(this);
+        }
 
         #region Constructors
 
+        static NavigationalAttributeComponent()
+        {
+            Helper.RegisterType<TData, NavigationalAttributeComponent<TKey, TData>>(
+                setOperations: (factory) => null);
+
+            return;
+        }
+
         public NavigationalAttributeComponent(
             AttributeComponentPower power,
-            TKeyContainer foreignKey,
+            AttributeComponent<TKey> foreignKey,
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
             : base(
@@ -47,8 +97,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Nav
                   queryExpression)
         {
             ForeignKey = foreignKey;
-            _navigationalAttributeGetter = () =>
-                Helper.GetNavigationByKeyHandler(this)(ForeignKey);
+            _navigationalAttributeGetter = () => NavigateByKey(ForeignKey);
 
             return;
         }

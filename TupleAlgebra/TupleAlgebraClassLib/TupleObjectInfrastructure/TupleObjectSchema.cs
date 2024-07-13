@@ -10,6 +10,7 @@ using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.TupleObjects;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.AttributeContainers;
 using UniversalClassLib;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -215,25 +216,29 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         }
 
         internal void AddNavigationalAttribute<TKey, TNavigationalAttribute>(
-            //AttributeName simpleKeyAttrName,
-            //AttributeName navigationalAttrName,
             Expression<Func<TEntity, TKey>>
-                simpleKeyAttrGetterExpr,
+                simpleForeignKeyGetterExpr,
             Expression<Func<TEntity, TNavigationalAttribute>>
                 navigationalAttrGetterExpr,
-            TupleObject<TNavigationalAttribute> source,
-            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
+            TupleObject<TNavigationalAttribute> referencedKb,
+            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector,
+            Func<IEnumerable<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>>
+            factory)
+            where TKey : new()
             where TNavigationalAttribute : new()
         {
             var attributeInfo =
-                new NavigationalAttributeWithSimpleKeyInfo<TEntity, TKey, TNavigationalAttribute>(
-                    simpleKeyAttrGetterExpr,
+                new NavigationalAttributeWithSimpleForeignKeyInfo<TEntity, TKey, TNavigationalAttribute>(
+                    simpleForeignKeyGetterExpr,
                     navigationalAttrGetterExpr,
-                    source,
-                    principalKeySelector);
-            _attributes.RemoveAttribute(attributeInfo.KeyAttributeName);
-            _attributes.AddAttribute(attributeInfo.KeyAttributeName, attributeInfo);
+                    referencedKb,
+                    principalKeySelector,
+                    factory);
+            _attributes.RemoveAttribute(attributeInfo.ForeignKeyAttributeName);
+            EndInit();
+            _attributes.AddAttribute(attributeInfo.ForeignKeyAttributeName, attributeInfo);
             _attributes.AddAttribute(attributeInfo.Name, attributeInfo);
+            EndInit();
 
             return;
         }
@@ -243,13 +248,13 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             AttributeName navigationalAttrName,
             Expression<Func<TEntity, TNavigationalAttribute>>
                 navigationalAttrGetterExpr,
-            TupleObject<TNavigationalAttribute> source,
+            TupleObject<TNavigationalAttribute> referencedKb,
             Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
             where TKey : new()
             where TNavigationalAttribute : new()
         {
             /*
-            var navAttrSchema = source.Schema;
+            var navAttrSchema = referencedKb.Schema;
             IDictionary <AttributeName, 
             ITupleObjectAttributeInfo attributeInfo =
                 new NavigationalAttributeWithComplexKeyInfo<TEntity, TKey, TNavigationalAttribute>(

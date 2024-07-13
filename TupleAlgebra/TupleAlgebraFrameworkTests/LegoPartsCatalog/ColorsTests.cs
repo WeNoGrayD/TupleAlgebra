@@ -129,7 +129,7 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
             IAttributeComponentFactory<int> intFactory =
                 new OrderedFiniteEnumerableAttributeComponentFactory<int>(
                     Enumerable.Range(0, 10));
-            TupleObject<MainEntity>.Configure(ConfigureMain);
+
             MainEntity m1 = new MainEntity(1, "Einz"),
                        m2 = new MainEntity(2, "Zwei"),
                        m3 = new MainEntity(3, "Drei"),
@@ -139,11 +139,17 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                        m7 = new MainEntity(7, "Sieben"),
                        m8 = new MainEntity(8, "Acht"),
                        m9 = new MainEntity(9, "Neun");
+            List<MainEntity> mainUniverse = [m1, m2, m3, m4, m5, m6, m7, m8, m9];
+
+            TupleObject<MainEntity>.Configure(ConfigureMain);
             TupleObject<MainEntity> mains = factory
-                .CreateConjunctiveTupleSystem<MainEntity>([m1, m2, m3],
+                .CreateConjunctiveTupleSystem<MainEntity>(mainUniverse,
                     null,
                     null);
             TupleObject<DependentEntity>.Configure(ConfigureDependent);
+
+            TupleObjectBuilder<DependentEntity> staticBuilder =
+                TupleObjectBuilder<DependentEntity>.StaticBuilder;
 
             TupleObject<DependentEntity> d1 = factory
                 .CreateConjunctiveTupleSystem<DependentEntity>([
@@ -170,7 +176,14 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
 
             void ConfigureMain(TupleObjectBuilder<MainEntity> builder)
             {
-                builder.Attribute(d => d.Id).SetFactory(intFactory).Attach();
+                IEnumerable<string> numbers = mainUniverse.Select(m => m.Name);
+
+                builder.Attribute(d => d.Id)
+                    .SetFactory(intFactory).Attach();
+                builder.Attribute(m => m.Name)
+                    .SetFactory(
+                        new OrderedFiniteEnumerableAttributeComponentFactory<string>(numbers))
+                    .Attach();
             }
 
             void ConfigureDependent(TupleObjectBuilder<DependentEntity> builder)
@@ -178,9 +191,15 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                 builder.Attribute(d => d.Id).Ignore();
                 builder.HasOne(d => d.NavigationalProperty)
                     .HasForeignKey(d => d.ForeignKey)
-                    .HasPrincipalKey(mains, m => m.Id);
+                    .HasPrincipalKey(
+                        mains, 
+                        m => m.Id,
+                        (domain) => new UnorderedFiniteEnumerableAttributeComponentFactory<MainEntity>(domain))
+                    .Attach();
+                /*
                 builder.Attribute(d => d.ForeignKey).SetFactory(intFactory);
                 builder.Attribute(d => d.NavigationalProperty).Attach();
+                */
             }
         }
 

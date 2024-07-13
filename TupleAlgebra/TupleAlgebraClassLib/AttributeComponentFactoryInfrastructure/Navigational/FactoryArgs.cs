@@ -5,23 +5,75 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.Default;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Navigational;
 using TupleAlgebraClassLib.TupleObjectInfrastructure;
 using TupleAlgebraClassLib.TupleObjects;
 
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigational
 {
-    /*
+    public enum NavigationalPropertyMember
+    {
+        Key,
+        Value
+    }
+
     public record NavigationalAttributeComponentFactoryArgs<TKey, TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>,
           INonFictionalAttributeComponentFactoryArgs<NavigationalAttributeComponentFactoryArgs<TKey, TData>>
+        where TData : new()
     {
+        public NavigationalPropertyMember Member { get; init; }
+
+        public IAttributeComponentFactoryArgs<TKey> KeyFactoryArgs 
+        { get; init; }
+
+        public IAttributeComponentFactoryArgs<TData> ValueFactoryArgs
+        { get; init; }
+
+        public TupleObject<TData> Values { get; init; }
+
         public NavigationalAttributeComponentFactoryArgs(
+            NonFictionalAttributeComponentFactoryArgs<TKey> keyFactoryArgs)
+            : base(
+                  keyFactoryArgs.IsQuery,
+                  keyFactoryArgs.QueryProvider,
+                  keyFactoryArgs.QueryExpression)
+        {
+            Member = NavigationalPropertyMember.Key;
+            KeyFactoryArgs = 
+                keyFactoryArgs as IAttributeComponentFactoryArgs<TKey>;
+
+            return;
+        }
+
+        public NavigationalAttributeComponentFactoryArgs(
+            NonFictionalAttributeComponentFactoryArgs<TData> valueFactoryArgs)
+            : base(
+                  valueFactoryArgs.IsQuery,
+                  valueFactoryArgs.QueryProvider,
+                  valueFactoryArgs.QueryExpression)
+        {
+            Member = NavigationalPropertyMember.Value;
+            ValueFactoryArgs = 
+                valueFactoryArgs as IAttributeComponentFactoryArgs<TData>;
+
+            return;
+        }
+
+        public NavigationalAttributeComponentFactoryArgs(
+            TupleObject<TData> values,
             bool isQuery = false,
             IQueryProvider queryProvider = null,
             Expression queryExpression = null)
-            : base(isQuery, queryProvider, queryExpression)
+            : base(
+                  isQuery,
+                  queryProvider,
+                  queryExpression)
         {
+            Member = NavigationalPropertyMember.Value;
+            Values = values;
+
             return;
         }
 
@@ -29,8 +81,9 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
         {
             return new NavigationalAttributeComponentPower();
         }
-    }*/
+    }
 
+    /*
     public record NavigationalAttributeComponentWithSimpleKeyFactoryArgs<TKey, TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>,
           INonFictionalAttributeComponentFactoryArgs<NavigationalAttributeComponentWithSimpleKeyFactoryArgs<TKey, TData>>
@@ -82,4 +135,5 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
             return new NavigationalAttributeComponentPower();
         }
     }
+    */
 }

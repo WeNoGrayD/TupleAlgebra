@@ -13,12 +13,13 @@ using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigational;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Navigational.WithSimpleKey;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.UnorderedFiniteEnumerable;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
+using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Navigational;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
     using static TupleObjectHelper;
     using static AttributeComponentHelper;
-
+    
     public enum AttributeQuery : sbyte
     {
         Removed = -2,
@@ -182,8 +183,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             bool hasEquivalenceRelation = false)
         {
             Query = AttributeQuery.None;
-            AttributeGetter = attributeGetterExpr.Compile();
-            AttributeMember = MemberExtractor.ExtractFrom(attributeGetterExpr);
+            (AttributeGetter, AttributeMember) = Deconstruct(attributeGetterExpr);
             ComponentFactory = componentFactory;
             //SetupWizard = setupWizard;
             SetupWizardFactory = setupWizardFactory ??
@@ -191,6 +191,15 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             HasEquivalenceRelation = hasEquivalenceRelation;
 
             return;
+        }
+
+        protected (Func<TE, TA> AttrGetter, MemberInfo AttrMember)
+            Deconstruct<TE, TA>(Expression<Func<TE, TA>> attrGetterExpr)
+        {
+            return (
+                attrGetterExpr.Compile(),
+                MemberExtractor.ExtractFrom(attrGetterExpr)
+                );
         }
 
         /*
@@ -363,19 +372,14 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         }
     }
 
-    /*
-    public record struct NavigationalAttributeMemberInfo<TEntity, TAttribute>
-        (Expression<Func<TEntity, TAttribute>> AttributeGetterExpr)
-    { }
-    */
-
-    public record NavigationalAttributeWithSimpleKeyInfo<
+    public record NavigationalAttributeInfo<
         TEntity, TKey, TNavigationalAttribute>
         : AttributeInfo<
-            TEntity, 
+            TEntity,
             TNavigationalAttribute,
-            NavigationalAttributeComponentWithSimpleKeyFactory<TKey, TNavigationalAttribute>>//,
+            NavigationalAttributeComponentFactory<TKey, TNavigationalAttribute>>
             //INavigationalAttributeInfo<TKey, TNavigationalAttribute>
+        where TKey : new()
         where TNavigationalAttribute : new()
     {
         public AttributeName KeyAttributeName { get => KeyAttributeMember.Name; }
@@ -385,14 +389,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public Func<TEntity, TKey> KeyAttributeGetter
         { get; init; }
 
-        public Expression<Func<TEntity, TKey>> KeyAttributeGetterExpr
+        public Expression<Func<TEntity, TNavigationalAttribute>>
+            NavigationalAttributeGetterExpr
         { get; private set; }
 
-        public Expression<Func<TEntity, TNavigationalAttribute>> 
-            NavigationalAttributeGetterExpr 
-        { get; private set; }
-
-        public TupleObject<TNavigationalAttribute> SourceTable 
+        public TupleObject<TNavigationalAttribute> ReferencedKb
         { get; private set; }
 
         public AttributeSetupWizardFactoryHandler<TKey>
@@ -401,12 +402,14 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         private static TupleObjectFactory _toFactory = new(null);
 
-        public NavigationalAttributeWithSimpleKeyInfo(
+        public NavigationalAttributeInfo(
             Expression<Func<TEntity, TKey>>
                 keyAttrGetterExpr,
             Expression<Func<TEntity, TNavigationalAttribute>>
                 navAttrGetterExpr,
             TupleObject<TNavigationalAttribute> source,
+            Func<AttributeDomain<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>>
+            navAttrFactory,
             Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector,
             AttributeSetupWizardFactoryHandler<TNavigationalAttribute> setupWizardFactory = null,
             bool hasEquivalenceRelation = false)
@@ -416,12 +419,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                   setupWizardFactory,
                   hasEquivalenceRelation)
         {
-            KeyAttributeGetterExpr = keyAttrGetterExpr;
             KeyAttributeGetter = keyAttrGetterExpr.Compile();
             KeyAttributeMember = MemberExtractor.ExtractFrom(keyAttrGetterExpr);
             NavigationalAttributeGetterExpr = navAttrGetterExpr;
-            SourceTable = source;
+            ReferencedKb = source;
 
+            /*
             Helper.RegisterNavigational<
                 TKey,
                 TNavigationalAttribute,
@@ -429,29 +432,34 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 NavigationalAttributeComponentWithSimpleKey<TKey, TNavigationalAttribute>>(
                 ComponentFactory.Domain,
                 NavigateByKey);
+            */
 
             return;
         }
 
-        private static NavigationalAttributeComponentWithSimpleKeyFactory<TKey, TNavigationalAttribute> 
+        private static NavigationalAttributeComponentFactory<TKey, TNavigationalAttribute>
             CreateFactory(
             TupleObject<TNavigationalAttribute> source,
             Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
         {
+            /*
             var builder = _toFactory.GetDefaultBuilder<TNavigationalAttribute>();
-            var navFactory = new NavigationalAttributeComponentWithSimpleKeyFactory<TKey, TNavigationalAttribute>(
+            var navFactory = new NavigationalAttributeComponentFactory<TKey, TNavigationalAttribute>(
                 builder.Attribute(principalKeySelector).GetFactory().Domain,
                 source,
                 principalKeySelector.Compile());
 
             return navFactory;
+            */
+            return null;
         }
 
+        /*
         private AttributeComponent<TNavigationalAttribute>
             NavigateByKey(AttributeComponent<TKey> ac)
         {
             var builder = _toFactory.GetDefaultBuilder<TNavigationalAttribute>();
-            var tupleRes = SourceTable & _toFactory.CreateConjunctiveTuple(
+            var tupleRes = ReferencedKb & _toFactory.CreateConjunctiveTuple(
                 [new NamedComponentFactoryArgs<IAttributeComponent>(
                     KeyAttributeName, builder, ac)],
                 null,
@@ -459,8 +467,134 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
             return ComponentFactory.SelectValue(tupleRes);
         }
+        */
     }
 
+    /*
+    public record struct NavigationalAttributeMemberInfo<TEntity, TAttribute>
+        (Expression<Func<TEntity, TAttribute>> AttributeGetterExpr)
+    { }
+    */
+
+    public record NavigationalAttributeWithSimpleForeignKeyInfo<
+        TEntity, TKey, TNavigationalAttribute>
+        : AttributeInfo<
+            TEntity, 
+            TNavigationalAttribute,
+            NavigationalAttributeComponentFactory<TKey, TNavigationalAttribute>>
+        //NavigationalAttributeComponentWithSimpleForeignKeyFactory<TKey, TNavigationalAttribute>>//,
+        //INavigationalAttributeInfo<TKey, TNavigationalAttribute>
+        where TKey : new()
+        where TNavigationalAttribute : new()
+    {
+        public AttributeName ForeignKeyAttributeName { get => ForeignKeyAttributeMember.Name; }
+
+        public MemberInfo ForeignKeyAttributeMember { get; init; }
+
+        public Func<TEntity, TKey> ForeignKeyAttributeGetter
+        { get; init; }
+
+        public TupleObject<TNavigationalAttribute> ReferencedKb 
+        { get; private set; }
+
+        public AttributeSetupWizardFactoryHandler<TKey>
+            ForeignKeyAttributeSetupWizardFactory
+        { get; }
+
+        private static TupleObjectFactory _toFactory = new(null);
+
+        public NavigationalAttributeWithSimpleForeignKeyInfo(
+            Expression<Func<TEntity, TKey>>
+                foreignKeyAttrGetterExpr,
+            Expression<Func<TEntity, TNavigationalAttribute>>
+                navAttrGetterExpr,
+            TupleObject<TNavigationalAttribute> referencedKb,
+            Expression<Func<TNavigationalAttribute, TKey>> principalForeignKeySelector,
+            Func<IEnumerable<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>>
+            navAttrFactory = null,
+            AttributeSetupWizardFactoryHandler<TNavigationalAttribute> setupWizardFactory = null,
+            bool hasEquivalenceRelation = false)
+            : base(
+                  navAttrGetterExpr,
+                  CreateFactory(
+                      referencedKb, principalForeignKeySelector, navAttrFactory),
+                  setupWizardFactory,
+                  hasEquivalenceRelation)
+        {
+            (ForeignKeyAttributeGetter, ForeignKeyAttributeMember) =
+                Deconstruct(foreignKeyAttrGetterExpr);
+            ReferencedKb = referencedKb;
+
+            Helper.RegisterNavigational<
+                TKey,
+                TNavigationalAttribute,
+                NavigationalAttributeComponent<TKey, TNavigationalAttribute>>(
+                ComponentFactory,
+                NavigationalAttributeComponentHelper
+                .CreateNavigationBySimpleForeignKey<TKey, TNavigationalAttribute>(
+                    referencedKb,
+                    ToEntityTuple,
+                    ToEntityComponent),
+                principalForeignKeySelector.Compile());
+
+            return;
+        }
+
+        private TupleObject<TNavigationalAttribute> ToEntityTuple(
+            TupleObjectFactory toFactory,
+            AttributeComponent<TKey> foreignKey)
+        {
+            var builder = toFactory.GetBuilder<TNavigationalAttribute>(
+                ReferencedKb.Schema.PassToBuilder);
+            var farg = new NamedComponentFactoryArgs<IAttributeComponent>(
+                ForeignKeyAttributeName,
+                builder,
+                foreignKey);
+
+            return toFactory.CreateConjunctiveTuple(
+                [farg], 
+                null, 
+                builder);
+        }
+
+        private AttributeComponent<TNavigationalAttribute> ToEntityComponent(
+            TupleObject<TNavigationalAttribute> navComponent)
+        {
+            var farg = new NavigationalAttributeComponentFactoryArgs<TKey, TNavigationalAttribute>(
+                navComponent);
+
+            return ComponentFactory.CreateNonFictional(farg);
+        }
+
+        private static NavigationalAttributeComponentFactory<TKey, TNavigationalAttribute>
+            CreateFactory(
+            TupleObject<TNavigationalAttribute> referencedKb,
+            Expression<Func<TNavigationalAttribute, TKey>> principalForeignKeySelector,
+            Func<IEnumerable<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>>
+            navAttrFactory = null)
+        {
+            var builder = _toFactory.GetBuilder<TNavigationalAttribute>(
+                referencedKb.Schema.PassToBuilder);
+
+            NavigationalAttributeComponentFactory<TKey, TNavigationalAttribute> factory;
+            if (navAttrFactory is not null)
+            {
+                factory = new NavigationalAttributeComponentFactory<TKey, TNavigationalAttribute>(
+                    builder.Attribute(principalForeignKeySelector).GetFactory(),
+                    navAttrFactory(referencedKb));
+            }
+            else
+            {
+                factory = new NavigationalAttributeComponentFactory<TKey, TNavigationalAttribute>(
+                    builder.Attribute(principalForeignKeySelector).GetFactory(),
+                    referencedKb);
+            }
+
+            return factory;
+        }
+    }
+
+    /*
     public record NavigationalAttributeWithComplexKeyInfo<
         TEntity, 
         TKey, 
@@ -469,11 +603,25 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         where TKey : new()
         where TNavigationalAttribute : new()
     {
+        public TupleObject<TNavigationalAttribute> ReferencedKb
+        { get; private set; }
+
+        public IEnumerable<AttributeName> ForeignKeyCompoundNames { get; private set; }
+
+        public MemberInfo[] ForeignKeyCompoundMembers { get; private set; }
+
+        public Func<TEntity, dynamic>[] ForeignKeyCompoundAttributeGetters 
+        { get; private set; } 
+
         public NavigationalAttributeWithComplexKeyInfo(
             TupleObjectSchema<TKey> keySchema,
+            Expression<Func<TEntity, TKey>>
+                foreignKeyAttrGetterExpr,
             Expression<Func<TEntity, TNavigationalAttribute>>
                 navAttrGetterExpr,
-            IAttributeComponentFactory<TNavigationalAttribute> componentFactory = null,
+            TupleObject<TNavigationalAttribute> referencedKb,
+            Func<AttributeDomain<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>>
+            navAttrFactory,
             AttributeSetupWizardFactoryHandler<TNavigationalAttribute> setupWizardFactory = null,
             bool hasEquivalenceRelation = false)
             : base(
@@ -482,10 +630,38 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                   setupWizardFactory,
                   hasEquivalenceRelation)
         {
+            ReferencedKb = referencedKb;
+            Deconstruct(foreignKeyAttrGetterExpr);
+
+            return;
+        }
+
+        private void Deconstruct(
+            Expression<Func<TEntity, TKey>> foreignKeyGetterExpr)
+        {
+            var foreignKeyCompoundExprs = 
+                (foreignKeyGetterExpr.Body as NewExpression).Arguments;
+            ForeignKeyCompoundMembers = 
+                new MemberInfo[foreignKeyCompoundExprs.Count];
+            ForeignKeyCompoundAttributeGetters =
+                new Func<TEntity, dynamic>[foreignKeyCompoundExprs.Count];
+            int i = 0;
+            LambdaExpression foreignKeyCompoundAttrGetterExpr;
+            foreach (MemberAssignment maExpr 
+                 in foreignKeyCompoundExprs.OfType<MemberAssignment>())
+            {
+                ForeignKeyCompoundMembers[i] = maExpr.Member;
+                foreignKeyCompoundAttrGetterExpr = 
+                    maExpr.Expression as LambdaExpression;
+                ForeignKeyCompoundAttributeGetters[i] =
+                    foreignKeyCompoundAttrGetterExpr.Compile() as Func<TEntity, dynamic>;
+                i++;
+            }
 
             return;
         }
     }
+    */
 
     /*
 

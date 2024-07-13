@@ -22,12 +22,30 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         { return default; }
     }
 
+    public interface IAttributeComponentFactoryArgs<TData>
+    {
+        AttributeComponent<TData>
+            ProvideTo(IAttributeComponentFactory<TData> factory)
+        { return default; }
+    }
+
     public interface INonFictionalAttributeComponentFactoryArgs<TFactoryArgs>
         : IAttributeComponentFactoryArgs
         where TFactoryArgs : AttributeComponentFactoryArgs, INonFictionalAttributeComponentFactoryArgs<TFactoryArgs>
     {
         AttributeComponent<TData> IAttributeComponentFactoryArgs
             .ProvideTo<TData>(IAttributeComponentFactory<TData> factory)
+        {
+            return factory.CreateNonFictional((this as TFactoryArgs)!);
+        }
+    }
+
+    public interface INonFictionalAttributeComponentFactoryArgs<TData, TFactoryArgs>
+        : IAttributeComponentFactoryArgs<TData>
+        where TFactoryArgs : AttributeComponentFactoryArgs, INonFictionalAttributeComponentFactoryArgs<TData, TFactoryArgs>
+    {
+        AttributeComponent<TData> IAttributeComponentFactoryArgs<TData>
+            .ProvideTo(IAttributeComponentFactory<TData> factory)
         {
             return factory.CreateNonFictional((this as TFactoryArgs)!);
         }

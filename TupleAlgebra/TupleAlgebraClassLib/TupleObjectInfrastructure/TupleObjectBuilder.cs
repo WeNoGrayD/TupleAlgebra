@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using TupleAlgebraClassLib.TupleObjectInfrastructure.Annotations;
 using TupleAlgebraClassLib.TupleObjects;
+using TupleAlgebraClassLib.AttributeComponents;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 {
@@ -224,15 +226,18 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 simpleKeyAttrGetterExpr,
             Expression<Func<TEntity, TNavigationalAttribute>>
                 navigationalAttrGetterExpr,
-            TupleObject<TNavigationalAttribute> source,
-            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
+            TupleObject<TNavigationalAttribute> referencedKb,
+            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector,
+            Func<IEnumerable<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>> navAttrFactory)
+            where TKey : new()
             where TNavigationalAttribute : new()
         {
             Schema.AddNavigationalAttribute(
                 simpleKeyAttrGetterExpr,
                 navigationalAttrGetterExpr,
-                source,
-                principalKeySelector);
+                referencedKb,
+                principalKeySelector,
+                navAttrFactory);
 
             return;
         }
@@ -340,7 +345,10 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public ITupleObjectAttributeSetupWizard<TAttribute>
             HasPrincipalKey<TKey>(
             TupleObject<TAttribute> source,
-            Expression<Func<TAttribute, TKey>> principalKeySelector);
+            Expression<Func<TAttribute, TKey>> principalKeySelector,
+            Func<IEnumerable<TAttribute>, IAttributeComponentFactory<TAttribute>>
+            navFactory = null)
+            where TKey : new();
     }
 
     public class OneToOneNavigationalMemberSetupWizard<TEntity, TAttribute>
@@ -353,7 +361,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         private Expression<Func<TEntity, TAttribute>> _navigationalMemberAccess;
 
-        AttributeName[] _keyAttributeNames;
+        private AttributeName[] _keyAttributeNames;
 
         public OneToOneNavigationalMemberSetupWizard(
             TupleObjectBuilder<TEntity> builder,
@@ -361,7 +369,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         {
             _builder = builder;
             _navigationalMemberAccess = navigationalMemberAccess;
-            _builder.Attribute(e => navigationalMemberAccess).Ignore();
+            _builder.Attribute(navigationalMemberAccess).Ignore();
 
             return;
         }
@@ -369,13 +377,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         public INavigationalMemberSetupWizard<TEntity, TAttribute>
             HasForeignKey<TKey>(Expression<Func<TEntity, TKey>> foreignKeySelector)
         {
-            /*
             AttributeMemberExtractor memberExtractor = new();
             _keyAttributeNames = memberExtractor
                 .ExtractManyFrom(foreignKeySelector)
                 .Select<MemberInfo, AttributeName>(mi => mi.Name)
                 .ToArray();
-            */
             _foreignKeySelector = foreignKeySelector;
 
             return this;
@@ -383,8 +389,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public ITupleObjectAttributeSetupWizard<TAttribute>
             HasPrincipalKey<TKey>(
-            TupleObject<TAttribute> source, 
-            Expression<Func<TAttribute, TKey>> principalKeySelector)
+            TupleObject<TAttribute> referencedKb,
+            Expression<Func<TAttribute, TKey>> principalKeySelector,
+            Func<IEnumerable<TAttribute>, IAttributeComponentFactory<TAttribute>>
+            navFactory = null)
+            where TKey : new()
         {
             switch (_keyAttributeNames.Length)
             {
@@ -397,8 +406,9 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                         _builder.AddNavigationalAttribute(
                             _foreignKeySelector as Expression<Func<TEntity, TKey>>,
                             _navigationalMemberAccess,
-                            source,
-                            principalKeySelector);
+                            referencedKb,
+                            principalKeySelector,
+                            navFactory);
 
                         break;
                     }
