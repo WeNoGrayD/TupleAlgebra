@@ -221,15 +221,19 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             }
         }
 
-        internal void AddNavigationalAttribute<TKey, TNavigationalAttribute>(
-            Expression<Func<TEntity, TKey>>
+        internal void AddNavigationalAttribute<TForeignKey, TPrincipalKey, TNavigationalAttribute>(
+            Expression<Func<TEntity, TForeignKey>>
                 simpleKeyAttrGetterExpr,
             Expression<Func<TEntity, TNavigationalAttribute>>
                 navigationalAttrGetterExpr,
             TupleObject<TNavigationalAttribute> referencedKb,
-            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector,
-            Func<IEnumerable<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>> navAttrFactory)
-            where TKey : new()
+            Expression<Func<TNavigationalAttribute, TForeignKey>> principalKeySelector,
+            Func<IEnumerable<TPrincipalKey>, IAttributeComponentFactory<TForeignKey>>
+            keyFactory,
+            Func<IEnumerable<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>> 
+            navAttrFactory)
+            where TForeignKey : new()
+            where TPrincipalKey : new()
             where TNavigationalAttribute : new()
         {
             Schema.AddNavigationalAttribute(
@@ -237,19 +241,23 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 navigationalAttrGetterExpr,
                 referencedKb,
                 principalKeySelector,
+                keyFactory,
                 navAttrFactory);
 
             return;
         }
 
-        internal void AddNavigationalAttribute<TKey, TNavigationalAttribute>(
+        internal void AddNavigationalAttribute<
+            TForeignKey, TPrincipalKey, TNavigationalAttribute>(
             IEnumerable<AttributeName> complexKeyAttrNames,
             AttributeName navigationalAttrName,
             Expression<Func<TEntity, TNavigationalAttribute>>
                 navigationalAttrGetterExpr,
             TupleObject<TNavigationalAttribute> source,
-            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector)
-            where TKey : new()
+            Expression<Func<TNavigationalAttribute, TForeignKey>> principalKeySelector,
+            Expression<Func<TNavigationalAttribute, TPrincipalKey>> principalKeyGetter)
+            where TForeignKey : new()
+            where TPrincipalKey : new()
             where TNavigationalAttribute : new()
         {
             Schema.AddNavigationalAttribute(
@@ -324,6 +332,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 .SetupWizardFactory(Schema, memberAccess);
         }
 
+        /// <summary>
+        /// Указание навигационного атрибута.
+        /// </summary>
+        /// <typeparam name="TAttribute"></typeparam>
+        /// <param name="memberAccess"></param>
+        /// <returns></returns>
         public INavigationalMemberSetupWizard<TEntity, TAttribute>
             HasOne<TAttribute>(Expression<Func<TEntity, TAttribute>> memberAccess)
             where TAttribute : new()
@@ -339,16 +353,32 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     public interface INavigationalMemberSetupWizard<TEntity, TAttribute>
         where TAttribute : new()
     {
-        public INavigationalMemberSetupWizard<TEntity, TAttribute>
-            HasForeignKey<TKey>(Expression<Func<TEntity, TKey>> keySelector);
+        public INavigationalMemberSetupWizard<TEntity, TKey?, TKey, TAttribute>
+            HasForeignKey<TKey>(Expression<Func<TEntity, TKey?>> keySelector)
+            where TKey : struct;
 
-        public ITupleObjectAttributeSetupWizard<TAttribute>
-            HasPrincipalKey<TKey>(
-            TupleObject<TAttribute> source,
-            Expression<Func<TAttribute, TKey>> principalKeySelector,
-            Func<IEnumerable<TAttribute>, IAttributeComponentFactory<TAttribute>>
-            navFactory = null)
+        public INavigationalMemberSetupWizard<TEntity, TKey, TKey, TAttribute>
+            HasForeignKey<TKey>(Expression<Func<TEntity, TKey>> keySelector)
             where TKey : new();
+    }
+
+    public interface INavigationalMemberSetupWizard<
+        TEntity, 
+        TForeignKey, 
+        TPrincipalKey,
+        TAttribute>
+        where TPrincipalKey : new()
+        where TForeignKey : new()
+        where TAttribute : new()
+    {
+        public ITupleObjectAttributeSetupWizard<KeyValuePair<TForeignKey, TAttribute>>
+            HasPrincipalKey(
+            TupleObject<TAttribute> source,
+            Expression<Func<TAttribute, TPrincipalKey>> principalKeySelector,
+            Func<IEnumerable<TAttribute>, IAttributeComponentFactory<TAttribute>>
+            navFactory = null,
+            Func<IEnumerable<TPrincipalKey>, IAttributeComponentFactory<TForeignKey>>
+            keyFactory = null);
     }
 
     public class OneToOneNavigationalMemberSetupWizard<TEntity, TAttribute>
@@ -357,11 +387,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     {
         private TupleObjectBuilder<TEntity> _builder;
 
-        private LambdaExpression _foreignKeySelector;
-
         private Expression<Func<TEntity, TAttribute>> _navigationalMemberAccess;
-
-        private AttributeName[] _keyAttributeNames;
 
         public OneToOneNavigationalMemberSetupWizard(
             TupleObjectBuilder<TEntity> builder,
@@ -369,32 +395,101 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         {
             _builder = builder;
             _navigationalMemberAccess = navigationalMemberAccess;
-            _builder.Attribute(navigationalMemberAccess).Ignore();
 
             return;
         }
 
-        public INavigationalMemberSetupWizard<TEntity, TAttribute>
-            HasForeignKey<TKey>(Expression<Func<TEntity, TKey>> foreignKeySelector)
+        public INavigationalMemberSetupWizard<TEntity, TKey?, TKey, TAttribute>
+            HasForeignKey<TKey>(Expression<Func<TEntity, TKey?>> foreignKeySelector)
+            where TKey : struct
         {
             AttributeMemberExtractor memberExtractor = new();
-            _keyAttributeNames = memberExtractor
+            AttributeName[] keyAttributeNames = memberExtractor
                 .ExtractManyFrom(foreignKeySelector)
                 .Select<MemberInfo, AttributeName>(mi => mi.Name)
                 .ToArray();
-            _foreignKeySelector = foreignKeySelector;
 
-            return this;
+            return new OneToOneNavigationalMemberWithNullableForeignKeySetupWizard<
+                TEntity,
+                TKey, 
+                TAttribute>(
+                _builder,
+                foreignKeySelector,
+                _navigationalMemberAccess,
+                keyAttributeNames);
         }
 
-        public ITupleObjectAttributeSetupWizard<TAttribute>
-            HasPrincipalKey<TKey>(
+        public INavigationalMemberSetupWizard<TEntity, TKey, TKey, TAttribute>
+            HasForeignKey<TKey>(Expression<Func<TEntity, TKey>> foreignKeySelector)
+            where TKey : new()
+        {
+            AttributeMemberExtractor memberExtractor = new();
+            AttributeName[] keyAttributeNames = memberExtractor
+                .ExtractManyFrom(foreignKeySelector)
+                .Select<MemberInfo, AttributeName>(mi => mi.Name)
+                .ToArray();
+
+            return new OneToOneNavigationalMemberWithProjectedForeignKeySetupWizard<
+                TEntity,
+                TKey,
+                TAttribute>(
+                _builder,
+                foreignKeySelector,
+                _navigationalMemberAccess,
+                keyAttributeNames);
+        }
+    }
+
+    public class OneToOneNavigationalMemberWithNullableForeignKeySetupWizard<
+        TEntity,
+        TKey,
+        TAttribute>
+        : INavigationalMemberSetupWizard<
+            TEntity,
+            TKey?,
+            TKey,
+            TAttribute>
+        where TKey : struct
+        where TAttribute : new()
+    {
+        private TupleObjectBuilder<TEntity> _builder;
+
+        private Expression<Func<TEntity, TKey?>> _foreignKeySelector;
+
+        private Expression<Func<TEntity, TAttribute>> _navigationalMemberAccess;
+
+        private AttributeName[] _keyAttributeNames;
+
+        public OneToOneNavigationalMemberWithNullableForeignKeySetupWizard(
+            TupleObjectBuilder<TEntity> builder,
+            Expression<Func<TEntity, TKey?>> foreignKeySelector,
+            Expression<Func<TEntity, TAttribute>> navigationalMemberAccess,
+            AttributeName[] keyAttributeNames)
+        {
+            _builder = builder;
+            _foreignKeySelector = foreignKeySelector;
+            _navigationalMemberAccess = navigationalMemberAccess;
+            _keyAttributeNames = keyAttributeNames;
+
+            return;
+        }
+
+        public ITupleObjectAttributeSetupWizard<KeyValuePair<TKey?, TAttribute>>
+            HasPrincipalKey(
             TupleObject<TAttribute> referencedKb,
             Expression<Func<TAttribute, TKey>> principalKeySelector,
             Func<IEnumerable<TAttribute>, IAttributeComponentFactory<TAttribute>>
-            navFactory = null)
-            where TKey : new()
+            navFactory = null,
+            Func<IEnumerable<TKey>, IAttributeComponentFactory<TKey?>>
+            keyFactory = null)
         {
+            Expression body = principalKeySelector.Body;
+            body = Expression.Convert(body, typeof(TKey?)); 
+            Expression<Func<TAttribute, TKey?>> principalKeySelectorMod =
+                Expression.Lambda<Func<TAttribute, TKey?>>(
+                    body,
+                    principalKeySelector.Parameters);
+
             switch (_keyAttributeNames.Length)
             {
                 case 0:
@@ -404,10 +499,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                 case 1:
                     {
                         _builder.AddNavigationalAttribute(
-                            _foreignKeySelector as Expression<Func<TEntity, TKey>>,
+                            _foreignKeySelector,
                             _navigationalMemberAccess,
                             referencedKb,
-                            principalKeySelector,
+                            principalKeySelectorMod,
+                            keyFactory,
                             navFactory);
 
                         break;
@@ -418,18 +514,104 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
                     }
             }
 
-            return _builder.Attribute(_navigationalMemberAccess);
-        }
-
-        private bool DefineKeyComplexity<TData, TKey>(
-            Expression<Func<TData, TKey>> keySelector)
-        {
-            return keySelector.Body switch
-            {
-                MemberExpression => false,
-                NewExpression => true,
-                _ => throw new Exception()
-            };
+            return (_builder.Attribute((AttributeName)_navigationalMemberAccess)
+                as ITupleObjectAttributeSetupWizard<KeyValuePair<TKey?, TAttribute>>)!;
         }
     }
+
+    public class OneToOneNavigationalMemberWithProjectedForeignKeySetupWizard<
+        TEntity, 
+        TKey, 
+        TAttribute>
+        : INavigationalMemberSetupWizard<
+            TEntity,
+            TKey,
+            TKey,
+            TAttribute>
+        where TKey : new()
+        where TAttribute : new()
+    {
+        private TupleObjectBuilder<TEntity> _builder;
+
+        private Expression<Func<TEntity, TKey>> _foreignKeySelector;
+
+        private Expression<Func<TEntity, TAttribute>> _navigationalMemberAccess;
+
+        private AttributeName[] _keyAttributeNames;
+
+        public OneToOneNavigationalMemberWithProjectedForeignKeySetupWizard(
+            TupleObjectBuilder<TEntity> builder,
+            Expression<Func<TEntity, TKey>> foreignKeySelector,
+            Expression<Func<TEntity, TAttribute>> navigationalMemberAccess,
+            AttributeName[] keyAttributeNames)
+        {
+            _builder = builder;
+            _foreignKeySelector = foreignKeySelector;
+            _navigationalMemberAccess = navigationalMemberAccess;
+            _keyAttributeNames = keyAttributeNames;
+
+            return;
+        }
+
+        public ITupleObjectAttributeSetupWizard<KeyValuePair<TKey, TAttribute>>
+            HasPrincipalKey(
+            TupleObject<TAttribute> referencedKb,
+            Expression<Func<TAttribute, TKey>> principalKeySelector,
+            Func<IEnumerable<TAttribute>, IAttributeComponentFactory<TAttribute>>
+            navFactory = null,
+            Func<IEnumerable<TKey>, IAttributeComponentFactory<TKey>>
+            keyFactory = null)
+        {
+            switch (_keyAttributeNames.Length)
+            {
+                case 0:
+                    {
+                        throw new Exception();
+                    }
+                case 1:
+                    {
+                        _builder.AddNavigationalAttribute(
+                            _foreignKeySelector,
+                            _navigationalMemberAccess,
+                            referencedKb,
+                            principalKeySelector,
+                            keyFactory,
+                            navFactory);
+
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+
+            return (_builder.Attribute((AttributeName)_navigationalMemberAccess)
+                as ITupleObjectAttributeSetupWizard<KeyValuePair<TKey, TAttribute>>)!;
+        }
+    }
+
+    /*
+    public class c0
+    {
+        public virtual i1 F<i1>(i1? i)
+            where i1 : struct
+        {
+            return i.Value;
+        }
+
+        public virtual i1 F<i1>(i1? i)
+            where i1 : class
+        {
+            return i;
+        }
+    }
+
+    public class c1<i1> : c0<i1, i1?>
+        where i1 : struct
+    { }
+
+    public class c2 : c1<int>
+    { }
+    */
 }

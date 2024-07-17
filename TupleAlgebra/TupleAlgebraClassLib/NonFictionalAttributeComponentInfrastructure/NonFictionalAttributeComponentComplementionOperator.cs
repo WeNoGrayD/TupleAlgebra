@@ -24,7 +24,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
         : FactoryUnaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, TFactory, CTFactoryArgs, IAttributeComponent<TData>>
         where CTOperand: NonFictionalAttributeComponent<TData>
         where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand, CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         public override IAttributeComponent<TData> Visit(
             CTOperand first, 

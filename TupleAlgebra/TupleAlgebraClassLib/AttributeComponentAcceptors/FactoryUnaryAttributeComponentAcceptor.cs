@@ -14,7 +14,7 @@ namespace TupleAlgebraClassLib.AttributeComponentVisitors
         : FactoryUnaryOperator<CTOperand, TFactory, TOperationResult>
         where CTOperand: NonFictionalAttributeComponent<TData>
         where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand, CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     { }
 
     public abstract class AttributeComponentFactoryUnarySetOperator<TData, CTOperand>
@@ -26,6 +26,6 @@ namespace TupleAlgebraClassLib.AttributeComponentVisitors
         : FactoryUnaryAttributeComponentVisitor<TData, TIntermediateResult, CTOperand, TFactory, CTFactoryArgs, IAttributeComponent<TData>>
         where CTOperand : NonFictionalAttributeComponent<TData>
         where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand, CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     { }
 }

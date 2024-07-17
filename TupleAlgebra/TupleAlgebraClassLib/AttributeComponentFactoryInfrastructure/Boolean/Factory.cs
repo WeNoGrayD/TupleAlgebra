@@ -151,5 +151,16 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
 
             return booleanFactory.ProduceOperationResult(values);
         }
+
+        NonFictionalAttributeComponentFactoryArgs<bool>
+            INonFictionalAttributeComponentFactory<
+                bool,
+                IEnumerable<bool>>
+            .CreateNonFictionalFactoryArgs(IEnumerable<bool> values)
+        {
+            IBooleanAttributeComponentFactory booleanFactory = this;
+
+            return booleanFactory.CreateFactoryArgs(values);
+        }
     }
 }

@@ -20,6 +20,6 @@ namespace TupleAlgebraClassLib.AttributeComponentVisitors
         : FactoryBinaryOperator<CTOperand1, IAttributeComponent<TData>, CTFactory, TOperationResult>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
         where CTFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand1, TFactoryArgs>
-        where TFactoryArgs : AttributeComponentFactoryArgs
+        where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     { }
 }

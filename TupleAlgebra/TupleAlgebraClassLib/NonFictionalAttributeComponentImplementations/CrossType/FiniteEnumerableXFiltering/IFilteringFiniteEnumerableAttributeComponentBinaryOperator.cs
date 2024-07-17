@@ -66,7 +66,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cro
             IAttributeComponent<TData>>
         where CTOperand1 : NonFictionalAttributeComponent<TData>, IFiniteEnumerableAttributeComponent<TData>
         where CTFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, CTOperand1, CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
     }
 

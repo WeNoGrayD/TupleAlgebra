@@ -50,10 +50,10 @@ namespace TupleAlgebraClassLib.AttributeComponents
             AttributeComponentSetOperationsCreationHandler<TData>(
                 IAttributeComponentFactory<TData> factory);
 
-        internal delegate AttributeComponent<TData> NavigationByKeyHandler<
-            TKey, 
-            TData>(
-            AttributeComponent<TKey> key);
+        internal delegate AttributeComponent<TResult> NavigationHandler<
+            TBy, 
+            TResult>(
+            AttributeComponent<TBy> key);
 
         #endregion
 
@@ -162,9 +162,10 @@ namespace TupleAlgebraClassLib.AttributeComponents
             TKey,
             TData,
             TAttributeComponent>(
-            IAttributeComponentFactory<TData> factory,
-            NavigationByKeyHandler<TKey, TData> navigationByKey,
-            Func<TData, TKey> principalKeySelector)
+            IAttributeComponentFactory<KeyValuePair<TKey, TData>> factory,
+            NavigationHandler<TKey, TData> navigationByKey,
+            Func<TData, TKey> principalKeySelector,
+            NavigationHandler<TData, TKey> selectKey)
             where TKey : new()
             where TData : new()
             where TAttributeComponent : NavigationalAttributeComponent<TKey, TData>
@@ -174,7 +175,8 @@ namespace TupleAlgebraClassLib.AttributeComponents
             _nodes[registeredType].RegisterNodeForNavigational(
                 factory,
                 navigationByKey,
-                principalKeySelector);
+                principalKeySelector,
+                selectKey);
 
             return;
         }
@@ -388,24 +390,64 @@ namespace TupleAlgebraClassLib.AttributeComponents
             return setOpsContainer;
         }
 
-        internal NavigationByKeyHandler<TKey, TData>
+        internal NavigationHandler<TKey, TData>
             GetNavigationByKeyHandler<TKey, TData>(
             NavigationalAttributeComponent<TKey, TData> ac)
             where TKey : new()
             where TData : new()
         {
-            NavigationByKeyHandler<TKey, TData> navigator;
+            NavigationHandler<TKey, TData> navigator;
 
             Type acType = ac.GetType();
             if (!_registrar.IsTypeRegistered(acType))
             {
                 _registrar.RegisterTypeWithForce(acType);
             }
-            navigator = (_nodes[acType].GetNode<TData>(ac.Domain)
+            navigator = (_nodes[acType].GetNode<KeyValuePair<TKey, TData>>(ac.Domain)
                 as NavigationalAttributeComponentNode<TKey, TData>)
-                .NavigationByKey.Value;
+                .NavigateByKey.Value;
 
             return navigator;
+        }
+
+        internal Func<TData, TKey>
+            GetPrincipleKeySelector<TKey, TData>(
+            NavigationalAttributeComponent<TKey, TData> ac)
+            where TKey : new()
+            where TData : new()
+        {
+            Func<TData, TKey> principleKeySelector;
+
+            Type acType = ac.GetType();
+            if (!_registrar.IsTypeRegistered(acType))
+            {
+                _registrar.RegisterTypeWithForce(acType);
+            }
+            principleKeySelector = (_nodes[acType].GetNode<KeyValuePair<TKey, TData>>(ac.Domain)
+                as NavigationalAttributeComponentNode<TKey, TData>)
+                .PrincipalKeySelector.Value;
+
+            return principleKeySelector;
+        }
+
+        internal NavigationHandler<TData, TKey>
+            GetKeySelectionHandler<TKey, TData>(
+            NavigationalAttributeComponent<TKey, TData> ac)
+            where TKey : new()
+            where TData : new()
+        {
+            NavigationHandler<TData, TKey> selector;
+
+            Type acType = ac.GetType();
+            if (!_registrar.IsTypeRegistered(acType))
+            {
+                _registrar.RegisterTypeWithForce(acType);
+            }
+            selector = (_nodes[acType].GetNode<KeyValuePair<TKey, TData>>(ac.Domain)
+                as NavigationalAttributeComponentNode<TKey, TData>)
+                .SelectKey.Value;
+
+            return selector;
         }
 
         #endregion
@@ -418,34 +460,74 @@ namespace TupleAlgebraClassLib.AttributeComponents
         {
             AttributeComponentNodePattern<TData> GetNodePattern<TData>()
             {
-                return (this as AttributeDomainManifold<TData>)!
+                return (this as IAttributeDomainManifold<TData>)!
                     .NodePattern;
             }
 
             AttributeComponentNode<TData> GetNode<TData>(
                 AttributeDomain<TData> domain)
             {
-                return (this as AttributeDomainManifold<TData>)![domain];
+                return (this as IAttributeDomainManifold<TData>)![domain];
             }
 
-            internal void RegisterNodeForNavigational<TKey, TData>(
-                IAttributeComponentFactory<TData> factory,
-                NavigationByKeyHandler<TKey, TData> navigationByKey,
-                Func<TData, TKey> principalKeySelector)
+            internal void RegisterNodeForNavigational<TKey, TValue>(
+                IAttributeComponentFactory<KeyValuePair<TKey, TValue>> factory,
+                NavigationHandler<TKey, TValue> navigateByKey,
+                Func<TValue, TKey> principalKeySelector,
+                NavigationHandler<TValue, TKey> selectKey)
                 where TKey : new()
             {
-                (this as AttributeDomainManifold<TData>)!.
+                (this as IAttributeDomainManifold<KeyValuePair<TKey, TValue>>)!.
                     RegisterNodeForNavigational(
                     factory, 
-                    navigationByKey,
-                    principalKeySelector);
+                    navigateByKey,
+                    principalKeySelector,
+                    selectKey);
+
+                return;
+            }
+        };
+
+        public interface IAttributeDomainManifold<TData>
+            : IAttributeDomainManifold
+        {
+            public AttributeComponentNodePattern<TData> NodePattern
+            { get; }
+
+            public AttributeComponentNode<TData>
+                this[AttributeDomain<TData> domain] { get; }
+
+            public void AddNode(
+                AttributeDomain<TData> domain,
+                AttributeComponentNode<TData> node);
+
+            internal void RegisterNodeForNavigational<TKey, TValue>(
+                IAttributeComponentFactory<KeyValuePair<TKey, TValue>> factory,
+                NavigationHandler<TKey, TValue> navigateByKey,
+                Func<TValue, TKey> principalKeySelector,
+                NavigationHandler<TValue, TKey> selectKey)
+                where TKey : new()
+            {
+                var navAttrDomain = factory.Domain;
+                var node = new NavigationalAttributeComponentNode<TKey, TValue>(
+                    factory);
+                IAttributeDomainManifold<KeyValuePair<TKey, TValue>> kvpDomainManifold =
+                    (this as IAttributeDomainManifold<KeyValuePair<TKey, TValue>>);
+                kvpDomainManifold.AddNode(navAttrDomain, node);
+                node.ProvideFactorySetter(
+                    kvpDomainManifold.NodePattern.FactorySetter.Value);
+                node.ProvideSetOperationsSetter(
+                    kvpDomainManifold.NodePattern.SetOperationsSetter.Value);
+                node.ProvideNavigationByKeyHandler(navigateByKey);
+                node.ProvidePrincipalKeySelector(principalKeySelector);
+                node.ProvideKeySelectionHandler(selectKey);
 
                 return;
             }
         };
 
         public class AttributeDomainManifold<TData>
-            : IAttributeDomainManifold
+            : IAttributeDomainManifold<TData>
         {
             private AttributeComponentNodePattern<TData> _nodePattern;
 
@@ -484,7 +566,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
             {
                 AttributeComponentNode<TData> node =
                     new AttributeComponentNode<TData>(domain);
-                _nodes.Add(domain, node);
+                AddNode(domain, node);
                 node.ProvideFactorySetter(
                     NodePattern.FactorySetter.Value);
                 node.ProvideSetOperationsSetter(
@@ -493,26 +575,47 @@ namespace TupleAlgebraClassLib.AttributeComponents
                 return node;
             }
 
-            internal void RegisterNodeForNavigational<TKey>(
-                IAttributeComponentFactory<TData> factory,
-                NavigationByKeyHandler<TKey, TData> navigationByKey,
-                Func<TData, TKey> principalKeySelector)
-                where TKey : new()
+            public void AddNode(
+                AttributeDomain<TData> domain,
+                AttributeComponentNode<TData> node)
+            {
+                _nodes.Add(domain, node);
+                return;
+            }
+        }
+
+        /*
+        internal class NavigationalAttributeDomainManifold<TKey, TData>
+            : AttributeDomainManifold<KeyValuePair<TKey, TData>>
+            where TKey : new()
+        {
+            public NavigationalAttributeDomainManifold() : base()
+            {
+                return;
+            }
+
+            internal void RegisterNodeForNavigational(
+                IAttributeComponentFactory<KeyValuePair<TKey, TData>> factory,
+                NavigationHandler<TKey, TData> navigateByKey,
+                Func<TData, TKey> principalKeySelector,
+                NavigationHandler<TData, TKey> selectKey)
             {
                 var navAttrDomain = factory.Domain;
                 var node = new NavigationalAttributeComponentNode<TKey, TData>(
                     factory);
-                _nodes.Add(navAttrDomain, node);
+                AddNode(navAttrDomain, node);
                 node.ProvideFactorySetter(
                     NodePattern.FactorySetter.Value);
                 node.ProvideSetOperationsSetter(
                     NodePattern.SetOperationsSetter.Value);
-                node.ProvideNavigationByKeyHandler(navigationByKey);
+                node.ProvideNavigationByKeyHandler(navigateByKey);
                 node.ProvidePrincipalKeySelector(principalKeySelector);
+                node.ProvideKeySelectionHandler(selectKey);
 
                 return;
             }
         }
+        */
 
         public class AttributeComponentNodePattern<TData>
             : TypeHierarchyNode<AttributeComponentNodePattern<TData>>
@@ -606,18 +709,22 @@ namespace TupleAlgebraClassLib.AttributeComponents
         }
 
         internal class NavigationalAttributeComponentNode<TKey, TData>
-            : AttributeComponentNode<TData>
+            : AttributeComponentNode<KeyValuePair<TKey, TData>>
             where TKey : new()
         {
-            public PropertyNode<NavigationByKeyHandler<TKey, TData>>
-                NavigationByKey
+            public PropertyNode<NavigationHandler<TKey, TData>>
+                NavigateByKey
             { get; protected set; }
 
             public PropertyNode<Func<TData, TKey>> PrincipalKeySelector
             { get; protected set; }
 
+            public PropertyNode<NavigationHandler<TData, TKey>>
+                SelectKey
+            { get; protected set; }
+
             public NavigationalAttributeComponentNode(
-                IAttributeComponentFactory<TData> factory)
+                IAttributeComponentFactory<KeyValuePair<TKey, TData>> factory)
                 : base(factory.Domain)
             {
                 ProvideFactory(factory);
@@ -626,7 +733,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
             }
 
             public void ProvideFactory(
-                IAttributeComponentFactory<TData> factory)
+                IAttributeComponentFactory<KeyValuePair<TKey, TData>> factory)
             {
                 this.Factory = InitProperty(factory);
 
@@ -634,9 +741,9 @@ namespace TupleAlgebraClassLib.AttributeComponents
             }
 
             public void ProvideNavigationByKeyHandler(
-                NavigationByKeyHandler<TKey, TData> navigationByKey)
+                NavigationHandler<TKey, TData> navigateByKey)
             {
-                this.NavigationByKey = InitProperty(navigationByKey);
+                this.NavigateByKey = InitProperty(navigateByKey);
 
                 return;
             }
@@ -645,6 +752,14 @@ namespace TupleAlgebraClassLib.AttributeComponents
                 Func<TData, TKey> principalKeySelector)
             {
                 this.PrincipalKeySelector = InitProperty(principalKeySelector);
+
+                return;
+            }
+
+            public void ProvideKeySelectionHandler(
+                NavigationHandler<TData, TKey> selectKey)
+            {
+                this.SelectKey = InitProperty(selectKey);
 
                 return;
             }

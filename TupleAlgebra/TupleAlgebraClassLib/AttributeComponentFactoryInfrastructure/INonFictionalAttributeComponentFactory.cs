@@ -17,12 +17,15 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
     {
         AttributeComponent<TData> CreateNonFictional(
             TFactoryValues resultElements);
+
+        NonFictionalAttributeComponentFactoryArgs<TData> CreateNonFictionalFactoryArgs(
+            TFactoryValues factoryValues);
     }
 
     public interface INonFictionalAttributeComponentFactory2<
         TData,
         in CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         abstract NonFictionalAttributeComponent<TData>
             CreateSpecificNonFictional(CTFactoryArgs args);
@@ -31,11 +34,23 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
     public interface INonFictionalAttributeComponentFactory<
         TData,
         in TFactoryValues,
-        in CTFactoryArgs>
+        CTFactoryArgs>
         : INonFictionalAttributeComponentFactory<TData, TFactoryValues>,
           INonFictionalAttributeComponentFactory2<TData, CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
+        NonFictionalAttributeComponentFactoryArgs<TData>
+            INonFictionalAttributeComponentFactory<
+            TData,
+            TFactoryValues>
+            .CreateNonFictionalFactoryArgs(
+            TFactoryValues factoryValues)
+        {
+            return CreateSpecificNonFictionalFactoryArgs(factoryValues);
+        }
+
+        abstract CTFactoryArgs
+            CreateSpecificNonFictionalFactoryArgs(TFactoryValues factoryValues);
     }
 
     public interface INonFictionalAttributeComponentFactory<
@@ -53,8 +68,19 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
               CTFactoryArgs,
               AttributeComponent<TData>>
         where CTNonFictionalAttributeComponent : NonFictionalAttributeComponent<TData>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
+        CTFactoryArgs
+            INonFictionalAttributeComponentFactory<
+            TData,
+            TFactoryValues,
+            CTFactoryArgs>
+            .CreateSpecificNonFictionalFactoryArgs(
+            TFactoryValues factoryValues)
+        {
+            return CreateFactoryArgs(factoryValues);
+        }
+
         protected AttributeComponent<TData> 
             ProduceOperationResult_DefaultImpl(
                 CTNonFictionalAttributeComponent first,
@@ -65,6 +91,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
                 resultElements);
             AttributeComponent<TData> resultComponent =
                 CreateNonFictional(factoryArgs);
+            resultComponent.Domain = Domain;
 
             return resultComponent;
         }
@@ -95,6 +122,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
                 resultElements);
             AttributeComponent<TData> resultComponent =
                 CreateNonFictional(factoryArgs);
+            resultComponent.Domain = Domain;
 
             return resultComponent;
         }

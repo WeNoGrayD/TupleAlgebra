@@ -36,18 +36,18 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         AttributeComponent<TData> IAttributeComponentFactoryArgs
             .ProvideTo<TData>(IAttributeComponentFactory<TData> factory)
         {
-            return factory.CreateNonFictional((this as TFactoryArgs)!);
+            return factory.CreateNonFictional((this as NonFictionalAttributeComponentFactoryArgs<TData>)!);
         }
     }
 
     public interface INonFictionalAttributeComponentFactoryArgs<TData, TFactoryArgs>
         : IAttributeComponentFactoryArgs<TData>
-        where TFactoryArgs : AttributeComponentFactoryArgs, INonFictionalAttributeComponentFactoryArgs<TData, TFactoryArgs>
+        where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>, INonFictionalAttributeComponentFactoryArgs<TData, TFactoryArgs>
     {
         AttributeComponent<TData> IAttributeComponentFactoryArgs<TData>
             .ProvideTo(IAttributeComponentFactory<TData> factory)
         {
-            return factory.CreateNonFictional((this as TFactoryArgs)!);
+            return factory.CreateNonFictional(this as TFactoryArgs);
         }
     }
 

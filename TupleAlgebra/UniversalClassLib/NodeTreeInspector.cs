@@ -115,6 +115,8 @@ namespace UniversalClassLib
         bool InspectNode(object currentNode);
 
         bool InspectionEndedOk();
+
+        void Reset();
     }
 
     public class NodeTreeInspector<TNode> : INodeTreeInspector
@@ -135,6 +137,14 @@ namespace UniversalClassLib
         {
             Name = name;
             _rules = rules;
+            Reset();
+
+            return;
+        }
+
+        public void Reset()
+        {
+            _requestForStop = false;
             _tapeReader = ReadTape();
 
             return;

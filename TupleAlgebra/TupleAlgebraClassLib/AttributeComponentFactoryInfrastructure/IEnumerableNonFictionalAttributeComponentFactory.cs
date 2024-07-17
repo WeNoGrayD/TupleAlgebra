@@ -24,7 +24,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             IEnumerable<TData>,
             CTFactoryArgs>,
           IEnumerableNonFictionalAttributeComponentFactory<TData>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     { }
 
     public interface IEnumerableNonFictionalAttributeComponentFactory<
@@ -40,7 +40,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             TData,
             CTFactoryArgs>
         where CTNonFictionalAttributeComponent : NonFictionalAttributeComponent<TData>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         protected static CTFactoryArgs CreateFactoryArgs_DefaultImpl(
             CTNonFictionalAttributeComponent first,

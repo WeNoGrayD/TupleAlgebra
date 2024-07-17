@@ -20,11 +20,11 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         EmptyAttributeComponent<TData> CreateEmpty();
 
         AttributeComponent<TData> CreateNonFictional(
-            AttributeComponentFactoryArgs factoryArgs);
+            NonFictionalAttributeComponentFactoryArgs<TData> factoryArgs);
 
         AttributeComponent<TData> CreateNonFictional<TFactoryArgs>(
             TFactoryArgs factoryArgs)
-            where TFactoryArgs : AttributeComponentFactoryArgs;
+            where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>;
 
         FullAttributeComponent<TData> CreateFull(
             AttributeComponentFactoryArgs factoryArgs);

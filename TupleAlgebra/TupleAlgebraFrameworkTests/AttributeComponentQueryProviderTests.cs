@@ -10,6 +10,7 @@ using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Buffered;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure;
 
 namespace TupleAlgebraFrameworkTests
 {
@@ -27,7 +28,9 @@ namespace TupleAlgebraFrameworkTests
                 new StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(
                     values: constructorParameters["values"] as IEnumerable<TData>);
 
-            return _nonFictionalACFactory.CreateNonFictional(factoryArgs) as IEnumerable<TData>;
+            return _nonFictionalACFactory.CreateNonFictional(
+                factoryArgs as NonFictionalAttributeComponentFactoryArgs<ForumUser>)
+                as IEnumerable<TData>;
             //return new OrderedFiniteEnumerableNonFictionalAttributeComponent<TData>(null,
             //    constructorParameters["values"] as IEnumerable<TData>);
         }

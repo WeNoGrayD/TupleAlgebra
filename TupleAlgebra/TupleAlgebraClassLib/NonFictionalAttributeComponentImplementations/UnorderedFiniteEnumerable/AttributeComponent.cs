@@ -73,7 +73,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Uno
             IEnumerable<TReproducedData> populatingData)
         {
             return new UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TReproducedData>(
-                populatingData as HashSet<TReproducedData>);//,
+                populatingData.ToHashSet());//,
                 //this.Provider as OrderedFiniteEnumerableAttributeComponentQueryProvider);
         }
 

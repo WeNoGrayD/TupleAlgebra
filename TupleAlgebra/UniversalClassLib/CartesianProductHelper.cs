@@ -63,12 +63,18 @@ namespace UniversalClassLib
              */
             IEnumerator<TResult> IterateOverManyAttachedAttributes()
             {
+                // Оптимизация меняет порядок перечислителей,
+                // передающихся entityFactory.
+                // Последнюю надо менять в соответствии с этим порядком.
+
                 /*
                  * Попытка оптимизировать потребление памяти при переборе значений компонент
                  * атрибутов, если пользователь не задавал специального порядка обхода.
                  * Компонента с самой большой мощностью ставится на нулевой индекс
                  * в массиве перечислителей и не буферизируется.
                  */
+
+                /*
                 int largestPartLoc = -1;
                 TPartial largestPart = parts.MaxBy(partialPowerGetter)!,
                          part;
@@ -94,9 +100,13 @@ namespace UniversalClassLib
                     }
 
                 }
+                */
+
                 /*
                  * Вставка крупнейшей компоненты на нулевой индекс массива перечислителей. 
                  */
+
+                /*
                 if (largestPartLoc > 0)
                 {
                     (partsEnumerators[largestPartLoc], partsEnumerators[0]) =
@@ -112,6 +122,28 @@ namespace UniversalClassLib
                             1))
                         yield return entity;
                 }
+
+                yield break;
+                */
+
+                TPartial part;
+                IEnumerator[] partsEnumerators = new IEnumerator[partsCount];
+
+                for (int i = 0; i < partsCount; i++)
+                {
+                    if ((part = parts[i]) is null)
+                        continue;
+
+                    // Производится буферизирование компоненты.
+                    partsEnumerators[i] =
+                        part.GetBufferizedEnumerator();
+                }
+
+                foreach (TResult entity
+                         in EnumerateCartesianProduct(
+                            entityFactory,
+                            partsEnumerators))
+                    yield return entity;
 
                 yield break;
             }

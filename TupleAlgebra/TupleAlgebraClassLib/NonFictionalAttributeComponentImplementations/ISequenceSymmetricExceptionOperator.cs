@@ -31,7 +31,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
         where TOperand1 : NonFictionalAttributeComponent<TData>
         where TOperand2 : IAttributeComponent<TData>
         where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TOperand1, TFactoryArgs>
-        where TFactoryArgs : AttributeComponentFactoryArgs
+        where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         IAttributeComponent<TData>
              IFactoryBinaryOperator<

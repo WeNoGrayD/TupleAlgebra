@@ -17,6 +17,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     {
         private const string PROP_SOURCE_ENUMS = "properties";
         private const string ENUM_CURRENT_ITEM = nameof(IEnumerator.Current);
+        private const string KVP_KEY = "Key";
+        private const string KVP_VALUE = "Value";
 
         public PrimitiveEntityFactoryHandler<TEntity> BuildPrimitive<TEntity>()
         {
@@ -80,14 +82,75 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
              */
             MemberAssignment[] ConstructMembersAssignment()
             {
-                MemberAssignment[] members = new MemberAssignment[attributes.Length];
+                IList<MemberAssignment> members = 
+                    new List<MemberAssignment>(attributes.Length);
 
-                for (int i = 0; i < attributes.Length; i++)
+                for (int memberPtr = 0; memberPtr < attributes.Length; memberPtr++)
                 {
-                    members[i] = Expression.Bind(attributes[i], GetPropertyValueOf(i));
+                    switch (attributes[memberPtr])
+                    {
+                        case FieldInfo fi:
+                            {
+                                AssignFieldOrProperty(
+                                    fi.FieldType, fi, members, memberPtr);
+
+                                break;
+                            }
+                        case PropertyInfo pi:
+                            {
+                                AssignFieldOrProperty(
+                                    pi.PropertyType, pi, members, memberPtr);
+
+                                break;
+                            }
+                        case NavigationalPropertyMemberInfo navPropMI:
+                            {
+                                AssignNavigationalProperty(
+                                    navPropMI.PropertyType,
+                                    navPropMI,
+                                    members,
+                                    memberPtr);
+
+                                break;
+                            }
+                    }
                 }
 
-                return members;
+                return members.ToArray();
+            }
+
+            void AssignFieldOrProperty(
+                Type memberObjType,
+                MemberInfo mi,
+                IList<MemberAssignment> members, 
+                int memberPtr)
+            {
+                members.Add(Expression.Bind(mi, GetPropertyValueOf(memberObjType, memberPtr)));
+
+                return;
+            }
+
+            void AssignNavigationalProperty(
+                Type memberObjType,
+                NavigationalPropertyMemberInfo navPropMI,
+                IList<MemberAssignment> members,
+                int memberPtr)
+            {
+                Expression kvpPropertyExpr = GetPropertyValueOf(memberObjType, memberPtr),
+                           keyMemberExpr = 
+                    Expression.MakeMemberAccess(
+                        kvpPropertyExpr, 
+                        memberObjType.GetMember(KVP_KEY)[0]),
+                           valueMemberExpr =
+                    Expression.MakeMemberAccess(
+                        kvpPropertyExpr,
+                        memberObjType.GetMember(KVP_VALUE)[0]);
+
+                members.Add(Expression.Bind(navPropMI.ForeignKeyMemberInfo, keyMemberExpr));
+                members.Add(Expression.Bind(
+                    navPropMI.NavigationalAttributeMemberInfo, valueMemberExpr));
+
+                return;
             }
 
             /*
@@ -96,15 +159,11 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
              * То есть свойство инициализируется значением конкретного типа
              * (потому что перечислитель обобщённый), которое содержится в enumerator.Current.
              */
-            Expression GetPropertyValueOf(int attrId)
+            Expression GetPropertyValueOf(
+                Type memberObjType,
+                int attrId)
             {
-                Type propertyType = attributes[attrId] switch
-                    {
-                        FieldInfo fi => fi.FieldType,
-                        PropertyInfo pi => pi.PropertyType,
-                        _ => null
-                    },
-                     genericEnumerator = typeof(IEnumerator<>).MakeGenericType(propertyType);
+                Type genericEnumerator = typeof(IEnumerator<>).MakeGenericType(memberObjType);
                 PropertyInfo getCurrentInfo = genericEnumerator.GetProperty(ENUM_CURRENT_ITEM)!;
                 Expression ithEnumerator =
                     Expression.ArrayAccess(propertySourceEnumeratorsExpr, Expression.Constant(attrId)),

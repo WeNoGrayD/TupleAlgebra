@@ -17,7 +17,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
 {
     public record TupleBasedAttributeComponentFactoryArgs<TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>,
-          INonFictionalAttributeComponentFactoryArgs<TupleBasedAttributeComponentFactoryArgs<TData>>
+          INonFictionalAttributeComponentFactoryArgs<TupleBasedAttributeComponentFactoryArgs<TData>>,
+          INonFictionalAttributeComponentFactoryArgs<TData, TupleBasedAttributeComponentFactoryArgs<TData>>
     {
         public ITupleObject Sample { get; private set; }
 

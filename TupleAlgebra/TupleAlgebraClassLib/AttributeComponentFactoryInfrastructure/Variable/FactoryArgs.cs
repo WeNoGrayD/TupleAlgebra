@@ -15,7 +15,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable
 {
     public record VariableAttributeComponentFactoryArgs<TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>,
-          INonFictionalAttributeComponentFactoryArgs<VariableAttributeComponentFactoryArgs<TData>>
+          INonFictionalAttributeComponentFactoryArgs<VariableAttributeComponentFactoryArgs<TData>>,
+          INonFictionalAttributeComponentFactoryArgs<TData, VariableAttributeComponentFactoryArgs<TData>>
     {
         public string Name { get; private set; }
 

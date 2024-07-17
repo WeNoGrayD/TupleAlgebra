@@ -13,6 +13,10 @@ using TupleAlgebraClassLib.TupleObjects;
 using TupleAlgebraClassLib.TupleObjectFactoryInfrastructure;
 using System.Reflection;
 using System.Linq.Expressions;
+using Newtonsoft.Json.Linq;
+using UniversalClassLib.ExpressionVisitors;
+using System.Collections;
+using System.Xml.Linq;
 
 namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
 {
@@ -52,12 +56,11 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
             return;
         }
 
-
         internal class DependentEntity
         {
             public int Id { get; set; }
 
-            public int ForeignKey { get; set; }
+            public int? ForeignKey { get; set; }
 
             public MainEntity? NavigationalProperty { get; set; }
 
@@ -73,6 +76,18 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
             {
                 Id = id;
                 NavigationalProperty = np;
+            }
+
+            public DependentEntity(int id, int foreignKey, MainEntity? np)
+            {
+                Id = id;
+                ForeignKey = foreignKey;
+                NavigationalProperty = np;
+            }
+
+            public override string ToString()
+            {
+                return "{DependentEntity: " + $"{Id}, {ForeignKey}, {NavigationalProperty}" + "}";
             }
         }
 
@@ -91,6 +106,11 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                 Name = name;
                 return;
             }
+
+            public override string ToString()
+            {
+                return "{MainEntity: " + $"{Id}, {Name}" + "}";
+            }
         }
 
         internal class ForeignKey
@@ -108,10 +128,11 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
             }
         }
 
+        /*
         [TestMethod]
         public void TestKeySelection()
         {
-            Expression<Func<DependentEntity, int>> simpleKey =
+            Expression<Func<DependentEntity, int?>> simpleKey =
                 (DependentEntity d) => d.ForeignKey;
             LambdaExpression complexKey1 =
                 (DependentEntity d) => new { d.ForeignKey, d.NavigationalProperty },
@@ -121,10 +142,61 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
 
             return;
         }
+        */
 
         [TestMethod]
         public void TestNavigation()
         {
+            /*
+            Type entityType = typeof(DependentEntity);
+            MemberInfo[] attributes = [
+                entityType.GetProperty(nameof(DependentEntity.ForeignKey)),
+                entityType.GetProperty(nameof(DependentEntity.NavigationalProperty))];
+            ParameterExpression propertySourceEnumeratorsExpr =
+                Expression.Parameter(typeof(IEnumerator[]), "properties");
+            Expression constructorExpr = Expression.MemberInit(
+                Expression.New(entityType),
+                ConstructMembersAssignment());
+            Expression block = Expression.Block();
+
+            Expression MakeKvpParamExpr()
+            {
+                ParameterExpression kvpExpr =
+                    Expression.Parameter(typeof(KeyValuePair<int, MainEntity>), "kvp");
+            }
+
+            MemberAssignment[] ConstructMembersAssignment()
+            {
+                MemberAssignment[] members = new MemberAssignment[attributes.Length];
+
+                for (int i = 0; i < attributes.Length; i++)
+                {
+                    members[i] = Expression.Bind(attributes[i], GetPropertyValueOf(i));
+                }
+
+                return members;
+            }
+
+            Expression GetPropertyValueOf(int attrId)
+            {
+                Type propertyType = attributes[attrId] switch
+                {
+                    FieldInfo fi => fi.FieldType,
+                    PropertyInfo pi => pi.PropertyType,
+                    _ => null
+                },
+                     genericEnumerator = typeof(IEnumerator<>).MakeGenericType(propertyType);
+                PropertyInfo getCurrentInfo = genericEnumerator.GetProperty(ENUM_CURRENT_ITEM)!;
+                Expression ithEnumerator =
+                    Expression.ArrayAccess(propertySourceEnumeratorsExpr, Expression.Constant(attrId)),
+                           downcastedIthEnumerator =
+                    Expression.TypeAs(ithEnumerator, genericEnumerator),
+                           getCurrent =
+                    Expression.MakeMemberAccess(downcastedIthEnumerator, getCurrentInfo);
+
+                return getCurrent;
+            }
+            */
             TupleObjectFactory factory = new TupleObjectFactory(null);
             IAttributeComponentFactory<int> intFactory =
                 new OrderedFiniteEnumerableAttributeComponentFactory<int>(
@@ -146,6 +218,33 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                 .CreateConjunctiveTupleSystem<MainEntity>(mainUniverse,
                     null,
                     null);
+
+            /*
+            LambdaExpression e = (DependentEntity d) =>
+            new KeyValuePair<int, MainEntity>(
+                new Func<DependentEntity, int>((DependentEntity de) => de.Id)(d),
+                new Func<DependentEntity, MainEntity>((DependentEntity de) => de.NavigationalProperty)(d));
+            LambdaExpression ide = (DependentEntity de) => de.ForeignKey,
+                mede = (DependentEntity dr) => dr.NavigationalProperty;
+            //var eee = e.Compile() as Func<DependentEntity, KeyValuePair<int, MainEntity>>;
+            //var kvp = eee(new(1, new MainEntity(2, "zwei")));
+            /*
+            ParameterExpression entityParameter = ide.Parameters[0];
+            Expression ctorExpr = Expression.New(
+                typeof(KeyValuePair<int, MainEntity>)
+                .GetConstructor([typeof(int), typeof(MainEntity)]),
+                new List<LambdaExpression>() { ide, mede }.Select(f => f.Body));
+            var resExpr = Expression.Lambda<Func<DependentEntity, KeyValuePair<int, MainEntity>>>(
+                    ctorExpr, entityParameter);
+            *//*
+            var resExpr = LambdaExpressionHelper.ProduceKeyValuePairGetter<
+                      DependentEntity, int, MainEntity>(
+                      ide,
+                      mede);
+            var eee = resExpr.Compile();// as Func<DependentEntity, KeyValuePair<int, MainEntity>>;
+            var kvp = eee(new(1, 2, m2));
+            */
+
             TupleObject<DependentEntity>.Configure(ConfigureDependent);
 
             TupleObjectBuilder<DependentEntity> staticBuilder =
@@ -168,9 +267,30 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                     null),
                     d4 = factory
                 .CreateConjunctiveTupleSystem<DependentEntity>([
-                    new DependentEntity(5, 5), new(8, m8), new(9, m9)],
+                    new DependentEntity(5, 5), new(6, m6), new(7, 7), new(8, m8), new(9, m9)],
                     null,
                     null);
+
+            Console.WriteLine("d1:");
+            foreach (DependentEntity e in d1)
+            {
+                Console.WriteLine(e);
+            }
+            Console.WriteLine("d2:");
+            foreach (DependentEntity e in d2)
+            {
+                Console.WriteLine(e);
+            }
+            Console.WriteLine("d3:");
+            foreach (DependentEntity e in d3)
+            {
+                Console.WriteLine(e);
+            }
+            Console.WriteLine("d4:");
+            foreach (DependentEntity e in d4)
+            {
+                Console.WriteLine(e);
+            }
 
             return;
 
@@ -194,7 +314,8 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                     .HasPrincipalKey(
                         mains, 
                         m => m.Id,
-                        (domain) => new UnorderedFiniteEnumerableAttributeComponentFactory<MainEntity>(domain))
+                        (domain) => new UnorderedFiniteEnumerableAttributeComponentFactory<MainEntity>(domain),
+                        (domain) => new UnorderedFiniteEnumerableAttributeComponentFactory<int?>(domain.Cast<int?>()))
                     .Attach();
                 /*
                 builder.Attribute(d => d.ForeignKey).SetFactory(intFactory);

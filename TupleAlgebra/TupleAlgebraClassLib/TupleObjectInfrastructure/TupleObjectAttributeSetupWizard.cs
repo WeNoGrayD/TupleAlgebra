@@ -57,7 +57,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return AttributeInfo.ComponentFactory;
         }
 
-        public ITupleObjectAttributeSetupWizard<TAttribute> SetFactory(
+        public virtual ITupleObjectAttributeSetupWizard<TAttribute> SetFactory(
             IAttributeComponentFactory<TAttribute> factory)
         {
             Schema[_attributeName] = AttributeInfo.SetFactory(factory);
@@ -190,9 +190,45 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return this;
         }
 
-        public ITupleObjectAttributeManager CreateManager()
+        public virtual ITupleObjectAttributeManager CreateManager()
         {
             return new TupleObjectAttributeManager<TAttribute>(this);
         }
     }
+
+    /*
+    public abstract class TupleObjectNavigationalAttributeSetupWizard<TKey, TAttribute> 
+        : TupleObjectAttributeSetupWizard<KeyValuePair<TKey, TAttribute>>
+    {
+        protected TupleObjectNavigationalAttributeSetupWizard(
+            ITupleObjectSchemaProvider schema,
+            LambdaExpression memberAccess)
+            : base(schema, memberAccess)
+        {
+            return;
+        }
+
+        protected TupleObjectNavigationalAttributeSetupWizard(
+            ITupleObjectSchemaProvider schema,
+            string attributeName)
+            : base(schema, attributeName)
+        {
+            return;
+        }
+
+        public override ITupleObjectAttributeSetupWizard<KeyValuePair<TKey, TAttribute>> 
+            SetFactory(
+            IAttributeComponentFactory<KeyValuePair<TKey, TAttribute>> factory)
+        {
+            // Этот метод ничего не делает, поскольку
+            // фабрика навигационного атрибута статичная.
+            return this;
+        }
+
+        public override ITupleObjectAttributeManager CreateManager()
+        {
+            return new TupleObjectAttributeManager<KeyValuePair<TKey, TAttribute>>(this);
+        }
+    }
+    */
 }

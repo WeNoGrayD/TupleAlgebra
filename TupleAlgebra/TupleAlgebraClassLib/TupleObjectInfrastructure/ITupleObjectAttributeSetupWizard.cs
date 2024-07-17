@@ -16,6 +16,8 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public AttributeName AttributeName { get; }
 
+        public IAttributeComponentFactory<TAttribute> GetFactory<TAttribute>();
+
         public ITupleObjectAttributeSetupWizard Ignore();
 
         public ITupleObjectAttributeSetupWizard Attach();
@@ -34,6 +36,12 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
     public interface ITupleObjectAttributeSetupWizard<TAttribute>
         : ITupleObjectAttributeSetupWizard
     {
+        IAttributeComponentFactory<TA>
+            ITupleObjectAttributeSetupWizard.GetFactory<TA>()
+        {
+            return GetFactory() as IAttributeComponentFactory<TA>;
+        }
+
         /// <summary>
         /// Получение фабрики компонент атрибута.
         /// </summary>

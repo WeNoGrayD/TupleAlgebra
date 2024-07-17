@@ -28,7 +28,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
             TFactoryArgs>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, IFiniteEnumerableAttributeComponent<TData>
         where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TAttributeComponent, TFactoryArgs>
-        where TFactoryArgs : AttributeComponentFactoryArgs
+        where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         IAttributeComponent<TData>
              IFactoryBinaryOperator<

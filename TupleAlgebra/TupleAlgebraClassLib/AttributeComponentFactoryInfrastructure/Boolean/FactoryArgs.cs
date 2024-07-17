@@ -16,7 +16,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
 {
     public record BooleanAttributeComponentFactoryArgs
         : NonFictionalAttributeComponentFactoryArgs<bool>,
-          INonFictionalAttributeComponentFactoryArgs<BooleanAttributeComponentFactoryArgs>
+          INonFictionalAttributeComponentFactoryArgs<BooleanAttributeComponentFactoryArgs>,
+          INonFictionalAttributeComponentFactoryArgs<bool, BooleanAttributeComponentFactoryArgs>
     {
         public bool Value { get; private set; }
 

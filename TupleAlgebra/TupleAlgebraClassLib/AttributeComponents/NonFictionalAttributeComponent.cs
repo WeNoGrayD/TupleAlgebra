@@ -55,7 +55,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
         {
             return null;
 
-            //return Factory.CreateNonFictional<TReproducedData>(factoryArgs);
+            //return Factory.CreateNonFictional(factoryArgs);
         }
 
         #endregion
@@ -78,7 +78,7 @@ namespace TupleAlgebraClassLib.AttributeComponents
                 CTFactory>
             where CTOperand : NonFictionalAttributeComponent<TData>
             where CTFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand, CTFactoryArgs>
-            where CTFactoryArgs : AttributeComponentFactoryArgs
+            where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
         {
             #region Constructors
 

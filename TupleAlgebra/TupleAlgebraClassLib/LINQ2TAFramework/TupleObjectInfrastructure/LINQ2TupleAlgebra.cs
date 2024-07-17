@@ -342,7 +342,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
 
             private void AddQueryToLayer(
                 ExpressionType nodeType,
-                MemberExpression memberExpr, 
+                MemberExpression memberExpr,
                 Expression queryBody)
             {
                 LambdaExpression attributeGettetExpr =
@@ -518,7 +518,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
             {
                 private IDictionary<AttributeName, QueryTreeNode> _attributes;
 
-                public override IReadOnlySet<AttributeName> PluggedAttributes 
+                public override IReadOnlySet<AttributeName> PluggedAttributes
                 { get => _attributes.Keys.ToHashSet(); }
 
                 public QueryRow(ExpressionType logicalForm)
@@ -677,7 +677,7 @@ namespace TupleAlgebraClassLib.LINQ2TAFramework.TupleObjectInfrastructure
                     {
                         case QueryRow row:
                             {
-                                if (LogicalForm == logicalForm && 
+                                if (LogicalForm == logicalForm &&
                                     LogicalForm == Not(row.LogicalForm))
                                 {
                                     this.AddChild(row);

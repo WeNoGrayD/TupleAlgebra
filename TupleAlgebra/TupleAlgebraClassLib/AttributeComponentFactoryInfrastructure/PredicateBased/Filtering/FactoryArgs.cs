@@ -13,7 +13,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
 {
     public record FilteringAttributeComponentFactoryArgs<TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>,
-          INonFictionalAttributeComponentFactoryArgs<FilteringAttributeComponentFactoryArgs<TData>>
+          INonFictionalAttributeComponentFactoryArgs<FilteringAttributeComponentFactoryArgs<TData>>,
+          INonFictionalAttributeComponentFactoryArgs<TData, FilteringAttributeComponentFactoryArgs<TData>>
     {
         public Expression<Func<TData, bool>> PredicateExpression 
         { get; private set; }

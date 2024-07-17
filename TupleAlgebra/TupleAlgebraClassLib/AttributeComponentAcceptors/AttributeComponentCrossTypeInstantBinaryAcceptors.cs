@@ -60,7 +60,7 @@ namespace TupleAlgebraClassLib.AttributeComponentVisitors
           IFactoryBinaryAttributeComponentVisitor<TData, TIntermediateResult, NonFictionalAttributeComponent<TData>, CTOperand1, FullAttributeComponent<TData>, TFactory, CTFactoryArgs, TOperationResult>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
         where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand1, CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         public abstract TOperationResult Visit(
             NonFictionalAttributeComponent<TData> first,

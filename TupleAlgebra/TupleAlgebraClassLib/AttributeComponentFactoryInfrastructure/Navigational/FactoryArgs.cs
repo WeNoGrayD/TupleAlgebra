@@ -15,12 +15,14 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
     public enum NavigationalPropertyMember
     {
         Key,
-        Value
+        Value,
+        Both
     }
 
     public record NavigationalAttributeComponentFactoryArgs<TKey, TData>
-        : NonFictionalAttributeComponentFactoryArgs<TData>,
-          INonFictionalAttributeComponentFactoryArgs<NavigationalAttributeComponentFactoryArgs<TKey, TData>>
+        : NonFictionalAttributeComponentFactoryArgs<KeyValuePair<TKey, TData>>,
+          INonFictionalAttributeComponentFactoryArgs<NavigationalAttributeComponentFactoryArgs<TKey, TData>>,
+          INonFictionalAttributeComponentFactoryArgs<KeyValuePair<TKey, TData>, NavigationalAttributeComponentFactoryArgs<TKey, TData>>
         where TData : new()
     {
         public NavigationalPropertyMember Member { get; init; }
@@ -62,6 +64,26 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
         }
 
         public NavigationalAttributeComponentFactoryArgs(
+            NonFictionalAttributeComponentFactoryArgs<TKey> keyFactoryArgs,
+            NonFictionalAttributeComponentFactoryArgs<TData> valueFactoryArgs,
+            bool isQuery = false,
+            IQueryProvider queryProvider = null,
+            Expression queryExpression = null)
+            : base(
+                  isQuery,
+                  queryProvider,
+                  queryExpression)
+        {
+            Member = NavigationalPropertyMember.Both;
+            KeyFactoryArgs =
+                keyFactoryArgs as IAttributeComponentFactoryArgs<TKey>;
+            ValueFactoryArgs =
+                valueFactoryArgs as IAttributeComponentFactoryArgs<TData>;
+
+            return;
+        }
+
+        public NavigationalAttributeComponentFactoryArgs(
             TupleObject<TData> values,
             bool isQuery = false,
             IQueryProvider queryProvider = null,
@@ -72,6 +94,39 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
                   queryExpression)
         {
             Member = NavigationalPropertyMember.Value;
+            Values = values;
+
+            return;
+        }
+
+        protected override AttributeComponentPower CreatePower()
+        {
+            return new NavigationalAttributeComponentPower();
+        }
+    }
+
+    public record NavigationalAttributeDomainFactoryArgs<TKey, TData>
+        : NonFictionalAttributeComponentFactoryArgs<KeyValuePair<TKey, TData>>
+        where TData : new()
+    {
+        public NonFictionalAttributeComponent<TKey> Keys
+        { get; init; }
+
+        public NonFictionalAttributeComponent<TData> Values
+        { get; init; }
+
+        public NavigationalAttributeDomainFactoryArgs(
+            NonFictionalAttributeComponent<TKey> keys,
+            NonFictionalAttributeComponent<TData> values,
+            bool isQuery = false,
+            IQueryProvider queryProvider = null,
+            Expression queryExpression = null)
+            : base(
+                  isQuery,
+                  queryProvider,
+                  queryExpression)
+        {
+            Keys = keys;
             Values = values;
 
             return;

@@ -23,7 +23,7 @@ namespace TupleAlgebraClassLib.SetOperationExecutorsContainers
             TOperand1 first,
             TIntermediateOperationResult intermediaryResult);
 
-        protected abstract TOperationResultFactoryArgs CreateFactoryArgs(
+        public abstract TOperationResultFactoryArgs CreateFactoryArgs(
             TIntermediateOperationResult intermediaryResult);
     }
 }

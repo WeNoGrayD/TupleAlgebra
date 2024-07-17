@@ -12,7 +12,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
 {
     public record StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         : OrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>,
-          INonFictionalAttributeComponentFactoryArgs<StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+          INonFictionalAttributeComponentFactoryArgs<StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>,
+          INonFictionalAttributeComponentFactoryArgs<TData, StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
     {
         public StreamingOrderedFiniteEnumerableAttributeComponentFactoryArgs(
             IEnumerable<TData> values,

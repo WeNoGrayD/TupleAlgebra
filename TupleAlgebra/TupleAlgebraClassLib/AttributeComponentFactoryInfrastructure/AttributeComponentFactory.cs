@@ -26,7 +26,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             this IAttributeComponentFactory<TData> factory,
             CTFactoryArgs factoryArgs,
             CreateSpecificNonFictionalComponentHandler<TData, CTFactoryArgs> factoryFunc)
-            where CTFactoryArgs : AttributeComponentFactoryArgs
+            where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
         {
             /*
              * Прежде всего создаётся нефиктивная компонента с предоставленными фабричными аргументами.
@@ -127,7 +127,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         /// <param name="factoryArgs"></param>
         /// <returns></returns>
         public AttributeComponent<TData> CreateNonFictional(
-            AttributeComponentFactoryArgs factoryArgs)
+            NonFictionalAttributeComponentFactoryArgs<TData> factoryArgs)
         {
             return this.CreateNonFictional(
                 factoryArgs,
@@ -155,7 +155,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         /// <returns></returns>
         public AttributeComponent<TData> CreateNonFictional<TFactoryArgs>(
             TFactoryArgs factoryArgs)
-            where TFactoryArgs : AttributeComponentFactoryArgs
+            where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
         {
             return this.CreateNonFictional(
                 factoryArgs,
@@ -165,7 +165,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
         protected NonFictionalAttributeComponent<TData> 
             CreateSpecificNonFictional<TFactoryArgs>(
             TFactoryArgs factoryArgs)
-            where TFactoryArgs : AttributeComponentFactoryArgs
+            where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
         {
             var ac = (this as INonFictionalAttributeComponentFactory2<TData, TFactoryArgs>)
                 .CreateSpecificNonFictional(factoryArgs);
@@ -186,7 +186,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
             CreateConstantNonFictional<TAttributeComponent, TFactoryArgs>(
             TFactoryArgs factoryArgs)
             where TAttributeComponent : NonFictionalAttributeComponent<TData>
-            where TFactoryArgs : AttributeComponentFactoryArgs
+            where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
         {
             return CreateSpecificNonFictional(factoryArgs)
                 as TAttributeComponent;
@@ -225,7 +225,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 
     public abstract class AttributeComponentFactory<TData, CTFactoryArgs>
         : AttributeComponentFactory<TData>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         public AttributeComponentFactory(AttributeDomain<TData> domain)
             : base(domain)
@@ -233,6 +233,13 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure
 
         public AttributeComponentFactory(CTFactoryArgs factoryArgs)
             : base()
+        {
+            InitDomainFrom(factoryArgs);
+
+            return;
+        }
+
+        protected void InitDomainFrom(CTFactoryArgs factoryArgs)
         {
             NonFictionalAttributeComponent<TData> domainUniverse =
                 CreateSpecificNonFictional(factoryArgs);

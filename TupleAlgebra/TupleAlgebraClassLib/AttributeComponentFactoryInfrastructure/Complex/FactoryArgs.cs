@@ -13,7 +13,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Complex
 {
     public record ComplexAttributeComponentFactoryArgs<TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>,
-          INonFictionalAttributeComponentFactoryArgs<ComplexAttributeComponentFactoryArgs<TData>>
+          INonFictionalAttributeComponentFactoryArgs<ComplexAttributeComponentFactoryArgs<TData>>,
+          INonFictionalAttributeComponentFactoryArgs<TData, ComplexAttributeComponentFactoryArgs<TData>>
         where TData : new()
     {
         public TupleObject<TData> Values { get; private set; }

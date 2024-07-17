@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Buffered;
@@ -39,6 +40,16 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Specializ
         {
             return (this as IBufferedOrderedFiniteEnumerableAttributeComponentFactory<TData>)
                 .ProduceOperationResult(resultElements);
+        }
+
+        NonFictionalAttributeComponentFactoryArgs<TData> 
+            INonFictionalAttributeComponentFactory<
+            TData,
+            IEnumerable<TData>>
+            .CreateNonFictionalFactoryArgs(IEnumerable<TData> resultElements)
+        {
+            return (this as IBufferedOrderedFiniteEnumerableAttributeComponentFactory<TData>)
+                .CreateFactoryArgs(resultElements);
         }
     }
 

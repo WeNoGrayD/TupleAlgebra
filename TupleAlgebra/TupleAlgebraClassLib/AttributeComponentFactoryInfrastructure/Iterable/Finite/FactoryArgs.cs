@@ -12,7 +12,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.
 {
     public record FiniteIterableAttributeComponentFactoryArgs<TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>,
-          INonFictionalAttributeComponentFactoryArgs<FiniteIterableAttributeComponentFactoryArgs<TData>>
+          INonFictionalAttributeComponentFactoryArgs<FiniteIterableAttributeComponentFactoryArgs<TData>>,
+          INonFictionalAttributeComponentFactoryArgs<TData, FiniteIterableAttributeComponentFactoryArgs<TData>>
     {
         public IEnumerable<TData> Values { get; private set; }
 

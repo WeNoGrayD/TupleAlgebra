@@ -25,7 +25,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
           IAnyXVariableAttributeComponentIntersectionOperator<TData>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
         where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand1, CTFactoryArgs>
-        where CTFactoryArgs : AttributeComponentFactoryArgs
+        where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         public override IAttributeComponent<TData> Visit(
             NonFictionalAttributeComponent<TData> first,

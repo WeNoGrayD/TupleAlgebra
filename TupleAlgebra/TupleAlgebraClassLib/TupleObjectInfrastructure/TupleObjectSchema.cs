@@ -45,7 +45,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
 
         public IEnumerable<ITupleObjectAttributeInfo> PluggedAttributes
         {
-            get => _attributes.PluggedAttributes;
+            get => _attributes.PluggedAttributes.Distinct();
         }
 
         public static bool IsEntityPrimitive { get; private set; }
@@ -215,29 +215,51 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             return;
         }
 
-        internal void AddNavigationalAttribute<TKey, TNavigationalAttribute>(
-            Expression<Func<TEntity, TKey>>
+        internal void AddNavigationalAttribute<
+            TForeignKey, TPrincipalKey, TNavigationalAttribute>(
+            Expression<Func<TEntity, TForeignKey>>
                 simpleForeignKeyGetterExpr,
             Expression<Func<TEntity, TNavigationalAttribute>>
                 navigationalAttrGetterExpr,
             TupleObject<TNavigationalAttribute> referencedKb,
-            Expression<Func<TNavigationalAttribute, TKey>> principalKeySelector,
+            Expression<Func<TNavigationalAttribute, TForeignKey>> principalKeySelector,
+            Func<IEnumerable<TPrincipalKey>, IAttributeComponentFactory<TForeignKey>>
+            keyFactory,
             Func<IEnumerable<TNavigationalAttribute>, IAttributeComponentFactory<TNavigationalAttribute>>
-            factory)
-            where TKey : new()
+            navFactory)
+            where TForeignKey : new()
+            where TPrincipalKey : new()
             where TNavigationalAttribute : new()
         {
             var attributeInfo =
-                new NavigationalAttributeWithSimpleForeignKeyInfo<TEntity, TKey, TNavigationalAttribute>(
+                new NavigationalAttributeWithSimpleForeignKeyInfo<
+                    TEntity, TForeignKey, TPrincipalKey, TNavigationalAttribute>(
                     simpleForeignKeyGetterExpr,
                     navigationalAttrGetterExpr,
                     referencedKb,
                     principalKeySelector,
-                    factory);
+                    keyFactory,
+                    navFactory);
             _attributes.RemoveAttribute(attributeInfo.ForeignKeyAttributeName);
+            _attributes.RemoveAttribute(attributeInfo.ValueAttributeName);
             EndInit();
+            /*
+            var keyAttrInfo = attributeInfo with
+                { AttributeMember = attributeInfo.ForeignKeyAttributeMember };
+            var valueAttrInfo = attributeInfo with
+                { AttributeMember = attributeInfo.ValueAttributeMember };
+            NavigationalAttributeWithSimpleForeignKeyInfo<TEntity, TKey, TNavigationalAttribute>[]
+                attrInfoSiblings = [keyAttrInfo, valueAttrInfo];
+            for (int siblingId = 0; siblingId < attrInfoSiblings.Length; siblingId++)
+            {
+                attrInfoSiblings[siblingId].SetSiblings(attrInfoSiblings, siblingId);
+            }
+
+            _attributes.AddAttribute(attributeInfo.ForeignKeyAttributeName, keyAttrInfo);
+            _attributes.AddAttribute(attributeInfo.ValueAttributeName, valueAttrInfo);
+            */
             _attributes.AddAttribute(attributeInfo.ForeignKeyAttributeName, attributeInfo);
-            _attributes.AddAttribute(attributeInfo.Name, attributeInfo);
+            _attributes.AddAttribute(attributeInfo.ValueAttributeName, attributeInfo);
             EndInit();
 
             return;

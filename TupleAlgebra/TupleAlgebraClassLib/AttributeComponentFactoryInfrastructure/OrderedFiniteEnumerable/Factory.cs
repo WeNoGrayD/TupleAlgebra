@@ -72,5 +72,17 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
 
             return streamingFactory.ProduceOperationResult(values);
         }
+
+        NonFictionalAttributeComponentFactoryArgs<TData>
+            INonFictionalAttributeComponentFactory<
+                TData,
+                IEnumerable<TData>>
+            .CreateNonFictionalFactoryArgs(IEnumerable<TData> values)
+        {
+            IStreamingOrderedFiniteEnumerableAttributeComponentFactory<TData>
+                streamingFactory = this;
+
+            return streamingFactory.CreateFactoryArgs(values);
+        }
     }
 }

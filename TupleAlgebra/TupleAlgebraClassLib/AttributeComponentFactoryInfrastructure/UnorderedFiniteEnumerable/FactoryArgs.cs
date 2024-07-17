@@ -17,7 +17,8 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Unordered
 {
     public record UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         : NonFictionalAttributeComponentFactoryArgs<TData>,
-          INonFictionalAttributeComponentFactoryArgs<UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+          INonFictionalAttributeComponentFactoryArgs<UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>,
+          INonFictionalAttributeComponentFactoryArgs<TData, UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
     {
         public HashSet<TData> Values { get; private set; }
 
