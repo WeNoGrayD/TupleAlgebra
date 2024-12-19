@@ -26,7 +26,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cou
               TData, 
               TAttributeComponent>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, ICountableAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TAttributeComponent, TFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TFactoryArgs>
         where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     { }
 }

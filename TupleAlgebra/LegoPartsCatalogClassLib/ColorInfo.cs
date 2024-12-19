@@ -10,11 +10,11 @@ namespace LegoPartsCatalogClassLib
     public enum ColorTrait : int
     {
         Standard = 0x0,
-        Transparent = (0x1 << 6),
-        Pearl = (0x2 << 6),
-        Speckle = (0x4 << 6),
-        Metallic = (0x8 << 6),
-        Chrome = (0xA << 6)
+        Transparent = 0x1,
+        Pearl = 0x2,
+        Speckle = 0x4,
+        Metallic = 0x8,
+        Chrome = 0x10
     }
 
     /*
@@ -44,7 +44,7 @@ namespace LegoPartsCatalogClassLib
         string RGB,
         ColorTrait Trait)
     {
-        //private const int RGB_MASK = 0x111111;
+        private const int RGB_MASK = (0x1 << 24) - 1;
 
         public static ColorInfo[] Colors;
 
@@ -84,6 +84,43 @@ namespace LegoPartsCatalogClassLib
                 };
 
             return;
+        }
+
+        private static bool HasColorTrait(
+            ColorTrait color,
+            ColorTrait sample)
+        {
+            return ((int)color & (int)sample) != 0;
+        }
+
+        public static bool IsStandard(ColorTrait color)
+        {
+            return color == ColorTrait.Standard;
+        }
+
+        public static bool IsTransparent(ColorTrait color)
+        {
+            return HasColorTrait(color, ColorTrait.Transparent);
+        }
+
+        public static bool IsPearl(ColorTrait color)
+        {
+            return HasColorTrait(color, ColorTrait.Pearl);
+        }
+
+        public static bool IsSpeckle(ColorTrait color)
+        {
+            return HasColorTrait(color, ColorTrait.Speckle);
+        }
+
+        public static bool IsMetallic(ColorTrait color)
+        {
+            return HasColorTrait(color, ColorTrait.Metallic);
+        }
+
+        public static bool IsChrome(ColorTrait color)
+        {
+            return HasColorTrait(color, ColorTrait.Chrome);
         }
 
         /*

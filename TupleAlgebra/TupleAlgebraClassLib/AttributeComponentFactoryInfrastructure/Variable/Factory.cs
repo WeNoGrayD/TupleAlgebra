@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Variable;
 using TupleAlgebraClassLib.SetOperationExecutorsContainers;
@@ -17,12 +18,11 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable
             VariableAttributeComponentFactoryArgs<TData>>
     {
         VariableAttributeComponentFactoryArgs<TData>
-            ISetOperationResultFactory<
-                VariableAttributeComponent<TData>,
+            INonFictionalAttributeComponentFactory<
+                TData,
                 VariableAttributeComponentFactoryArgs<TData>,
-                VariableAttributeComponentFactoryArgs<TData>,
-                AttributeComponent<TData>>
-            .CreateFactoryArgs(
+                VariableAttributeComponentFactoryArgs<TData>>
+            .CreateSpecificNonFictionalFactoryArgs(
                 VariableAttributeComponentFactoryArgs<TData>
                 opResultFactoryArgs)
         {

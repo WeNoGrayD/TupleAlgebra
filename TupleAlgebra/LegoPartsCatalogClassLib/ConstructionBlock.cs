@@ -39,8 +39,9 @@ namespace LegoPartsCatalogClassLib
     { }
 
     public record class PartTraitTables(
-        PartTrait Trait,
+        MoldTraits Trait,
         TupleObject<PartProvider> Table)
     {
     }
+
 }

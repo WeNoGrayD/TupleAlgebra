@@ -12,7 +12,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
     public abstract class NonFictionalAttributeComponentUnionOperator<TData, TIntermediateResult, CTOperand1, TFactory, CTFactoryArgs>
         : NonFictionalAttributeComponentSetBinaryOperator<TData, TIntermediateResult, CTOperand1, TFactory, CTFactoryArgs>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand1, CTFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTFactoryArgs>
         where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         public override IAttributeComponent<TData> Visit(

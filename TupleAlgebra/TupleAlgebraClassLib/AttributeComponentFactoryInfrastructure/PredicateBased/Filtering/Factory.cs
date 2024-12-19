@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.Filtering;
 using TupleAlgebraClassLib.SetOperationExecutorsContainers;
@@ -21,12 +22,11 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
             new PredicateBuilder<TData>();
 
         FilteringAttributeComponentFactoryArgs<TData>
-            ISetOperationResultFactory<
-                FilteringAttributeComponent<TData>,
+            INonFictionalAttributeComponentFactory<
+                TData,
                 FilteringAttributeComponentFactoryArgs<TData>,
-                FilteringAttributeComponentFactoryArgs<TData>,
-                AttributeComponent<TData>>
-            .CreateFactoryArgs(
+                FilteringAttributeComponentFactoryArgs<TData>>
+            .CreateSpecificNonFictionalFactoryArgs(
                 FilteringAttributeComponentFactoryArgs<TData>
                 opResultFactoryArgs)
         {
@@ -37,6 +37,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
             return new FilteringAttributeComponentFactoryArgs<TData>(
                 predicateExpr, opResultFactoryArgs.ContentType);
         }
+
 
         NonFictionalAttributeComponent<TData>
             INonFictionalAttributeComponentFactory2<

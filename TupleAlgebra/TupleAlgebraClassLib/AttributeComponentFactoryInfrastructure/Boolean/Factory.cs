@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.LINQ2TAFramework.AttributeComponentInfrastructure.Default;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Boolean;
@@ -36,35 +37,25 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
         }
 
         BooleanAttributeComponentFactoryArgs
-            ISetOperationResultFactory<
-                BooleanNonFictionalAttributeComponent,
+            INonFictionalAttributeComponentFactory<
                 bool,
-                BooleanAttributeComponentFactoryArgs,
-                AttributeComponent<bool>>
-            .CreateFactoryArgs(
+                bool,
+                BooleanAttributeComponentFactoryArgs>
+            .CreateSpecificNonFictionalFactoryArgs(
                 bool resultElements)
         {
             return CreateFactoryArgs_Default(resultElements);
         }
 
         BooleanAttributeComponentFactoryArgs
-            ISetOperationResultFactory<
-                BooleanNonFictionalAttributeComponent,
+            INonFictionalAttributeComponentFactory<
+                bool,
                 IEnumerable<bool>,
-                BooleanAttributeComponentFactoryArgs,
-                AttributeComponent<bool>>
-            .CreateFactoryArgs(
+                BooleanAttributeComponentFactoryArgs>
+            .CreateSpecificNonFictionalFactoryArgs(
                 IEnumerable<bool> resultElements)
         {
             return CreateFactoryArgs_Default(resultElements.Single());
-        }
-
-        BooleanAttributeComponentFactoryArgs
-            CreateFactoryArgs_Default(
-            BooleanNonFictionalAttributeComponent first,
-            bool resultElements)
-        {
-            return CreateFactoryArgs(resultElements);
         }
 
         BooleanAttributeComponentFactoryArgs
@@ -77,7 +68,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
             BooleanNonFictionalAttributeComponent first,
             bool resultElements)
         {
-            return CreateFactoryArgs_Default(first, resultElements);
+            return CreateFactoryArgs_Default(resultElements);
         }
 
         BooleanAttributeComponentFactoryArgs
@@ -90,7 +81,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Boolean
             BooleanNonFictionalAttributeComponent first,
             IEnumerable<bool> resultElements)
         {
-            return CreateFactoryArgs_Default(first, resultElements.First());
+            return CreateFactoryArgs_Default(resultElements.Single());
         }
 
         NonFictionalAttributeComponent<bool>

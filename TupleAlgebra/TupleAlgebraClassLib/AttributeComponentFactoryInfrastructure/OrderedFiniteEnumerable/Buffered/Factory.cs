@@ -22,18 +22,18 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
           IFilteringAttributeComponentFactory<TData>
     {
         BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
-            ISetOperationResultFactory<
-                BufferedOrderedFiniteEnumerableAttributeComponent<TData>,
+            INonFictionalAttributeComponentFactory<
+                TData,
                 IEnumerable<TData>,
-                BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>,
-                AttributeComponent<TData>>
-            .CreateFactoryArgs(
+                BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+            .CreateSpecificNonFictionalFactoryArgs(
                 IEnumerable<TData> resultElements)
         {
             return new BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(
                 resultElements,
                 valuesAreOrdered: true);
         }
+
 
         NonFictionalAttributeComponent<TData>
             INonFictionalAttributeComponentFactory2<

@@ -18,7 +18,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentInfrastructure
         CTFactoryArgs>
         : NonFictionalAttributeComponentCrossTypeFactoryBinaryVisitor<TData, TIntermediateResult, CTOperand1, TFactory, CTFactoryArgs, IAttributeComponent<TData>>
         where CTOperand1 : NonFictionalAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTOperand1, CTFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, TIntermediateResult, CTFactoryArgs>
         where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     { }
 

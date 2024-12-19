@@ -23,7 +23,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
             TFactoryArgs,
             IAttributeComponent<TData>>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, IFiniteEnumerableAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TAttributeComponent, TFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TFactoryArgs>
         where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     { }
 }

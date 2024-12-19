@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Variable;
 using TupleAlgebraClassLib.AttributeComponents;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.PredicateBased.TupleBased;
 using TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Variable;
@@ -20,17 +21,17 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Predicate
             TupleBasedAttributeComponentFactoryArgs<TData>>
     {
         TupleBasedAttributeComponentFactoryArgs<TData>
-            ISetOperationResultFactory<
-                TupleBasedAttributeComponent<TData>,
+            INonFictionalAttributeComponentFactory<
+                TData,
                 TupleBasedAttributeComponentFactoryArgs<TData>,
-                TupleBasedAttributeComponentFactoryArgs<TData>,
-                AttributeComponent<TData>>
-            .CreateFactoryArgs(
+                TupleBasedAttributeComponentFactoryArgs<TData>>
+            .CreateSpecificNonFictionalFactoryArgs(
                 TupleBasedAttributeComponentFactoryArgs<TData>
                 opResultFactoryArgs)
         {
             return null;
         }
+
 
         NonFictionalAttributeComponent<TData>
             INonFictionalAttributeComponentFactory2<

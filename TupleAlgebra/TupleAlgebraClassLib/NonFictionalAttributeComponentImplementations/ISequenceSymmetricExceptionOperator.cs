@@ -30,7 +30,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
             TOperand2>
         where TOperand1 : NonFictionalAttributeComponent<TData>
         where TOperand2 : IAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TOperand1, TFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TFactoryArgs>
         where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         IAttributeComponent<TData>
@@ -48,7 +48,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations
                 new OperationResultEnumerableResultProvider<TData>(
                     SymmetricExcept(), false);
 
-            return factory.CreateNonFictional(first, resultElements);
+            return factory.CreateNonFictional(resultElements);
 
             IEnumerable<TData> SymmetricExcept()
             {

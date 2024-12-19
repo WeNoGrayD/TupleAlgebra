@@ -27,7 +27,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
             TFactory,
             TFactoryArgs>
         where TAttributeComponent : NonFictionalAttributeComponent<TData>, IFiniteEnumerableAttributeComponent<TData>
-        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TAttributeComponent, TFactoryArgs>
+        where TFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, TFactoryArgs>
         where TFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         IAttributeComponent<TData>
@@ -45,7 +45,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Fin
                 new OperationResultEnumerableResultProvider<TData>(
                     Enumerable.Intersect(first, second), false);
 
-            return factory.CreateNonFictional(first, intersectedElements);
+            return factory.CreateNonFictional(intersectedElements);
         }
     }
 }

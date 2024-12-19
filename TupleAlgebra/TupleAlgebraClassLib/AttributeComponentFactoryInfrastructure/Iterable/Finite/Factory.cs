@@ -22,12 +22,11 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.
           IFilteringAttributeComponentFactory<TData>
     {
         FiniteIterableAttributeComponentFactoryArgs<TData>
-            ISetOperationResultFactory<
-                FiniteIterableAttributeComponent<TData>,
+            INonFictionalAttributeComponentFactory<
+                TData,
                 IEnumerable<TData>,
-                FiniteIterableAttributeComponentFactoryArgs<TData>,
-                AttributeComponent<TData>>
-            .CreateFactoryArgs(
+                FiniteIterableAttributeComponentFactoryArgs<TData>>
+            .CreateSpecificNonFictionalFactoryArgs(
             IEnumerable<TData> resultElements)
         {
             return new FiniteIterableAttributeComponentFactoryArgs<TData>(

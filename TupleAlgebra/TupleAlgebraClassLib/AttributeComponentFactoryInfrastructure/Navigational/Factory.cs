@@ -18,25 +18,13 @@ using static TupleAlgebraClassLib.TupleObjectInfrastructure.TupleObjectHelper;
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigational
 {
     internal interface INavigationalAttributeComponentFactory<TKey, TData>
-        : INonFictionalAttributeComponentFactory<
-            KeyValuePair<TKey, TData>,
-            NavigationalAttributeComponentFactoryArgs<TKey, TData>,
-            NavigationalAttributeComponent<TKey, TData>,
-            NavigationalAttributeComponentFactoryArgs<TKey, TData>>,
-          INonFictionalAttributeComponentFactory2<
-              KeyValuePair<TKey, TData>, 
+        : INonFictionalAttributeComponentFactory2<
+              KeyValuePair<TKey, TData>,
               NavigationalAttributeDomainFactoryArgs<TKey, TData>>,
           IEnumerableNonFictionalAttributeComponentFactory<
               KeyValuePair<TKey, TData>,
+              NavigationalAttributeComponent<TKey, TData>,
               NavigationalAttributeComponentFactoryArgs<TKey, TData>>
-        /*,
-          INonFictionalAttributeComponentFactory2<
-            KeyValuePair<TKey, TData>,
-            NonFictionalAttributeComponentFactoryArgs<TKey>>*/
-        //,
-        //INonFictionalAttributeComponentFactory2<
-        //  TData,
-        //  NonFictionalAttributeComponentFactoryArgs<TData>>
         where TKey : new()
         where TData : new()
     {
@@ -177,6 +165,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
                 args.QueryExpression);
         }
 
+        /*
         NavigationalAttributeComponentFactoryArgs<TKey, TData>
             ISetOperationResultFactory<
                 NavigationalAttributeComponent<TKey, TData>,
@@ -189,6 +178,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
         {
             return opResultFactoryArgs;
         }
+        */
 
         NonFictionalAttributeComponent<KeyValuePair<TKey, TData>>
             INonFictionalAttributeComponentFactory2<
@@ -240,6 +230,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
                 args.ValueFactoryArgs.ProvideTo(ValueAttributeComponentFactory);
         }
 
+        /*
         NavigationalAttributeComponentFactoryArgs<TKey, TData>
             ISetOperationResultFactory<
                 NavigationalAttributeComponent<TKey, TData>,
@@ -252,6 +243,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Navigatio
         {
             throw new NotImplementedException();
         }
+        */
 
         /*
         NonFictionalAttributeComponent<TData>

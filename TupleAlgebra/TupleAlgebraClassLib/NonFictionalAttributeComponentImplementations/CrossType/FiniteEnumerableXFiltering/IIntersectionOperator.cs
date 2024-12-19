@@ -22,7 +22,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Cro
             CTFactory,
             CTFactoryArgs>
         where CTOperand1 : NonFictionalAttributeComponent<TData>, IFiniteEnumerableAttributeComponent<TData>
-        where CTFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, CTOperand1, CTFactoryArgs>
+        where CTFactory : INonFictionalAttributeComponentFactory<TData, IEnumerable<TData>, CTFactoryArgs>
         where CTFactoryArgs : NonFictionalAttributeComponentFactoryArgs<TData>
     {
         IAttributeComponent<TData> IFactoryBinaryOperator<

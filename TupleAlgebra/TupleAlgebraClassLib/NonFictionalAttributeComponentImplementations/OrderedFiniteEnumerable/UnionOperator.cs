@@ -29,7 +29,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Ord
                 new OperationResultEnumerableResultProvider<TData>(
                     UnionComponentsElements(), true);
 
-            return factory.CreateNonFictional(first, unitedElements);
+            return factory.CreateNonFictional(unitedElements);
 
             IEnumerable<TData> UnionComponentsElements()
             {
