@@ -17,6 +17,8 @@ using Newtonsoft.Json.Linq;
 using UniversalClassLib.ExpressionVisitors;
 using System.Collections;
 using System.Xml.Linq;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Specialized.EnumBased;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.PredicateBased.Filtering;
 
 namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
 {
@@ -26,7 +28,8 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
     [TestClass]
     public class ColorsTests
     {
-        private class Program
+
+        /*private class Program
         {
             private byte[] _cs = new byte[256];
 
@@ -54,7 +57,7 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
             }
 
             return;
-        }
+        }*/
 
         internal class DependentEntity
         {
@@ -128,6 +131,7 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
             }
         }
 
+
         /*
         [TestMethod]
         public void TestKeySelection()
@@ -144,59 +148,10 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
         }
         */
 
+
         [TestMethod]
         public void TestNavigation()
         {
-            /*
-            Type entityType = typeof(DependentEntity);
-            MemberInfo[] attributes = [
-                entityType.GetProperty(nameof(DependentEntity.ForeignKey)),
-                entityType.GetProperty(nameof(DependentEntity.NavigationalProperty))];
-            ParameterExpression propertySourceEnumeratorsExpr =
-                Expression.Parameter(typeof(IEnumerator[]), "properties");
-            Expression constructorExpr = Expression.MemberInit(
-                Expression.New(entityType),
-                ConstructMembersAssignment());
-            Expression block = Expression.Block();
-
-            Expression MakeKvpParamExpr()
-            {
-                ParameterExpression kvpExpr =
-                    Expression.Parameter(typeof(KeyValuePair<int, MainEntity>), "kvp");
-            }
-
-            MemberAssignment[] ConstructMembersAssignment()
-            {
-                MemberAssignment[] members = new MemberAssignment[attributes.Length];
-
-                for (int i = 0; i < attributes.Length; i++)
-                {
-                    members[i] = Expression.Bind(attributes[i], GetPropertyValueOf(i));
-                }
-
-                return members;
-            }
-
-            Expression GetPropertyValueOf(int attrId)
-            {
-                Type propertyType = attributes[attrId] switch
-                {
-                    FieldInfo fi => fi.FieldType,
-                    PropertyInfo pi => pi.PropertyType,
-                    _ => null
-                },
-                     genericEnumerator = typeof(IEnumerator<>).MakeGenericType(propertyType);
-                PropertyInfo getCurrentInfo = genericEnumerator.GetProperty(ENUM_CURRENT_ITEM)!;
-                Expression ithEnumerator =
-                    Expression.ArrayAccess(propertySourceEnumeratorsExpr, Expression.Constant(attrId)),
-                           downcastedIthEnumerator =
-                    Expression.TypeAs(ithEnumerator, genericEnumerator),
-                           getCurrent =
-                    Expression.MakeMemberAccess(downcastedIthEnumerator, getCurrentInfo);
-
-                return getCurrent;
-            }
-            */
             TupleObjectFactory factory = new TupleObjectFactory(null);
             IAttributeComponentFactory<int> intFactory =
                 new OrderedFiniteEnumerableAttributeComponentFactory<int>(
@@ -218,32 +173,6 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                 .CreateConjunctiveTupleSystem<MainEntity>(mainUniverse,
                     null,
                     null);
-
-            /*
-            LambdaExpression e = (DependentEntity d) =>
-            new KeyValuePair<int, MainEntity>(
-                new Func<DependentEntity, int>((DependentEntity de) => de.Id)(d),
-                new Func<DependentEntity, MainEntity>((DependentEntity de) => de.NavigationalProperty)(d));
-            LambdaExpression ide = (DependentEntity de) => de.ForeignKey,
-                mede = (DependentEntity dr) => dr.NavigationalProperty;
-            //var eee = e.Compile() as Func<DependentEntity, KeyValuePair<int, MainEntity>>;
-            //var kvp = eee(new(1, new MainEntity(2, "zwei")));
-            /*
-            ParameterExpression entityParameter = ide.Parameters[0];
-            Expression ctorExpr = Expression.New(
-                typeof(KeyValuePair<int, MainEntity>)
-                .GetConstructor([typeof(int), typeof(MainEntity)]),
-                new List<LambdaExpression>() { ide, mede }.Select(f => f.Body));
-            var resExpr = Expression.Lambda<Func<DependentEntity, KeyValuePair<int, MainEntity>>>(
-                    ctorExpr, entityParameter);
-            *//*
-            var resExpr = LambdaExpressionHelper.ProduceKeyValuePairGetter<
-                      DependentEntity, int, MainEntity>(
-                      ide,
-                      mede);
-            var eee = resExpr.Compile();// as Func<DependentEntity, KeyValuePair<int, MainEntity>>;
-            var kvp = eee(new(1, 2, m2));
-            */
 
             TupleObject<DependentEntity>.Configure(ConfigureDependent);
 
@@ -312,19 +241,15 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                 builder.HasOne(d => d.NavigationalProperty)
                     .HasForeignKey(d => d.ForeignKey)
                     .HasPrincipalKey(
-                        mains, 
+                        mains,
                         m => m.Id,
                         (domain) => new UnorderedFiniteEnumerableAttributeComponentFactory<MainEntity>(domain),
                         (domain) => new UnorderedFiniteEnumerableAttributeComponentFactory<int?>(domain.Cast<int?>()))
                     .Attach();
-                /*
-                builder.Attribute(d => d.ForeignKey).SetFactory(intFactory);
-                builder.Attribute(d => d.NavigationalProperty).Attach();
-                */
             }
         }
 
-        /*
+
         bool _wereConfigured = false;
 
         public TupleObject<ColorInfo> ColorsKb { get; private set; }
@@ -343,18 +268,20 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
         [TestMethod]
         public void TestStandard()
         {
-            TupleObject<ColorInfo> chromeRule = Factory.
+            TupleObject<ColorInfo> standardRule = Factory.
                 CreateConjunctiveTuple<ColorInfo>(
-                    [
+                    [ SetAC<ColorInfo, ColorTrait>(ci => ci.Trait, new FilteringAttributeComponentFactoryArgs<ColorTrait>(ct => ColorInfo.IsStandard(ct)))
+                        /*
                         SetAC<ColorInfo, bool>(ci => ci.IsTransparent, new BooleanAttributeComponentFactoryArgs(false)),
                         SetAC<ColorInfo, bool>(ci => ci.IsPearl, new BooleanAttributeComponentFactoryArgs(false)),
                         SetAC<ColorInfo, bool>(ci => ci.IsSpeckle, new BooleanAttributeComponentFactoryArgs(false)),
                         SetAC<ColorInfo, bool>(ci => ci.IsMetallic, new BooleanAttributeComponentFactoryArgs(false)),
                         SetAC<ColorInfo, bool>(ci => ci.IsChrome, new BooleanAttributeComponentFactoryArgs(false)),
+                        */
                     ],
                     null, null);
 
-            PrintTupleObject(chromeRule & ColorsKb);
+            PrintTupleObject(standardRule & ColorsKb);
         }
 
         [TestMethod]
@@ -362,7 +289,8 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
         {
             TupleObject<ColorInfo> transparentRule = Factory.
                 CreateConjunctiveTuple<ColorInfo>(
-                    [SetAC<ColorInfo, bool>(ci => ci.IsTransparent, new BooleanAttributeComponentFactoryArgs(true))],
+                    [SetAC<ColorInfo, ColorTrait>(ci => ci.Trait, new FilteringAttributeComponentFactoryArgs<ColorTrait>(ct => ColorInfo.IsTransparent(ct)))],
+                    //SetAC<ColorInfo, bool>(ci => ci.IsTransparent, new BooleanAttributeComponentFactoryArgs(true))],
                     null, null);
 
             PrintTupleObject(transparentRule & ColorsKb);
@@ -373,7 +301,8 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
         {
             TupleObject<ColorInfo> pearlRule = Factory.
                 CreateConjunctiveTuple<ColorInfo>(
-                    [SetAC<ColorInfo, bool>(ci => ci.IsPearl, new BooleanAttributeComponentFactoryArgs(true))],
+                    [SetAC<ColorInfo, ColorTrait>(ci => ci.Trait, new FilteringAttributeComponentFactoryArgs<ColorTrait>(ct => ColorInfo.IsPearl(ct)))],
+                    //SetAC<ColorInfo, bool>(ci => ci.IsPearl, new BooleanAttributeComponentFactoryArgs(true))],
                     null, null);
 
             PrintTupleObject(pearlRule & ColorsKb);
@@ -384,7 +313,8 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
         {
             TupleObject<ColorInfo> speckleRule = Factory.
                 CreateConjunctiveTuple<ColorInfo>(
-                    [SetAC<ColorInfo, bool>(ci => ci.IsSpeckle, new BooleanAttributeComponentFactoryArgs(true))],
+                    [SetAC<ColorInfo, ColorTrait>(ci => ci.Trait, new FilteringAttributeComponentFactoryArgs<ColorTrait>(ct => ColorInfo.IsSpeckle(ct)))],
+                    //SetAC<ColorInfo, bool>(ci => ci.IsSpeckle, new BooleanAttributeComponentFactoryArgs(true))],
                     null, null);
 
             PrintTupleObject(speckleRule & ColorsKb);
@@ -395,7 +325,8 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
         {
             TupleObject<ColorInfo> metallicRule = Factory.
                 CreateConjunctiveTuple<ColorInfo>(
-                    [SetAC<ColorInfo, bool>(ci => ci.IsMetallic, new BooleanAttributeComponentFactoryArgs(true))],
+                    [SetAC<ColorInfo, ColorTrait>(ci => ci.Trait, new FilteringAttributeComponentFactoryArgs<ColorTrait>(ct => ColorInfo.IsMetallic(ct)))],
+                    //SetAC<ColorInfo, bool>(ci => ci.IsMetallic, new BooleanAttributeComponentFactoryArgs(true))],
                     null, null);
 
             PrintTupleObject(metallicRule & ColorsKb);
@@ -406,7 +337,8 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
         {
             TupleObject<ColorInfo> chromeRule = Factory.
                 CreateConjunctiveTuple<ColorInfo>(
-                    [SetAC<ColorInfo, bool>(ci => ci.IsChrome, new BooleanAttributeComponentFactoryArgs(true))],
+                    [SetAC<ColorInfo, ColorTrait>(ci => ci.Trait, new FilteringAttributeComponentFactoryArgs<ColorTrait>(ct => ColorInfo.IsChrome(ct)))],
+                    //SetAC<ColorInfo, bool>(ci => ci.IsChrome, new BooleanAttributeComponentFactoryArgs(true))],
                     null, null);
 
             PrintTupleObject(chromeRule & ColorsKb);
@@ -429,10 +361,14 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
                     new UnorderedFiniteEnumerableAttributeComponentFactory<string>(
                         colors.Select(ci => ci.RGB).ToHashSet()))
                 .Attach();
-            builder.Attribute(ci => ci.IsTransparent)
+            builder.Attribute(ci => ci.Trait)
+                .SetFactory(EnumBasedAttributeComponentFactory<ColorTrait>.Instance)
+                .Attach();
+            /*
+            builder.Attribute(ci => ColorInfo.IsTransparent(ci.Trait))
                 .SetFactory(BooleanAttributeComponentFactory.Instance)
                 .Attach();
-            builder.Attribute(ci => ci.IsPearl)
+            builder.Attribute(ci => ColorInfo.IsPearl(ci.Trait))
                 .SetFactory(BooleanAttributeComponentFactory.Instance)
                 .Attach();
             builder.Attribute(ci => ci.IsSpeckle)
@@ -444,9 +380,9 @@ namespace TupleAlgebraFrameworkTests.LegoPartsCatalog
             builder.Attribute(ci => ci.IsChrome)
                 .SetFactory(BooleanAttributeComponentFactory.Instance)
                 .Attach();
+            */
 
             return;
         }
-        */
     }
 }

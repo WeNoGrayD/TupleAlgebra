@@ -23,12 +23,11 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Unordered
           IFilteringAttributeComponentFactory<TData>
     {
         UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
-            ISetOperationResultFactory<
-                UnorderedFiniteEnumerableNonFictionalAttributeComponent<TData>,
+            INonFictionalAttributeComponentFactory<
+                TData,
                 IEnumerable<TData>,
-                UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>,
-                AttributeComponent<TData>>
-            .CreateFactoryArgs(
+                UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>>
+            .CreateSpecificNonFictionalFactoryArgs(
                 IEnumerable<TData> resultElements)
         {
             return new UnorderedFiniteEnumerableAttributeComponentFactoryArgs<TData>(

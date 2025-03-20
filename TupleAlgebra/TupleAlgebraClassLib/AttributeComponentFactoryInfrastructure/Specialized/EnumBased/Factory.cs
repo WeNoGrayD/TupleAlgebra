@@ -13,9 +13,12 @@ using TupleAlgebraClassLib.AttributeComponents;
 namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Specialized.EnumBased
 {
     public class EnumBasedAttributeComponentFactory<TData>
+        /*
         : AttributeComponentFactory<TData, EnumBasedAttributeDomainFactoryArgs<TData>>,
           IBufferedOrderedFiniteEnumerableAttributeComponentFactory<TData>,
           IFiniteIterableAttributeComponentFactory<TData>
+        */
+        : OrderedFiniteEnumerableAttributeComponentFactory<TData>
         where TData : struct, Enum
     {
         public static EnumBasedAttributeComponentFactory<TData> Instance { get; private set; }
@@ -33,6 +36,7 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Specializ
             return;
         }
 
+        /*
         AttributeComponent<TData> INonFictionalAttributeComponentFactory<
             TData,
             IEnumerable<TData>>
@@ -51,10 +55,12 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Specializ
             return (this as IBufferedOrderedFiniteEnumerableAttributeComponentFactory<TData>)
                 .CreateFactoryArgs(resultElements);
         }
+        */
     }
 
     public record EnumBasedAttributeDomainFactoryArgs<TData>
-        : FiniteIterableAttributeComponentFactoryArgs<TData>
+        //: FiniteIterableAttributeComponentFactoryArgs<TData>
+        : BufferedOrderedFiniteEnumerableAttributeComponentFactoryArgs<TData>
         where TData : struct, Enum
     {
         public EnumBasedAttributeDomainFactoryArgs()

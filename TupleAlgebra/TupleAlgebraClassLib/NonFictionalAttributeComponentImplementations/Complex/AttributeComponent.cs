@@ -35,6 +35,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Com
     /// <typeparam name="TData"></typeparam>
     public class ComplexAttributeComponent<TData>
         : NonFictionalAttributeComponent<TData>,
+          IFiniteEnumerableAttributeComponent<TData>,
           IComplexAttributeComponent
         where TData : new()
     {
@@ -47,6 +48,8 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Com
         //public override bool IsLazy { get => true; }
 
         public TupleObject<TData> Tuple { get; init; }
+
+        public IEnumerable<TData> Values { get => Tuple; }
 
         #endregion
 
@@ -102,7 +105,7 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Com
         private class ComplexAttributeComponentOperationExecutorsContainer
             : NonFictionalAttributeComponentOperationExecutorsContainer<
                 ComplexAttributeComponent<TData>,
-                IEnumerable<TData>,
+                TupleObject<TData>,
                 IComplexAttributeComponentFactory<TData>,
                 ComplexAttributeComponentFactoryArgs<TData>>
         {
@@ -112,14 +115,13 @@ namespace TupleAlgebraClassLib.NonFictionalAttributeComponentImplementations.Com
                 IComplexAttributeComponentFactory<TData> factory)
                 : base(
                       factory,
-                      () => null,
-                      () => null,
-                      () => null,
-                      () => null,
-                      () => null,
-                      () => null,
-                      () => null,
-                      () => null)
+                      () => new IntersectionOperator<TData>(),
+                      () => new UnionOperator<TData>(),
+                      () => new ExceptionOperator<TData>(),
+                      () => new SymmetricExceptionOperator<TData>(),
+                      () => new InclusionComparer<TData>(),
+                      () => new EqualityComparer<TData>(),
+                      () => new InclusionOrEqualityComparer<TData>())
             { }
 
             #endregion

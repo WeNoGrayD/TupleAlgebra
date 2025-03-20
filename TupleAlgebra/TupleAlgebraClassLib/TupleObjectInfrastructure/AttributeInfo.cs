@@ -28,6 +28,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
         None = 0,
         Attached = 1
     }
+
     public interface ITupleObjectAttributeInfo
     {
         public AttributeName Name { get; }

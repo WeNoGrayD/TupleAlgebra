@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.Iterable.Finite;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Buffered;
 using TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFiniteEnumerable.Streaming;
 using TupleAlgebraClassLib.AttributeComponents;
@@ -29,14 +30,32 @@ namespace TupleAlgebraClassLib.AttributeComponentFactoryInfrastructure.OrderedFi
                 TFactoryArgs,
                 AttributeComponent<TData>>
             .CreateFactoryArgs(
+                    IEnumerable<TData> resultElements)
+        {
+            var factoryArgs =
+                CreateSpecificNonFictionalFactoryArgs(resultElements);
+            if (resultElements is IOperationEnumerableResultProvider<TData>
+                maybeUnordered)
+                factoryArgs.ValuesAreOrdered = maybeUnordered.KeepsOrder;
+
+            return factoryArgs;
+        }
+
+        TFactoryArgs
+            ISetOperationResultFactory<
+                TAttributeComponent,
+                IEnumerable<TData>,
+                TFactoryArgs,
+                AttributeComponent<TData>>
+            .CreateFactoryArgs(
                     TAttributeComponent first,
                     IEnumerable<TData> resultElements)
         {
             var factoryArgs =
                 CreateFactoryArgs_DefaultImpl(first, resultElements);
-            factoryArgs.ValuesAreOrdered = 
-                (resultElements as IOperationEnumerableResultProvider<TData>)!
-                .KeepsOrder;
+            if (resultElements is IOperationEnumerableResultProvider<TData>
+                maybeUnordered)
+                factoryArgs.ValuesAreOrdered = maybeUnordered.KeepsOrder;
 
             return factoryArgs;
         }

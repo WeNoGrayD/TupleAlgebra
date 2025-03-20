@@ -29,6 +29,8 @@
     <ProjectReference Include="..\UniversalClassLib\UniversalClassLib.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="AttributeComponentFactoryInfrastructure\Specialized\Numeric\" />
+    <Folder Include="AttributeComponentFactoryInfrastructure\Specialized\TextBased\Unicode\" />
     <Folder Include="NonFictionalAttributeComponentImplementations\Atomic\" />
   </ItemGroup>
 </Project>

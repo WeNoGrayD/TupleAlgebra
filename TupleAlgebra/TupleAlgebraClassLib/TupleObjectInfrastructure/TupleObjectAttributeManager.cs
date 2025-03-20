@@ -199,7 +199,7 @@ namespace TupleAlgebraClassLib.TupleObjectInfrastructure
             ITupleObjectAttributeInfo<TEntity, TAttribute> attrInfo =
                 (Schema[_attributeName] as ITupleObjectAttributeInfo<TEntity, TAttribute>)!;
             if (attrInfo.ComponentFactory is not
-                IEnumerableNonFictionalAttributeComponentFactory<TAttribute> componentFactory)
+                INonFictionalAttributeComponentFactory<TAttribute, IEnumerable<TAttribute>> componentFactory)
             {
                 throw new Exception($"Был создан запрос на создание объекта алгебры кортежей из экземпляра типа {nameof(TEntity)}. Фабрика компонент атрибутов для атрибута {_attributeName} не реализует интерфейс ITupleObjectAttributeInfo<{nameof(TEntity)}, {nameof(TAttribute)}>, что требуется в процессе программы.");
             }
