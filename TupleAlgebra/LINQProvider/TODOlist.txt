@@ -1,0 +1,99 @@
+﻿1. Select(...).Where(...).{...| Query() : el1 => el2}.Skip(N) -> Skip(N).Select(...).Where(...).{...}
+// Для запросов 1-к-1 запрос Skip должен идти перед ними, даже если пользователь сделал наоборот.
+// Решается изменением выражения запроса IQueryable.Expression.
+
+1) Select -> 2) SelectMany -> 3) TakeWhile -> 4) Where -> 5) SelectMany;
+1 -> {1, 2, 3} -> {1 -> 1 -> {4, 5, 6}, 2 -> 2 -/->, 3-> 3 -> {7, 8, 9}}
+Итоговый результат: 1 -> {4, 5, 6, 7, 8, 9}
+
+/
+IEnumerable<TPipelineQueryResultData> 1).GetEnumerableResult(queryPipelineExecutor) ::
+var queryExecutor1 = _innerExecutorImpl;
+foreach (TData data in queryPipelineExecutor.GetDataSource<TData>())
+{
+	1)._moveNext = queryExecutor1.ExecuteOverDataInstance(data);
+	// queryExecutor1.OnDataPassed -> give IN to 2) 
+	if (1)._moveNext = ...) break;
+	// IN is {1}
+	// 2).res is postponed
+	// 2) saved IN as 2)._intermediateInputData
+	foreach (TPipelineQueryResultData pipelineQueryResultData1
+		 in NextExecutor.GetEnumerableResult(queryPipelineExecutor))
+	{
+		\/ IEnumerable<TPipelineQueryResultData> 2).GetEnumerableResult(queryPipelineExecutor) ::
+		var queryExecutor2 = _innerExecutorImpl;
+		var iid = 2)._intermediateInputData; 
+		2)._moveNext = queryExecutor2.ExecuteOverDataInstance(iid);
+		// queryExecutor2 produces IN: {1, 2, 3}
+		// 2) saved IN as 2)._queryResult
+		foreach (TQueryResultData queryResultData in 2)._queryResult)
+		{
+			foreach (TPipelineQueryResultData pipelineQueryResultData2
+				 in NextExecutor.GetEnumerableResult(queryPipelineExecutor))
+			{
+				if (! (2)._moveNext = ...)) break;
+				yield return pipelineQueryResultData2;
+			}
+		}
+		// IN is {1, 2, 3}
+		// 3) -> 4) -> 5)
+		// 5).res is postponed
+		// 5) saved IN as 5)._	
+		// OUT is {4, 5, 6, 7, 8, 9}
+		/\ yield return pipelineQueryResultData1;
+		1)._moveNext = ...
+		if (1).!moveNext) break;
+	}
+}
+
+// 1) Для чего делать конвейер запросов с неопределённой конечной точкой?
+// Симулирование мысленного процесса.
+// 2) Как сделать конвейер запросов с неопределённой конечной точкой?
+// Во-первых, пайплайн должен строиться динамически по мере надобности. Не в коде напрямую, а при наличии потребности у программы добавить новый "запрос"
+// или удалить самый последний и перейти к последней точке управления в старом.
+// ??????
+// Во-вторых, тип входных и выходных данных у каждого промежуточного звена пайплайна должен быть одинаков. Например:
+// IQueryable<IAssertion>.Query1<IAssertion, IAssertion>(...).Query2<IAssertion, IAssertion>(...)...
+// Типы выходных данных должны быть идентичными между собой и соответствовать типу результата конвейера запросов, чтобы
+// любой запрос мог вернуть результат. Типы входных данных должны быть идентичными между собой, поскольку они вытекают из типов выходных данных.
+// ??????
+// Другой вариант:
+// ??????
+// В-третьих, должны быть условия неудовлетворения конвейера запросов на данном этапе (последний запрос привёл в тупик, вычёркиваем и переходим к предыдущему),
+// удовлетворения (результат о'кей, и несмотря на то, что это не конечная точка в привычном понмиании, результат возвращается).
+// Если варианты перебраны, то возвращается код ошибки.
+// Соответственно, нужны какие-то события провала конкретного локального, что ли? Который сам по себе не значит полного провала конвейера,
+// но звено с этим запросом должно быть удалено и должно возвратить управление предыдущему звену.
+// Сам конвейер запросов фатальным провалом по причине провала якобы "конечной" точки не закончится, потому что на самом деле конечных точек в нём не будет. 
+
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+Assertion pipeline:
+// В стейтменте вместо пролог-лайк предикатов должны быть, очевидно, какие-либо АК-объекты (с-кортежи, д-кортежи, системы оных).
+// Assertions - это что-то типа движка пролога, который управляет пайплайноми может предоставлять пользователю переход от уровня к уровню и т.д.
+// Имеет смысл задавать настройки в этом классе, вроде Assertions(DebugMode = true). 
+Assertions.Statement<a>(a(1, 2, SomeB)).Select(A => new { Id = A[0], B = A[2]}).Statement<AnonymousType1>(new CTuple<anon1>(*, 3));
+while (family = Assertions.Statement<a>(a(1, *, 3)).Statement<b>(b(true, *)).Statement<c>(c(*, "family", *)).GetContent<Family>())
+{
+	Console.WriteLine($"Children of Skywalkers: {", ".Join(family.Children.Select(c => c.Name))}");
+}
+
+// Families.Where(f => f.NumberOfChildren > 1) ===> Families & new CTuple<Family>(LastName: *, Parents: *, NumberOfChildren: >1) 

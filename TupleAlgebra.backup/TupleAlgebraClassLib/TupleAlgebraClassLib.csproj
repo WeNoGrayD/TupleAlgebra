@@ -1,0 +1,161 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A033221B-03D9-4BEA-B445-53E3B428AD06}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TupleAlgebraClassLib</RootNamespace>
+    <AssemblyName>TupleAlgebraClassLib</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>11.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AlgebraicTuple.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\AlgebraicTupleAttributeSetupWizard.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\AlgebraicTupleBuilder.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\AlgebraicTupleOneToManyAttributeSetupWizard.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\AlgebraicTupleOneToOneAttributeSetupWizard.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\AlgebraicTupleSchema.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\AttributeDomainProvider.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\AttributeInfo.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\IAlgebraicTupleAttributeSetupWizard.cs" />
+    <Compile Include="AlgebraicTupleInfrastructure\IAlgebraicTupleSchemaProvider.cs" />
+    <Compile Include="AttributeComponentAcceptors\CrossContentTypesFactoryAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponentAcceptors\CrossContentTypesInstantAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponentAcceptors\FactoryBinaryAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponentAcceptors\FactoryUnaryAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponentAcceptors\IFactoryAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponentAcceptors\IInstantAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponentAcceptors\InstantBinaryAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponentAcceptors\InstantUnaryAttributeComponentAcceptor.cs" />
+    <Compile Include="AttributeComponent.cs" />
+    <Compile Include="AttributeComponentFactoryInfrastructure\AttributeComponentFactory.cs" />
+    <Compile Include="AttributeComponentFactoryInfrastructure\AttributeComponentFactoryArgs.cs" />
+    <Compile Include="AttributeComponentFactoryInfrastructure\AttributeComponentGeneralFactory.cs" />
+    <Compile Include="AttributeComponentFactoryInfrastructure\INonFictionalAttributeComponentFactory.cs" />
+    <Compile Include="ConjunctiveAlgebraicTuple.cs" />
+    <Compile Include="DisjunctiveAlgebraicTuple.cs" />
+    <Compile Include="EmptyAttributeComponentInfrastructure\EmptyAttributeComponentComplementionOperator.cs" />
+    <Compile Include="EmptyAttributeComponentInfrastructure\EmptyAttributeComponentEqualityComparer.cs" />
+    <Compile Include="EmptyAttributeComponentInfrastructure\EmptyAttributeComponentExceptionOperator.cs" />
+    <Compile Include="EmptyAttributeComponentInfrastructure\EmptyAttributeComponentInclusionComparer.cs" />
+    <Compile Include="EmptyAttributeComponentInfrastructure\EmptyAttributeComponentInclusionOrEqualityComparer.cs" />
+    <Compile Include="EmptyAttributeComponentInfrastructure\EmptyAttributeComponentIntersectionOperator.cs" />
+    <Compile Include="EmptyAttributeComponentInfrastructure\EmptyAttributeComponentSymmetricExceptionOperator.cs" />
+    <Compile Include="EmptyAttributeComponentInfrastructure\EmptyAttributeComponentUnionOperator.cs" />
+    <Compile Include="EmptyAttributeComponent.cs" />
+    <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentComplementionOperator.cs" />
+    <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentEqualityComparer.cs" />
+    <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentExceptionOperator.cs" />
+    <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentInclusionComparer.cs" />
+    <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentInclusionOrEqualityComparer.cs" />
+    <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentIntersectionOperator.cs" />
+    <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentSymmetricExceptionOperator.cs" />
+    <Compile Include="FullAttributeComponentInfrastructure\FullAttributeComponentUnionOperator.cs" />
+    <Compile Include="FullAttributeComponent.cs" />
+    <Compile Include="AttributeDomain.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\AttributeComponentQueryContext.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\DefaultQueryExecutors\WhereQueryExecutor.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentQueryContext.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\AttributeComponentQueryPipelineExecutor.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentQueryPipelineExecutor.cs" />
+    <Compile Include="LINQ2TAFramework\EveryDataInstanceReader.cs" />
+    <Compile Include="LINQ2TAFramework\IQueryPipelineExecutorAcceptor.cs" />
+    <Compile Include="LINQ2TAFramework\IReproducingQueryable.cs" />
+    <Compile Include="LINQ2TAFramework\ISingleQueryExecutor.cs" />
+    <Compile Include="LINQ2TAFramework\ISingleQueryExecutorVisitor.cs" />
+    <Compile Include="LINQ2TAFramework\QueryableAttributeComponent.cs" />
+    <Compile Include="LINQ2TAFramework\QueryPipelineExecutor.cs" />
+    <Compile Include="LINQ2TAFramework\WholeDataSourceReader.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\DecidableAttributeDomain.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\DecidableNonFictionalAttributeComponent.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PBDNonFictionalAttributeComponentEqualityComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PBDNonFictionalAttributeComponentInclusionComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PBDNonFictionalAttributeComponentInclusionOrEqualityComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PBDNonFictionalAttributeComponentSymmetricExceptionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PBDNonFictionalAttributeComponentUnionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PBDNonFictionalAttributeComponentExceptionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PBDNonFictionalAttributeComponentIntersectionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PredicateBasedDecidableNonFictionalAttributeComponentFactory.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\DecidableNonFictionalAttributeComponent\PredicateBasedDecidableNonFictionalAttributeComponentFactoryArgs.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\FactoryBinaryOFENonFictionalAttributeComponentAcceptor.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\InstantBinaryOFENonFictionalAttributeComponentAcceptor.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OFENonFictionalAttributeComponentEqualityComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OFENonFictionalAttributeComponentExceptionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OFENonFictionalAttributeComponentInclusionComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OFENonFictionalAttributeComponentInclusionOrEqualityComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OFENonFictionalAttributeComponentIntersectionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OFENonFictionalAttributeComponentSymmetricExceptionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OFENonFictionalAttributeComponentUnionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OrderedFiniteEnumerableAttributeDomain.cs" />
+    <Compile Include="NonFictionalAttributeComponentImplementations\OrderedFiniteEnumerableNonFictionalAttributeComponentInfrastructure\OrderedFiniteEnumerableNonFictionalAttributeComponent.cs" />
+    <Compile Include="AttributeComponentFactoryInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentFactory.cs" />
+    <Compile Include="AttributeComponentFactoryInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentFactoryArgs.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\OrderedFiniteEnumerableAttributeComponentQueryProvider.cs" />
+    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentComplementionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentEqualityComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentExceptionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentInclusionComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentInclusionOrEqualityComparer.cs" />
+    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentIntersectionOperator.cs" />
+    <Compile Include="LINQ2TAFramework\AttributeComponentInfrastructure\AttributeComponentQueryProvider.cs" />
+    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentSymmetricExceptionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponentInfrastructure\NonFictionalAttributeComponentUnionOperator.cs" />
+    <Compile Include="NonFictionalAttributeComponent.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SetOperationExecutersContainers\FactorySetOperationExecutersContainer.cs" />
+    <Compile Include="SetOperationExecutersContainers\InstantSetOperationExecutersContainer.cs" />
+    <Compile Include="SetOperationExecutersContainers\SetOperationExecutersContainer.cs" />
+    <Compile Include="SpecializedAttributeComponents\OrderedFiniteEnumerable\DictionaryBasedOrderedFiniteEnumerableNonFictionalAttributeComponent.cs" />
+    <Compile Include="SpecializedAttributeComponents\OrderedFiniteEnumerable\EnumBasedOrderedFiniteEnumerableNonFictionalAttributeComponent.cs" />
+    <Compile Include="SpecializedAttributeComponents\OrderedFiniteEnumerable\LookupBasedOrderedFiniteEnumerableNonFictionalAttributeComponent.cs" />
+    <Compile Include="SpecializedAttributeDomains\BooleanAttributeDomain.cs" />
+    <Compile Include="SpecializedAttributeDomains\DictionaryBasedOrderedFiniteEnumerableAttributeDomain.cs" />
+    <Compile Include="SpecializedAttributeDomains\EnumBasedOrderedFiniteEnumerableAttributeDomain.cs" />
+    <Compile Include="SpecializedAttributeDomains\Integer32OrderedFiniteEnumerableAttributeDomain.cs" />
+    <Compile Include="SpecializedAttributeDomains\Integer64OrderedFiniteEnumerableAttributeDomain.cs" />
+    <Compile Include="SpecializedAttributeDomains\LookupBasedOrderedFiniteEnumerableAttributeDomain.cs" />
+    <Compile Include="SpecializedAttributeDomains\NumericDoubleOrderedFiniteEnumerableAttributeDomain.cs" />
+    <Compile Include="SpecializedAttributeDomains\NumericSingleOrderedFiniteEnumerableAttributeDomain.cs" />
+    <Compile Include="TAFrameworkCustomAttributes\TAHasDomainAttribute.cs" />
+    <Compile Include="TAFrameworkCustomAttributes\TAHasEquivalenceRelationAttribute.cs" />
+    <Compile Include="TAFrameworkCustomAttributes\TAIgnoredAttribute.cs" />
+    <Compile Include="TAFrameworkCustomAttributes\TAOneToOneRelationAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LINQ2TAFramework\AttributeComponentInfrastructure\OrderedFiniteEnumerable\QueryExecutors\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
